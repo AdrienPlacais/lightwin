@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beam_calculation.envelope_1d.transfer_matrices_p module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beam_calculation.envelope_1d.transfer_matrix_factory module" href="beam_calculation.envelope_1d.transfer_matrix_factory.html" />
+    <link rel="prev" title="beam_calculation.envelope_1d.transfer_matrices_c module" href="beam_calculation.envelope_1d.transfer_matrices_c.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="beam_calculation.envelope_1d.html">beam_calculation.envelope_1d package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.beam_parameters_factory.html">beam_calculation.envelope_1d.beam_parameters_factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.element_envelope1d_parameters.html">beam_calculation.envelope_1d.element_envelope1d_parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.element_envelope1d_parameters_factory.html">beam_calculation.envelope_1d.element_envelope1d_parameters_factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html">beam_calculation.envelope_1d.envelope_1d module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.simulation_output_factory.html">beam_calculation.envelope_1d.simulation_output_factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_c.html">beam_calculation.envelope_1d.transfer_matrices_c module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">beam_calculation.envelope_1d.transfer_matrices_p module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrix_factory.html">beam_calculation.envelope_1d.transfer_matrix_factory module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_3d.html">beam_calculation.envelope_3d package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.parameters.html">beam_calculation.parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.simulation_output.html">beam_calculation.simulation_output package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.tracewin.html">beam_calculation.tracewin package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.beam_calculator.html">beam_calculation.beam_calculator module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.factory.html">beam_calculation.factory module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="beam_calculation.html">beam_calculation package</a></li>
+          <li class="breadcrumb-item"><a href="beam_calculation.envelope_1d.html">beam_calculation.envelope_1d package</a></li>
+      <li class="breadcrumb-item active">beam_calculation.envelope_1d.transfer_matrices_p module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beam_calculation.envelope_1d.transfer_matrices_p.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-beam_calculation.envelope_1d.transfer_matrices_p">
+<span id="beam-calculation-envelope-1d-transfer-matrices-p-module"></span><h1>beam_calculation.envelope_1d.transfer_matrices_p module<a class="headerlink" href="#module-beam_calculation.envelope_1d.transfer_matrices_p" title="Link to this heading"></a></h1>
+<p>Here we define every element longitudinal transfer matrix.</p>
+<p>Units are taken exactly as in TraceWin, i.e. first line is <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">(m)</span></code> and second
+line is <code class="docutils literal notranslate"><span class="pre">dp/p</span></code>.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Check du_dz outside of field_map function</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Possible to use only lists here. Not primary.
+May speed up the code, especially in _c.
+But numpy is fast, no?</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>send beta as argument to avoid recomputing it each time</p>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.envelope_1d.transfer_matrices_p.e_func">
+<span class="sig-name descname"><span class="pre">e_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_spat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#beam_calculation.envelope_1d.transfer_matrices_p.e_func" title="Link to this definition"></a></dt>
+<dd><p>Give the electric field at position z and phase phi.</p>
+<p>The field is normalized and should be multiplied by k_e.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.envelope_1d.transfer_matrices_p.rk4">
+<span class="sig-name descname"><span class="pre">rk4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">du</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#beam_calculation.envelope_1d.transfer_matrices_p.rk4" title="Link to this definition"></a></dt>
+<dd><p>4-th order Runge-Kutta integration.</p>
+<p>This function calculates the variation of <code class="docutils literal notranslate"><span class="pre">u</span></code> components between <code class="docutils literal notranslate"><span class="pre">x</span></code>
+and <code class="docutils literal notranslate"><span class="pre">x+dx</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a slightly modified version of the RK. The <code class="docutils literal notranslate"><span class="pre">k_i</span></code> are proportional
+to <code class="docutils literal notranslate"><span class="pre">delta_u</span></code> instead of <code class="docutils literal notranslate"><span class="pre">du_dz</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>np.ndarray</em>) – Holds the value of the function to integrate in <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p><strong>du_dx</strong> (<em>Callable</em><em>[</em><em>[</em><em>float</em><em>, </em><em>np.ndarray</em><em>]</em><em>, </em><em>np.ndarray</em><em>]</em>) – Gives the variation of <code class="docutils literal notranslate"><span class="pre">u</span></code> components with <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – Where <code class="docutils literal notranslate"><span class="pre">u</span></code> is known.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Integration step.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>delta_u</strong> – Variation of <code class="docutils literal notranslate"><span class="pre">u</span></code> between <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">x+dx</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.envelope_1d.transfer_matrices_p.z_bend">
+<span class="sig-name descname"><span class="pre">z_bend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor_1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor_2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor_3</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beam_calculation.envelope_1d.transfer_matrices_p.z_bend" title="Link to this definition"></a></dt>
+<dd><p>Compute the longitudinal transfer matrix of a bend.</p>
+<p><code class="docutils literal notranslate"><span class="pre">factor_1</span></code> is:</p>
+<div class="math notranslate nohighlight">
+\[\frac{-h^2\Delta s}{k_x^2}\]</div>
+<p><code class="docutils literal notranslate"><span class="pre">factor_2</span></code> is:</p>
+<div class="math notranslate nohighlight">
+\[\frac{h^2 \sin{(k_x\Delta s)}}{k_x^3}\]</div>
+<p><code class="docutils literal notranslate"><span class="pre">factor_3</span></code> is:</p>
+<div class="math notranslate nohighlight">
+\[\Delta s \left(1 - \frac{h^2}{k_x^2}\right)\]</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.envelope_1d.transfer_matrices_p.z_drift">
+<span class="sig-name descname"><span class="pre">z_drift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beam_calculation.envelope_1d.transfer_matrices_p.z_drift" title="Link to this definition"></a></dt>
+<dd><p>Calculate the transfer matrix of a drift.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.envelope_1d.transfer_matrices_p.z_field_map_leapfrog">
+<span class="sig-name descname"><span class="pre">z_field_map_leapfrog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega0_rf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_e</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_0_rel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_spat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beam_calculation.envelope_1d.transfer_matrices_p.z_field_map_leapfrog" title="Link to this definition"></a></dt>
+<dd><p>Calculate the transfer matrix of a <code class="docutils literal notranslate"><span class="pre">FIELD_MAP</span></code> using leapfrog.</p>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>clean</p>
+</div>
+<p>This method is less precise than RK4. However, it is much faster.</p>
+<p>Classic leapfrog method:
+speed(i+0.5) = speed(i-0.5) + accel(i) * dt
+pos(i+1)     = pos(i)       + speed(i+0.5) * dt</p>
+<p>Here, dt is not fixed but dz.
+z(i+1) += dz
+t(i+1) = t(i) + dz / (c beta(i+1/2))
+(time and space variables are on whole steps)
+beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
+(speed/energy is on half steps)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.envelope_1d.transfer_matrices_p.z_field_map_rk4">
+<span class="sig-name descname"><span class="pre">z_field_map_rk4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega0_rf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_e</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_0_rel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_spat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">complex</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beam_calculation.envelope_1d.transfer_matrices_p.z_field_map_rk4" title="Link to this definition"></a></dt>
+<dd><p>Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.envelope_1d.transfer_matrices_p.z_thin_lense">
+<span class="sig-name descname"><span class="pre">z_thin_lense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_phi_m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half_dz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_gamma_m_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega0_rf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#beam_calculation.envelope_1d.transfer_matrices_p.z_thin_lense" title="Link to this definition"></a></dt>
+<dd><p>Thin lense approximation: drift-acceleration-drift.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gamma_in</strong> (<em>float</em>) – gamma at entrance of first drift.</p></li>
+<li><p><strong>gamma_out</strong> (<em>float</em>) – gamma at exit of first drift.</p></li>
+<li><p><strong>gamma_phi_m</strong> (<em>np.ndarray</em>) – gamma and phase at the thin acceleration drift.</p></li>
+<li><p><strong>half_dz</strong> (<em>float</em>) – Half a spatial step in m.</p></li>
+<li><p><strong>delta_gamma_m_max</strong> (<em>float</em>) – Max gamma increase if the cos(phi + phi_0) of the acc. field is 1.</p></li>
+<li><p><strong>phi_0</strong> (<em>float</em>) – Input phase of the cavity.</p></li>
+<li><p><strong>omega0_rf</strong> (<em>float</em>) – Pulsation of the cavity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r_zz_array</strong> – Transfer matrix of the thin lense.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beam_calculation.envelope_1d.transfer_matrices_c.html" class="btn btn-neutral float-left" title="beam_calculation.envelope_1d.transfer_matrices_c module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beam_calculation.envelope_1d.transfer_matrix_factory.html" class="btn btn-neutral float-right" title="beam_calculation.envelope_1d.transfer_matrix_factory module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>failures.strategy module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation package" href="optimisation.html" />
+    <link rel="prev" title="failures.set_of_cavity_settings module" href="failures.set_of_cavity_settings.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="failures.html">failures package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="failures.fault.html">failures.fault module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="failures.fault_scenario.html">failures.fault_scenario module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="failures.helper.html">failures.helper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="failures.set_of_cavity_settings.html">failures.set_of_cavity_settings module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">failures.strategy module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="failures.html">failures package</a></li>
+      <li class="breadcrumb-item active">failures.strategy module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/failures.strategy.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-failures.strategy">
+<span id="failures-strategy-module"></span><h1>failures.strategy module<a class="headerlink" href="#module-failures.strategy" title="Link to this heading"></a></h1>
+<p>Define the function related to the <code class="docutils literal notranslate"><span class="pre">strategy</span></code> key of <code class="docutils literal notranslate"><span class="pre">wtf</span></code>.</p>
+<p>In particular, it answers the question:
+<strong>Given this set of faults, which compensating cavities will be used?</strong></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In order to add a compensation strategy, you must add it to the
+<code class="docutils literal notranslate"><span class="pre">COMPENSATING_SELECTOR</span></code> dict, and also to the list of
+supported strategies in <a class="reference internal" href="config.wtf.html#module-config.wtf" title="config.wtf"><code class="xref py py-mod docutils literal notranslate"><span class="pre">config.wtf</span></code></a> module.</p>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="failures.strategy.failed_and_compensating">
+<span class="sig-name descname"><span class="pre">failed_and_compensating</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_nature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'cavity'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'element'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'name'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_manual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">wtf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.strategy.failed_and_compensating" title="Link to this definition"></a></dt>
+<dd><p>Determine the compensating cavities for every failure.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="failures.strategy.global_compensation">
+<span class="sig-name descname"><span class="pre">global_compensation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_failed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span></span></span><a class="headerlink" href="#failures.strategy.global_compensation" title="Link to this definition"></a></dt>
+<dd><p>Give all the cavities of the linac.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elements</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em>) – All the tunable elements.</p></li>
+<li><p><strong>failed_elements</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em>) – Failed cavities.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>altered</strong> – Contains all the altered elements.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[T]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="failures.strategy.global_downstream">
+<span class="sig-name descname"><span class="pre">global_downstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_failed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span></span></span><a class="headerlink" href="#failures.strategy.global_downstream" title="Link to this definition"></a></dt>
+<dd><p>Give all the cavities after failure of the linac.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elements</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em>) – All tunable the elements.</p></li>
+<li><p><strong>failed_elements</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em>) – Failed cavities.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>altered</strong> – Contains all the altered elements.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[T]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="failures.strategy.k_out_of_n">
+<span class="sig-name descname"><span class="pre">k_out_of_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tie_politics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'upstream</span> <span class="pre">first'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_failed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span></span></span><a class="headerlink" href="#failures.strategy.k_out_of_n" title="Link to this definition"></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">k</span></code> compensating cavities per failed in <code class="docutils literal notranslate"><span class="pre">elts_of_interest</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">T</span></code> can represent a <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>, or a list of
+<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>. Returned type/data structure will be the same as
+what was given in arguments. This function is hereby also used by
+<a class="reference internal" href="#failures.strategy.l_neighboring_lattices" title="failures.strategy.l_neighboring_lattices"><code class="xref py py-func docutils literal notranslate"><span class="pre">l_neighboring_lattices()</span></code></a> which gives in lattices.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elements</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em>) – All the tunable elements/lattices/sections.</p></li>
+<li><p><strong>failed_elements</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em>) – Failed cavities/lattice.</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – Number of compensating cavity per failure.</p></li>
+<li><p><strong>tie_politics</strong> (<em>{'upstream first'</em><em>, </em><em>'downstream first'}</em><em>, </em><em>optional</em>) – When two elements have the same position, will you want to have the
+upstream or the downstream first? The default is <code class="docutils literal notranslate"><span class="pre">&quot;upstream</span> <span class="pre">first&quot;</span></code>.</p></li>
+<li><p><strong>shift</strong> (<em>int</em><em>, </em><em>optional</em>) – Distance increase for downstream elements (<code class="docutils literal notranslate"><span class="pre">shift</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>) or upstream
+elements (<code class="docutils literal notranslate"><span class="pre">shift</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>). Used to have a window of compensating
+cavities which is not centered around the failed elements. The default
+is 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>altered</strong> – Contains all the altered elements/lattices. The <code class="docutils literal notranslate"><span class="pre">n</span></code> first are failed,
+the <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">*</span> <span class="pre">n</span></code> following are compensating.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[T]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="failures.strategy.l_neighboring_lattices">
+<span class="sig-name descname"><span class="pre">l_neighboring_lattices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements_gathered_by_lattice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tie_politics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'upstream</span> <span class="pre">first'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_failed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_number_of_cavities_in_lattice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span></span></span><a class="headerlink" href="#failures.strategy.l_neighboring_lattices" title="Link to this definition"></a></dt>
+<dd><p>Select full lattices neighboring the failed cavities.</p>
+<p>Every fault will be compensated by <code class="docutils literal notranslate"><span class="pre">l</span></code> full lattices, direct neighbors of
+the errors [1, 2]. You must provide <code class="docutils literal notranslate"><span class="pre">l</span></code>. Non-failed cavities in the same
+lattice as the failure are also used.</p>
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id1" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>F. Bouly, J.-L. Biarrotte, and D. Uriot, “Fault tolerance and
+consequences in the MYRRHA superconducting LINAC,” in Proc. 27th Linear
+Accelerator Conf. (LINAC14). Geneva, Switzerland: JACoW Publishing,
+Geneva, Switzerland, 2014.</p>
+</aside>
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<p>A. Plaçais and F. Bouly, “Cavity Failure Compensation Strategies in
+Superconducting Linacs,” in Proceedings of LINAC2022, 2022, pp.
+552–555. doi:10.18429/JACoW-LINAC2022-TUPORI04</p>
+</aside>
+</aside>
+<dl class="simple">
+<dt>elements_by_lattice<span class="classifier">Sequence[Sequence[T]]</span></dt><dd><p>Tunable elements sorted by lattice.</p>
+</dd>
+<dt>failed_elements<span class="classifier">Sequence[T]</span></dt><dd><p>Failed cavities/lattice.</p>
+</dd>
+<dt>l<span class="classifier">int</span></dt><dd><p>Number of compensating lattice per failure.</p>
+</dd>
+<dt>tie_politics<span class="classifier">{‘upstream first’, ‘downstream first’}, optional</span></dt><dd><p>When two elements have the same position, will you want to have the
+upstream or the downstream first? The default is <code class="docutils literal notranslate"><span class="pre">&quot;upstream</span> <span class="pre">first&quot;</span></code>.</p>
+</dd>
+<dt>shift<span class="classifier">int, optional</span></dt><dd><p>Distance increase for downstream elements (<code class="docutils literal notranslate"><span class="pre">shift</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>) or upstream
+elements (<code class="docutils literal notranslate"><span class="pre">shift</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>). Used to have a window of compensating
+cavities which is not centered around the failed elements. The default
+is 0.</p>
+</dd>
+<dt>remove_failed<span class="classifier">bool, optional</span></dt><dd><p>To remove the failed lattices from the output. The default is True.</p>
+</dd>
+<dt>min_number_of_cavities_in_lattice<span class="classifier">int, optional</span></dt><dd><p>If a lattice has less than this number of functional cavities, we
+look for another lattice. This is designed to removed lattices which
+have no cavities (default value: 1). Note that lattices that have
+some functional cavities but not enough will be used for compensation
+anyway.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>altered</strong> – Contains all the altered cavities.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[T]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="failures.strategy.manual">
+<span class="sig-name descname"><span class="pre">manual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">failed_cavities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_cavities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.strategy.manual" title="Link to this definition"></a></dt>
+<dd><p>Associate failed with compensating cavities.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="failures.set_of_cavity_settings.html" class="btn btn-neutral float-left" title="failures.set_of_cavity_settings module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.html" class="btn btn-neutral float-right" title="optimisation package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

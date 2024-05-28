@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.beam_parameters.factory module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.beam_parameters.helper module" href="core.beam_parameters.helper.html" />
+    <link rel="prev" title="core.beam_parameters.beam_parameters module" href="core.beam_parameters.beam_parameters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.html">core.beam_parameters.phase_space package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.beam_parameters.html">core.beam_parameters.beam_parameters module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">core.beam_parameters.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html">core.beam_parameters.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html">core.beam_parameters.initial_beam_parameters module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+          <li class="breadcrumb-item"><a href="core.beam_parameters.html">core.beam_parameters package</a></li>
+      <li class="breadcrumb-item active">core.beam_parameters.factory module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.beam_parameters.factory.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.beam_parameters.factory">
+<span id="core-beam-parameters-factory-module"></span><h1>core.beam_parameters.factory module<a class="headerlink" href="#module-core.beam_parameters.factory" title="Link to this heading"></a></h1>
+<p>Define a factory for the <a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamParameters</span></code></a>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BeamParametersFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Declare factory method, that returns the <a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamParameters</span></code></a>.</p>
+<p>Subclassed by every <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._check_and_set_arrays">
+<span class="sig-name descname"><span class="pre">_check_and_set_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._check_and_set_arrays" title="Link to this definition"></a></dt>
+<dd><p>Ensure that inputs are arrays with proper shape, compute beta.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._check_sigma_in">
+<span class="sig-name descname"><span class="pre">_check_sigma_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._check_sigma_in" title="Link to this definition"></a></dt>
+<dd><p>Change shape of <code class="docutils literal notranslate"><span class="pre">sigma_in</span></code> if necessary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._determine_phase_spaces">
+<span class="sig-name descname"><span class="pre">_determine_phase_spaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._determine_phase_spaces" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._set_from_other_phase_space">
+<span class="sig-name descname"><span class="pre">_set_from_other_phase_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><span class="pre">BeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._set_from_other_phase_space" title="Link to this definition"></a></dt>
+<dd><p>Instantiate a phase space from another one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>beam_parameters</strong> (<a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><em>BeamParameters</em></a>) – Object holding the beam parameters in different phase spaces.</p></li>
+<li><p><strong>other_phase_space_name</strong> (<em>{'zdelta'}</em>) – Name of the phase space from which the new phase space will be
+initialized.</p></li>
+<li><p><strong>phase_space_names</strong> (<em>Sequence</em><em>[</em><em>{'phiw'</em><em>, </em><em>'z'}</em><em>]</em>) – Name of the phase spaces that will be created.</p></li>
+<li><p><strong>gamma_kin</strong> (<em>np.ndarray</em>) – Lorentz gamma factor.</p></li>
+<li><p><strong>beta_kin</strong> (<em>np.ndarray</em>) – Lorentz beta factor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._set_from_sigma">
+<span class="sig-name descname"><span class="pre">_set_from_sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><span class="pre">BeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigmas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._set_from_sigma" title="Link to this definition"></a></dt>
+<dd><p>Initialize transfer matrices from <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._set_from_transfer_matrix">
+<span class="sig-name descname"><span class="pre">_set_from_transfer_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><span class="pre">BeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transfer_matrices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._set_from_transfer_matrix" title="Link to this definition"></a></dt>
+<dd><p>Initialize phase spaces from their transfer matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>beam_parameters</strong> (<a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><em>BeamParameters</em></a>) – Object holding the different phase spaces.</p></li>
+<li><p><strong>phase_space_names</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – Names of the phase spaces to initialize.</p></li>
+<li><p><strong>transfer_matrices</strong> (<em>Sequence</em><em>[</em><em>np.ndarray</em><em>]</em>) – Transfer matrix corresponding to each phase space.</p></li>
+<li><p><strong>gamma_kin</strong> (<em>np.ndarray</em>) – Lorentz gamma factor.</p></li>
+<li><p><strong>beta_kin</strong> (<em>np.ndarray</em>) – Lorentz beta factor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._set_only_emittance">
+<span class="sig-name descname"><span class="pre">_set_only_emittance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><span class="pre">BeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emittances</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._set_only_emittance" title="Link to this definition"></a></dt>
+<dd><p>Set only the emittance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory._set_transverse_from_x_and_y">
+<span class="sig-name descname"><span class="pre">_set_transverse_from_x_and_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><span class="pre">BeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory._set_transverse_from_x_and_y" title="Link to this definition"></a></dt>
+<dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">t</span></code> (transverse) phase space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>beam_parameters</strong> (<a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><em>BeamParameters</em></a>) – Object already holding the beam parameters in the <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>
+phase spaces.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.BeamParametersFactory.factory_method">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">factory_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><span class="pre">BeamParameters</span></a></span></span><a class="headerlink" href="#core.beam_parameters.factory.BeamParametersFactory.factory_method" title="Link to this definition"></a></dt>
+<dd><p>Create the <a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamParameters</span></code></a> object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">InitialBeamParametersFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>This is used when creating new <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>.</p>
+<p>This factory is not subclassed. Only one instance should be created.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Remove the <code class="docutils literal notranslate"><span class="pre">is_3d</span></code>, <code class="docutils literal notranslate"><span class="pre">is_multipart</span></code> as I always create the same
+object with <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+Also <code class="xref py py-meth docutils literal notranslate"><span class="pre">self._determine_phase_spaces()</span></code> is useless.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory.__init__" title="Link to this definition"></a></dt>
+<dd><p>Create factory and list of phase spaces to generate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>is_3d</strong> (<em>bool</em>) – If the simulation is in 3D.</p></li>
+<li><p><strong>is_multipart</strong> (<em>bool</em>) – If the simulation is a multiparticle.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory._initial_beam_parameters_kw">
+<span class="sig-name descname"><span class="pre">_initial_beam_parameters_kw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory._initial_beam_parameters_kw" title="Link to this definition"></a></dt>
+<dd><p>Generate the kw to instantiate the <a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">InitialBeamParameters</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_output</strong> (<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a>) – Object from which the initial beam will be taken.</p></li>
+<li><p><strong>get_kw</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em> | </em><em>str</em><em> | </em><em>bool</em><em> | </em><em>None</em><em>]</em>) – Keyword argument to <code class="docutils literal notranslate"><span class="pre">get</span></code> <code class="docutils literal notranslate"><span class="pre">args</span></code> at proper position.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of keyword arguments for
+<a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">InitialBeamParameters</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory._initial_phase_space_beam_parameters_kw">
+<span class="sig-name descname"><span class="pre">_initial_phase_space_beam_parameters_kw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><span class="pre">BeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_missing_phase_spaces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory._initial_phase_space_beam_parameters_kw" title="Link to this definition"></a></dt>
+<dd><p>Get all beam data at proper position and store it in a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>original_beam_parameters</strong> (<a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><em>BeamParameters</em></a>) – Object holding original beam parameters.</p></li>
+<li><p><strong>get_kw</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em> | </em><em>str</em><em> | </em><em>bool</em><em> | </em><em>None</em><em>]</em>) – dict that can be passed to the <code class="docutils literal notranslate"><span class="pre">get</span></code> method and that will return
+the data at the beginning of the linac portion.</p></li>
+<li><p><strong>skip_missing_phase_spaces</strong> (<em>bool</em>) – To handle when a phase space from <a href="#id2"><span class="problematic" id="id3">:var:`self.phase_spaces`</span></a> is not
+defined in <code class="docutils literal notranslate"><span class="pre">original_beam_parameters</span></code>, and is therefore not
+initializable. If True, we just skip it. If False and such a case
+happens, an <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> will be raised.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>initial_phase_spaces_kw</strong> – Keys are the name of the phase spaces.
+The values are other dictionaries, which keys-values are
+<code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseSpaceInitialBeamParameters</span></code> attributes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, dict[str, float | np.ndarray]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory._set_from_other_phase_space">
+<span class="sig-name descname"><span class="pre">_set_from_other_phase_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><span class="pre">InitialBeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory._set_from_other_phase_space" title="Link to this definition"></a></dt>
+<dd><p>Instantiate a phase space from another one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_beam_parameters</strong> (<a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><em>InitialBeamParameters</em></a>) – Object holding the beam parameters in different phase spaces.</p></li>
+<li><p><strong>other_phase_space_name</strong> (<em>{'zdelta'}</em>) – Name of the phase space from which the new phase space will be
+initialized.</p></li>
+<li><p><strong>phase_space_names</strong> (<em>Sequence</em><em>[</em><em>{'phiw'</em><em>, </em><em>'z'}</em><em>]</em>) – Name of the phase spaces that will be created.</p></li>
+<li><p><strong>gamma_kin</strong> (<em>float</em>) – Lorentz gamma factor.</p></li>
+<li><p><strong>beta_kin</strong> (<em>float</em>) – Lorentz beta factor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory._set_from_sigma">
+<span class="sig-name descname"><span class="pre">_set_from_sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_beam_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><span class="pre">InitialBeamParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigmas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory._set_from_sigma" title="Link to this definition"></a></dt>
+<dd><p>Initialize transfer matrices from <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory.factory_new">
+<span class="sig-name descname"><span class="pre">factory_new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><span class="pre">InitialBeamParameters</span></a></span></span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory.factory_new" title="Link to this definition"></a></dt>
+<dd><p>Create the beam parameters for the beginning of the linac.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sigma_in</strong> (<em>np.ndarray</em>) – <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix.</p></li>
+<li><p><strong>w_kin</strong> (<em>float</em>) – Kinetic energy in MeV.</p></li>
+<li><p><strong>z_abs</strong> (<em>float</em><em>, </em><em>optional</em>) – Absolute position of the linac start. Should be 0, which is the
+default.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Beam parameters at the start of the linac.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters">InitialBeamParameters</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.beam_parameters.factory.InitialBeamParametersFactory.factory_subset">
+<span class="sig-name descname"><span class="pre">factory_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><span class="pre">InitialBeamParameters</span></a></span></span><a class="headerlink" href="#core.beam_parameters.factory.InitialBeamParametersFactory.factory_subset" title="Link to this definition"></a></dt>
+<dd><p>Generate <a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">InitialBeamParameters</span></code></a> for a linac portion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_output</strong> (<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a>) – Object from which the beam parameters data will be taken.</p></li>
+<li><p><strong>get_kw</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em> | </em><em>str</em><em> | </em><em>bool</em><em> | </em><em>None</em><em>]</em>) – dict that can be passed to the <code class="docutils literal notranslate"><span class="pre">get</span></code> method and that will return
+the data at the beginning of the linac portion.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Holds information on the beam at the beginning of the linac
+portion.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters" title="core.beam_parameters.initial_beam_parameters.InitialBeamParameters">InitialBeamParameters</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.beam_parameters.beam_parameters.html" class="btn btn-neutral float-left" title="core.beam_parameters.beam_parameters module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.beam_parameters.helper.html" class="btn btn-neutral float-right" title="core.beam_parameters.helper module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

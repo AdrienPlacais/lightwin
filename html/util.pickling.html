@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>util.pickling module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="util.setup module" href="util.setup.html" />
+    <link rel="prev" title="util.phases module" href="util.phases.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="util.html">util package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="util.converters.html">util.converters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.debug.html">util.debug module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.dicts_output.html">util.dicts_output module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.helper.html">util.helper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.log_manager.html">util.log_manager module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.pandas_helper.html">util.pandas_helper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.phases.html">util.phases module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">util.pickling module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.setup.html">util.setup module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.synchronous_phases.html">util.synchronous_phases module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="util.html">util package</a></li>
+      <li class="breadcrumb-item active">util.pickling module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/util.pickling.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-util.pickling">
+<span id="util-pickling-module"></span><h1>util.pickling module<a class="headerlink" href="#module-util.pickling" title="Link to this heading"></a></h1>
+<p>Define a class to pickle objects.</p>
+<p>“pickling” a file comes down to saving it in binary format. It can be loaded
+and used again later, even with a different Python instance. This is useful
+when you want to study a <a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> that took a long time to be
+compensated, or a <a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a> obtained by a time-consuming
+TraceWin multiparticle simulation.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This a very basic pickling. Do not use for long-term storage, but for debug
+only.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some attributes such as lambda function in <a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">FieldMap</span></code></a> or modules in
+<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a> cannot be pickled by the built-in <code class="docutils literal notranslate"><span class="pre">pickle</span></code>
+module. I do not plan to refactor them, so for now we stick with
+<code class="docutils literal notranslate"><span class="pre">cloudpickle</span></code> module.</p>
+</div>
+<p>Some objects have built-in <code class="docutils literal notranslate"><span class="pre">pickle</span></code> and <code class="docutils literal notranslate"><span class="pre">unpickle</span></code> methods, namely:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a></p></li>
+<li><p><a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a></p></li>
+<li><p><a class="reference internal" href="failures.fault_scenario.html#failures.fault_scenario.FaultScenario" title="failures.fault_scenario.FaultScenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaultScenario</span></code></a></p></li>
+<li><p><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a></p></li>
+<li><p><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<dl class="py class">
+<dt class="sig sig-object py" id="util.pickling.MyCloudPickler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MyCloudPickler</span></span><a class="headerlink" href="#util.pickling.MyCloudPickler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#util.pickling.MyPickler" title="util.pickling.MyPickler"><code class="xref py py-class docutils literal notranslate"><span class="pre">MyPickler</span></code></a></p>
+<p>Define a <code class="xref py py-class docutils literal notranslate"><span class="pre">Pickler</span></code> that can handle modules and lambda functions.</p>
+<p>This pickler should not raise errors, but all attributes may not be
+properly re-created.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="util.pickling.MyCloudPickler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#util.pickling.MyCloudPickler.__init__" title="Link to this definition"></a></dt>
+<dd><p>Import the necessary module.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="util.pickling.MyCloudPickler._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#util.pickling.MyCloudPickler._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="util.pickling.MyCloudPickler.pickle">
+<span class="sig-name descname"><span class="pre">pickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#util.pickling.MyCloudPickler.pickle" title="Link to this definition"></a></dt>
+<dd><p>Pickle (“save”) the object to a binary file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="util.pickling.MyCloudPickler.unpickle">
+<span class="sig-name descname"><span class="pre">unpickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#util.pickling.MyCloudPickler.unpickle" title="Link to this definition"></a></dt>
+<dd><p>Unpickle (“load”) the given path to recreate original object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="util.pickling.MyPickler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MyPickler</span></span><a class="headerlink" href="#util.pickling.MyPickler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Define an object that can save/load arbitrary objects to files.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="util.pickling.MyPickler._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#util.pickling.MyPickler._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="util.pickling.MyPickler.pickle">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#util.pickling.MyPickler.pickle" title="Link to this definition"></a></dt>
+<dd><p>Pickle (“save”) the object to a binary file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="util.pickling.MyPickler.unpickle">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unpickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#util.pickling.MyPickler.unpickle" title="Link to this definition"></a></dt>
+<dd><p>Unpickle (“load”) the given path to recreate original object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="util.phases.html" class="btn btn-neutral float-left" title="util.phases module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="util.setup.html" class="btn btn-neutral float-right" title="util.setup module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

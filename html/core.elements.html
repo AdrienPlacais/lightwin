@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.elements package &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.elements.field_maps package" href="core.elements.field_maps.html" />
+    <link rel="prev" title="core.commands.superpose_map module" href="core.commands.superpose_map.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">core.elements package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.html">core.elements.field_maps package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.aperture.html">core.elements.aperture module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.bend.html">core.elements.bend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html">core.elements.diagnostic module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.drift.html">core.elements.drift module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.dummy.html">core.elements.dummy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.edge.html">core.elements.edge module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.element.html">core.elements.element module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.factory.html">core.elements.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.helper.html">core.elements.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.quad.html">core.elements.quad module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.solenoid.html">core.elements.solenoid module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.superposed_field_map.html">core.elements.superposed_field_map module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.thin_steering.html">core.elements.thin_steering module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+      <li class="breadcrumb-item active">core.elements package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.elements.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.elements">
+<span id="core-elements-package"></span><h1>core.elements package<a class="headerlink" href="#module-core.elements" title="Link to this heading"></a></h1>
+<p>Here we define all the linac elements (TraceWin syntax).</p>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.field_maps.html">core.elements.field_maps package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.field_maps.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.cavity_settings.html">core.elements.field_maps.cavity_settings module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.cavity_settings.html#core.elements.field_maps.cavity_settings.ALLOWED_REFERENCES"><code class="docutils literal notranslate"><span class="pre">ALLOWED_REFERENCES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.cavity_settings.html#core.elements.field_maps.cavity_settings.ALLOWED_STATUS"><code class="docutils literal notranslate"><span class="pre">ALLOWED_STATUS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.cavity_settings.html#core.elements.field_maps.cavity_settings.CavitySettings"><code class="docutils literal notranslate"><span class="pre">CavitySettings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.cavity_settings.html#core.elements.field_maps.cavity_settings._get_valid_func"><code class="docutils literal notranslate"><span class="pre">_get_valid_func()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.cavity_settings_factory.html">core.elements.field_maps.cavity_settings_factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.cavity_settings_factory.html#core.elements.field_maps.cavity_settings_factory.CavitySettingsFactory"><code class="docutils literal notranslate"><span class="pre">CavitySettingsFactory</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.factory.html">core.elements.field_maps.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.factory.html#core.elements.field_maps.factory.FieldMapFactory"><code class="docutils literal notranslate"><span class="pre">FieldMapFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.factory.html#core.elements.field_maps.factory.IMPLEMENTED_FIELD_MAPS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_FIELD_MAPS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.factory.html#core.elements.field_maps.factory.warn_once"><code class="docutils literal notranslate"><span class="pre">warn_once()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.field_map.html">core.elements.field_maps.field_map module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap"><code class="docutils literal notranslate"><span class="pre">FieldMap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.IMPLEMENTED_STATUS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_STATUS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.field_map_100.html">core.elements.field_maps.field_map_100 module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.field_map_100.html#core.elements.field_maps.field_map_100.FieldMap100"><code class="docutils literal notranslate"><span class="pre">FieldMap100</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.field_map_1100.html">core.elements.field_maps.field_map_1100 module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.field_map_1100.html#core.elements.field_maps.field_map_1100.FieldMap1100"><code class="docutils literal notranslate"><span class="pre">FieldMap1100</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.field_map_7700.html">core.elements.field_maps.field_map_7700 module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.field_map_7700.html#core.elements.field_maps.field_map_7700.FieldMap7700"><code class="docutils literal notranslate"><span class="pre">FieldMap7700</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.aperture.html">core.elements.aperture module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.aperture.html#core.elements.aperture.Aperture"><code class="docutils literal notranslate"><span class="pre">Aperture</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.aperture.html#core.elements.aperture.Aperture.__init__"><code class="docutils literal notranslate"><span class="pre">Aperture.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.aperture.html#core.elements.aperture.Aperture._abc_impl"><code class="docutils literal notranslate"><span class="pre">Aperture._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.aperture.html#core.elements.aperture.Aperture.base_name"><code class="docutils literal notranslate"><span class="pre">Aperture.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.aperture.html#core.elements.aperture.Aperture.increment_lattice_idx"><code class="docutils literal notranslate"><span class="pre">Aperture.increment_lattice_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.aperture.html#core.elements.aperture.Aperture.is_implemented"><code class="docutils literal notranslate"><span class="pre">Aperture.is_implemented</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.bend.html">core.elements.bend module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend"><code class="docutils literal notranslate"><span class="pre">Bend</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend.__init__"><code class="docutils literal notranslate"><span class="pre">Bend.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend._abc_impl"><code class="docutils literal notranslate"><span class="pre">Bend._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend.h_parameter"><code class="docutils literal notranslate"><span class="pre">Bend.h_parameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend.h_squared"><code class="docutils literal notranslate"><span class="pre">Bend.h_squared</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend.k_x"><code class="docutils literal notranslate"><span class="pre">Bend.k_x</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend.n_attributes"><code class="docutils literal notranslate"><span class="pre">Bend.n_attributes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.diagnostic.html">core.elements.diagnostic module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagAchromat"><code class="docutils literal notranslate"><span class="pre">DiagAchromat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagAchromat._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagAchromat._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagAchromat.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagAchromat.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagBeta"><code class="docutils literal notranslate"><span class="pre">DiagBeta</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagBeta._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagBeta._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagBeta.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagBeta.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagCurrent"><code class="docutils literal notranslate"><span class="pre">DiagCurrent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagCurrent._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagCurrent._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDBeta"><code class="docutils literal notranslate"><span class="pre">DiagDBeta</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDBeta._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDBeta._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDBeta.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagDBeta.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDCurrent"><code class="docutils literal notranslate"><span class="pre">DiagDCurrent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDCurrent._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDCurrent._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDDivergence"><code class="docutils literal notranslate"><span class="pre">DiagDDivergence</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDDivergence._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDDivergence._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDEnergy"><code class="docutils literal notranslate"><span class="pre">DiagDEnergy</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDEnergy._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDEnergy._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDEnergy.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagDEnergy.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPSize2"><code class="docutils literal notranslate"><span class="pre">DiagDPSize2</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPSize2._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDPSize2._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPhase"><code class="docutils literal notranslate"><span class="pre">DiagDPhase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPhase._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDPhase._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPhase.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagDPhase.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPosition"><code class="docutils literal notranslate"><span class="pre">DiagDPosition</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPosition._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDPosition._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize"><code class="docutils literal notranslate"><span class="pre">DiagDSize</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDSize._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2"><code class="docutils literal notranslate"><span class="pre">DiagDSize2</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2.__init__"><code class="docutils literal notranslate"><span class="pre">DiagDSize2.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDSize2._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2.is_implemented"><code class="docutils literal notranslate"><span class="pre">DiagDSize2.is_implemented</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagDSize2.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2FWHM"><code class="docutils literal notranslate"><span class="pre">DiagDSize2FWHM</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2FWHM._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDSize2FWHM._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize3"><code class="docutils literal notranslate"><span class="pre">DiagDSize3</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize3.__init__"><code class="docutils literal notranslate"><span class="pre">DiagDSize3.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize3._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDSize3._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize3.is_implemented"><code class="docutils literal notranslate"><span class="pre">DiagDSize3.is_implemented</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize3.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagDSize3.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSizeFWHM"><code class="docutils literal notranslate"><span class="pre">DiagDSizeFWHM</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSizeFWHM._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDSizeFWHM._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss2"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss2</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss2._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss2._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss2.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss2.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDivergence"><code class="docutils literal notranslate"><span class="pre">DiagDivergence</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDivergence._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagDivergence._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit"><code class="docutils literal notranslate"><span class="pre">DiagEmit</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagEmit._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagEmit.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit99"><code class="docutils literal notranslate"><span class="pre">DiagEmit99</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit99._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagEmit99._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit99.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagEmit99.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEnergy"><code class="docutils literal notranslate"><span class="pre">DiagEnergy</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEnergy._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagEnergy._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEnergy.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagEnergy.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagHalo"><code class="docutils literal notranslate"><span class="pre">DiagHalo</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagHalo._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagHalo._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagHalo.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagHalo.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagLuminosity"><code class="docutils literal notranslate"><span class="pre">DiagLuminosity</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagLuminosity._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagLuminosity._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagLuminosity.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagLuminosity.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhase"><code class="docutils literal notranslate"><span class="pre">DiagPhase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhase._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagPhase._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhase.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagPhase.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhaseAdv"><code class="docutils literal notranslate"><span class="pre">DiagPhaseAdv</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhaseAdv._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagPhaseAdv._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhaseAdv.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagPhaseAdv.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPosition"><code class="docutils literal notranslate"><span class="pre">DiagPosition</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPosition._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagPosition._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPosition.is_implemented"><code class="docutils literal notranslate"><span class="pre">DiagPosition.is_implemented</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPosition.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagPosition.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSeparation"><code class="docutils literal notranslate"><span class="pre">DiagSeparation</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSeparation._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagSeparation._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSeparation.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagSeparation.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSetMatrix"><code class="docutils literal notranslate"><span class="pre">DiagSetMatrix</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSetMatrix._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagSetMatrix._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSetMatrix.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagSetMatrix.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSize"><code class="docutils literal notranslate"><span class="pre">DiagSize</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSize._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagSize._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeFWHM"><code class="docutils literal notranslate"><span class="pre">DiagSizeFWHM</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeFWHM._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagSizeFWHM._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeMax"><code class="docutils literal notranslate"><span class="pre">DiagSizeMax</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeMax._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagSizeMax._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeMax.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagSizeMax.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeMin"><code class="docutils literal notranslate"><span class="pre">DiagSizeMin</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeMin._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagSizeMin._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeP"><code class="docutils literal notranslate"><span class="pre">DiagSizeP</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeP._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagSizeP._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagTwiss"><code class="docutils literal notranslate"><span class="pre">DiagTwiss</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagTwiss._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagTwiss._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagTwiss.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagTwiss.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagWaist"><code class="docutils literal notranslate"><span class="pre">DiagWaist</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagWaist._abc_impl"><code class="docutils literal notranslate"><span class="pre">DiagWaist._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagWaist.n_attributes"><code class="docutils literal notranslate"><span class="pre">DiagWaist.n_attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic"><code class="docutils literal notranslate"><span class="pre">Diagnostic</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic.__init__"><code class="docutils literal notranslate"><span class="pre">Diagnostic.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic._abc_impl"><code class="docutils literal notranslate"><span class="pre">Diagnostic._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic.base_name"><code class="docutils literal notranslate"><span class="pre">Diagnostic.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic.increment_lattice_idx"><code class="docutils literal notranslate"><span class="pre">Diagnostic.increment_lattice_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic.is_implemented"><code class="docutils literal notranslate"><span class="pre">Diagnostic.is_implemented</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.drift.html">core.elements.drift module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.drift.html#core.elements.drift.Drift"><code class="docutils literal notranslate"><span class="pre">Drift</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.drift.html#core.elements.drift.Drift.__init__"><code class="docutils literal notranslate"><span class="pre">Drift.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.drift.html#core.elements.drift.Drift._abc_impl"><code class="docutils literal notranslate"><span class="pre">Drift._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.drift.html#core.elements.drift.Drift.base_name"><code class="docutils literal notranslate"><span class="pre">Drift.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.drift.html#core.elements.drift.Drift.n_attributes"><code class="docutils literal notranslate"><span class="pre">Drift.n_attributes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.dummy.html">core.elements.dummy module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.dummy.html#core.elements.dummy.DummyElement"><code class="docutils literal notranslate"><span class="pre">DummyElement</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.dummy.html#core.elements.dummy.DummyElement.__init__"><code class="docutils literal notranslate"><span class="pre">DummyElement.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.dummy.html#core.elements.dummy.DummyElement._abc_impl"><code class="docutils literal notranslate"><span class="pre">DummyElement._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.dummy.html#core.elements.dummy.DummyElement.is_implemented"><code class="docutils literal notranslate"><span class="pre">DummyElement.is_implemented</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.edge.html">core.elements.edge module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.edge.html#core.elements.edge.Edge"><code class="docutils literal notranslate"><span class="pre">Edge</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.edge.html#core.elements.edge.Edge.__init__"><code class="docutils literal notranslate"><span class="pre">Edge.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.edge.html#core.elements.edge.Edge._abc_impl"><code class="docutils literal notranslate"><span class="pre">Edge._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.edge.html#core.elements.edge.Edge.base_name"><code class="docutils literal notranslate"><span class="pre">Edge.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.edge.html#core.elements.edge.Edge.increment_lattice_idx"><code class="docutils literal notranslate"><span class="pre">Edge.increment_lattice_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.edge.html#core.elements.edge.Edge.is_implemented"><code class="docutils literal notranslate"><span class="pre">Edge.is_implemented</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.element.html">core.elements.element module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element"><code class="docutils literal notranslate"><span class="pre">Element</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.base_name"><code class="docutils literal notranslate"><span class="pre">Element.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.increment_elt_idx"><code class="docutils literal notranslate"><span class="pre">Element.increment_elt_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.increment_lattice_idx"><code class="docutils literal notranslate"><span class="pre">Element.increment_lattice_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.__init__"><code class="docutils literal notranslate"><span class="pre">Element.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element._abc_impl"><code class="docutils literal notranslate"><span class="pre">Element._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#id0"><code class="docutils literal notranslate"><span class="pre">Element.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.can_be_retuned"><code class="docutils literal notranslate"><span class="pre">Element.can_be_retuned</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.get"><code class="docutils literal notranslate"><span class="pre">Element.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.has"><code class="docutils literal notranslate"><span class="pre">Element.has()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#id2"><code class="docutils literal notranslate"><span class="pre">Element.increment_elt_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#id3"><code class="docutils literal notranslate"><span class="pre">Element.increment_lattice_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.is_accelerating"><code class="docutils literal notranslate"><span class="pre">Element.is_accelerating</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.is_implemented"><code class="docutils literal notranslate"><span class="pre">Element.is_implemented</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.keep_cavity_settings"><code class="docutils literal notranslate"><span class="pre">Element.keep_cavity_settings()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.keep_rf_field"><code class="docutils literal notranslate"><span class="pre">Element.keep_rf_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element.update_status"><code class="docutils literal notranslate"><span class="pre">Element.update_status()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.factory.html">core.elements.factory module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.factory.html#core.elements.factory.ElementFactory"><code class="docutils literal notranslate"><span class="pre">ElementFactory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.factory.html#core.elements.factory.ElementFactory.__init__"><code class="docutils literal notranslate"><span class="pre">ElementFactory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.factory.html#core.elements.factory.ElementFactory._personalized_name"><code class="docutils literal notranslate"><span class="pre">ElementFactory._personalized_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.factory.html#core.elements.factory.ElementFactory.run"><code class="docutils literal notranslate"><span class="pre">ElementFactory.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.factory.html#core.elements.factory._get_constructor"><code class="docutils literal notranslate"><span class="pre">_get_constructor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.factory.html#core.elements.factory.implemented_elements"><code class="docutils literal notranslate"><span class="pre">implemented_elements</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.helper.html">core.elements.helper module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.helper.html#core.elements.helper.force_a_lattice_for_every_element"><code class="docutils literal notranslate"><span class="pre">force_a_lattice_for_every_element()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.helper.html#core.elements.helper.force_a_section_for_every_element"><code class="docutils literal notranslate"><span class="pre">force_a_section_for_every_element()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.helper.html#core.elements.helper.give_name_to_elements"><code class="docutils literal notranslate"><span class="pre">give_name_to_elements()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.quad.html">core.elements.quad module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.quad.html#core.elements.quad.Quad"><code class="docutils literal notranslate"><span class="pre">Quad</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.quad.html#core.elements.quad.Quad.__init__"><code class="docutils literal notranslate"><span class="pre">Quad.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.quad.html#core.elements.quad.Quad._abc_impl"><code class="docutils literal notranslate"><span class="pre">Quad._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.quad.html#core.elements.quad.Quad.base_name"><code class="docutils literal notranslate"><span class="pre">Quad.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.quad.html#core.elements.quad.Quad.n_attributes"><code class="docutils literal notranslate"><span class="pre">Quad.n_attributes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.solenoid.html">core.elements.solenoid module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.solenoid.html#core.elements.solenoid.Solenoid"><code class="docutils literal notranslate"><span class="pre">Solenoid</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.solenoid.html#core.elements.solenoid.Solenoid.__init__"><code class="docutils literal notranslate"><span class="pre">Solenoid.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.solenoid.html#core.elements.solenoid.Solenoid._abc_impl"><code class="docutils literal notranslate"><span class="pre">Solenoid._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.solenoid.html#core.elements.solenoid.Solenoid.base_name"><code class="docutils literal notranslate"><span class="pre">Solenoid.base_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.solenoid.html#core.elements.solenoid.Solenoid.n_attributes"><code class="docutils literal notranslate"><span class="pre">Solenoid.n_attributes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.superposed_field_map.html">core.elements.superposed_field_map module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.superposed_field_map.html#core.elements.superposed_field_map.SuperposedFieldMap"><code class="docutils literal notranslate"><span class="pre">SuperposedFieldMap</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.superposed_field_map.html#core.elements.superposed_field_map.SuperposedFieldMap.__init__"><code class="docutils literal notranslate"><span class="pre">SuperposedFieldMap.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.superposed_field_map.html#core.elements.superposed_field_map.SuperposedFieldMap._abc_impl"><code class="docutils literal notranslate"><span class="pre">SuperposedFieldMap._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.superposed_field_map.html#core.elements.superposed_field_map.SuperposedFieldMap.is_implemented"><code class="docutils literal notranslate"><span class="pre">SuperposedFieldMap.is_implemented</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.superposed_field_map.html#core.elements.superposed_field_map.SuperposedFieldMap.n_attributes"><code class="docutils literal notranslate"><span class="pre">SuperposedFieldMap.n_attributes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.thin_steering.html">core.elements.thin_steering module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.thin_steering.html#core.elements.thin_steering.ThinSteering"><code class="docutils literal notranslate"><span class="pre">ThinSteering</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.thin_steering.html#core.elements.thin_steering.ThinSteering.__init__"><code class="docutils literal notranslate"><span class="pre">ThinSteering.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.thin_steering.html#core.elements.thin_steering.ThinSteering._abc_impl"><code class="docutils literal notranslate"><span class="pre">ThinSteering._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.thin_steering.html#core.elements.thin_steering.ThinSteering.increment_lattice_idx"><code class="docutils literal notranslate"><span class="pre">ThinSteering.increment_lattice_idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.thin_steering.html#core.elements.thin_steering.ThinSteering.is_implemented"><code class="docutils literal notranslate"><span class="pre">ThinSteering.is_implemented</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.commands.superpose_map.html" class="btn btn-neutral float-left" title="core.commands.superpose_map module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.elements.field_maps.html" class="btn btn-neutral float-right" title="core.elements.field_maps package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

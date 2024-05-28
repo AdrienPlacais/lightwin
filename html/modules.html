@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>source &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beam_calculation package" href="beam_calculation.html" />
+    <link rel="prev" title="Units and conventions" href="manual/units.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">source</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="source">
+<h1>source<a class="headerlink" href="#source" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_1d.html">beam_calculation.envelope_1d package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_3d.html">beam_calculation.envelope_3d package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.parameters.html">beam_calculation.parameters package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.parameters.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.simulation_output.html">beam_calculation.simulation_output package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.simulation_output.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.tracewin.html">beam_calculation.tracewin package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.tracewin.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.beam_calculator.html">beam_calculation.beam_calculator module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator"><code class="docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.factory.html">beam_calculation.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.factory.html#beam_calculation.factory.BeamCalculatorsFactory"><code class="docutils literal notranslate"><span class="pre">BeamCalculatorsFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.factory.html#beam_calculation.factory.IMPLEMENTED_BEAM_CALCULATORS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_BEAM_CALCULATORS</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">config package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.beam.html">config.beam module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.beam.html#config.beam.edit_configuration_dict_in_place"><code class="docutils literal notranslate"><span class="pre">edit_configuration_dict_in_place()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam.html#config.beam.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.beam_calculator.html">config.beam_calculator module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator.IMPLEMENTED_BEAM_CALCULATORS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_BEAM_CALCULATORS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator.IMPLEMENTED_ENVELOPE1D_METHODS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_ENVELOPE1D_METHODS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator.IMPLEMENTED_ENVELOPE3D_METHODS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_ENVELOPE3D_METHODS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._edit_configuration_dict_in_place_envelope1d"><code class="docutils literal notranslate"><span class="pre">_edit_configuration_dict_in_place_envelope1d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._edit_configuration_dict_in_place_envelope3d"><code class="docutils literal notranslate"><span class="pre">_edit_configuration_dict_in_place_envelope3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._edit_configuration_dict_in_place_tracewin"><code class="docutils literal notranslate"><span class="pre">_edit_configuration_dict_in_place_tracewin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._find_file"><code class="docutils literal notranslate"><span class="pre">_find_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._test_envelope1d"><code class="docutils literal notranslate"><span class="pre">_test_envelope1d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._test_envelope3d"><code class="docutils literal notranslate"><span class="pre">_test_envelope3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._test_tracewin"><code class="docutils literal notranslate"><span class="pre">_test_tracewin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator._test_tracewin_executable"><code class="docutils literal notranslate"><span class="pre">_test_tracewin_executable()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator.edit_configuration_dict_in_place"><code class="docutils literal notranslate"><span class="pre">edit_configuration_dict_in_place()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.beam_calculator.html#config.beam_calculator.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.design_space.html">config.design_space module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.design_space.html#config.design_space._edit_configuration_dict_in_place_from_file"><code class="docutils literal notranslate"><span class="pre">_edit_configuration_dict_in_place_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.design_space.html#config.design_space._edit_configuration_dict_in_place_not_from_file"><code class="docutils literal notranslate"><span class="pre">_edit_configuration_dict_in_place_not_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.design_space.html#config.design_space._test_from_file"><code class="docutils literal notranslate"><span class="pre">_test_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.design_space.html#config.design_space._test_not_from_file"><code class="docutils literal notranslate"><span class="pre">_test_not_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.design_space.html#config.design_space.edit_configuration_dict_in_place"><code class="docutils literal notranslate"><span class="pre">edit_configuration_dict_in_place()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.design_space.html#config.design_space.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.evaluators.html">config.evaluators module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.evaluators.html#config.evaluators.IMPLEMENTED_EVALUATORS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_EVALUATORS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.evaluators.html#config.evaluators.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.files.html">config.files module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.files.html#config.files._create_project_folders"><code class="docutils literal notranslate"><span class="pre">_create_project_folders()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.files.html#config.files.edit_configuration_dict_in_place"><code class="docutils literal notranslate"><span class="pre">edit_configuration_dict_in_place()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.files.html#config.files.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.helper.html">config.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.helper.html#config.helper.check_type"><code class="docutils literal notranslate"><span class="pre">check_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.helper.html#config.helper.dict_for_pretty_output"><code class="docutils literal notranslate"><span class="pre">dict_for_pretty_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.helper.html#config.helper.find_file"><code class="docutils literal notranslate"><span class="pre">find_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.plots.html">config.plots module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.plots.html#config.plots.IMPLEMENTED_PLOTS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_PLOTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.plots.html#config.plots.TO_UPDATE_OR_FIX"><code class="docutils literal notranslate"><span class="pre">TO_UPDATE_OR_FIX</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.plots.html#config.plots.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.wtf.html">config.wtf module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf.IMPLEMENTED_OBJECTIVE_PRESETS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_OBJECTIVE_PRESETS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf.IMPLEMENTED_OPTIMISATION_ALGORITHMS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_OPTIMISATION_ALGORITHMS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf.IMPLEMENTED_STRATEGIES"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_STRATEGIES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf._test_cavity_selection"><code class="docutils literal notranslate"><span class="pre">_test_cavity_selection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf._test_global"><code class="docutils literal notranslate"><span class="pre">_test_global()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf._test_global_downstream"><code class="docutils literal notranslate"><span class="pre">_test_global_downstream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf._test_k_out_of_n"><code class="docutils literal notranslate"><span class="pre">_test_k_out_of_n()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf._test_l_neighboring_lattices"><code class="docutils literal notranslate"><span class="pre">_test_l_neighboring_lattices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf._test_manual"><code class="docutils literal notranslate"><span class="pre">_test_manual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.wtf.html#config.wtf.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config_manager.html">config_manager module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html#config_manager.MANDATORY_CONFIG_ENTRIES"><code class="docutils literal notranslate"><span class="pre">MANDATORY_CONFIG_ENTRIES</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html#config_manager.OPTIONAL_CONFIG_ENTRIES"><code class="docutils literal notranslate"><span class="pre">OPTIONAL_CONFIG_ENTRIES</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html#config_manager._load_correct_toml_entries"><code class="docutils literal notranslate"><span class="pre">_load_correct_toml_entries()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html#config_manager._make_global"><code class="docutils literal notranslate"><span class="pre">_make_global()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html#config_manager._override_some_toml_entries"><code class="docutils literal notranslate"><span class="pre">_override_some_toml_entries()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html#config_manager._process_config"><code class="docutils literal notranslate"><span class="pre">_process_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html#config_manager.process_config"><code class="docutils literal notranslate"><span class="pre">process_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">core package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.accelerator.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.transfer_matrix.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField"><code class="docutils literal notranslate"><span class="pre">NewRfField</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField"><code class="docutils literal notranslate"><span class="pre">RfField</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.electric_field.html#core.electric_field.compute_param_cav"><code class="docutils literal notranslate"><span class="pre">compute_param_cav()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.instruction.html#core.instruction.Comment"><code class="docutils literal notranslate"><span class="pre">Comment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.instruction.html#core.instruction.Dummy"><code class="docutils literal notranslate"><span class="pre">Dummy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction"><code class="docutils literal notranslate"><span class="pre">Instruction</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluator.html">evaluator package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.simulation_output.html">evaluator.simulation_output package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.simulation_output.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.list_of_simulation_output_evaluators.html">evaluator.list_of_simulation_output_evaluators module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.list_of_simulation_output_evaluators.html#evaluator.list_of_simulation_output_evaluators.FaultScenarioSimulationOutputEvaluators"><code class="docutils literal notranslate"><span class="pre">FaultScenarioSimulationOutputEvaluators</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.list_of_simulation_output_evaluators.html#evaluator.list_of_simulation_output_evaluators.ListOfSimulationOutputEvaluators"><code class="docutils literal notranslate"><span class="pre">ListOfSimulationOutputEvaluators</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.post_treaters.html">evaluator.post_treaters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.absolute"><code class="docutils literal notranslate"><span class="pre">absolute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.difference"><code class="docutils literal notranslate"><span class="pre">difference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.do_nothing"><code class="docutils literal notranslate"><span class="pre">do_nothing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.maximum"><code class="docutils literal notranslate"><span class="pre">maximum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.minimum"><code class="docutils literal notranslate"><span class="pre">minimum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.relative_difference"><code class="docutils literal notranslate"><span class="pre">relative_difference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.rms_error"><code class="docutils literal notranslate"><span class="pre">rms_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.scale_by"><code class="docutils literal notranslate"><span class="pre">scale_by()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.set_first_value_to"><code class="docutils literal notranslate"><span class="pre">set_first_value_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.sum"><code class="docutils literal notranslate"><span class="pre">sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.post_treaters.html#evaluator.post_treaters.take_last"><code class="docutils literal notranslate"><span class="pre">take_last()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.testers.html">evaluator.testers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.testers.html#evaluator.testers.value_is"><code class="docutils literal notranslate"><span class="pre">value_is()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.testers.html#evaluator.testers.value_is_above"><code class="docutils literal notranslate"><span class="pre">value_is_above()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.testers.html#evaluator.testers.value_is_below"><code class="docutils literal notranslate"><span class="pre">value_is_below()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.testers.html#evaluator.testers.value_is_within_limits"><code class="docutils literal notranslate"><span class="pre">value_is_within_limits()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.types.html">evaluator.types module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="experimental.html">experimental package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.html">experimental.new_evaluator package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="experimental.new_evaluator.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="experimental.new_evaluator.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.plotter.html">experimental.plotter package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="experimental.plotter.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.test.html">experimental.test module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="experimental.test.html#experimental.test.Generic"><code class="docutils literal notranslate"><span class="pre">Generic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="experimental.test.html#experimental.test.Initial"><code class="docutils literal notranslate"><span class="pre">Initial</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="experimental.test.html#experimental.test.assert_are_field_maps"><code class="docutils literal notranslate"><span class="pre">assert_are_field_maps()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="failures.html">failures package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="failures.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="failures.fault.html">failures.fault module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="failures.fault.html#failures.fault.Fault"><code class="docutils literal notranslate"><span class="pre">Fault</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="failures.fault_scenario.html">failures.fault_scenario module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="failures.fault_scenario.html#failures.fault_scenario.FaultScenario"><code class="docutils literal notranslate"><span class="pre">FaultScenario</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.fault_scenario.html#failures.fault_scenario._force_element_to_index_method_creation"><code class="docutils literal notranslate"><span class="pre">_force_element_to_index_method_creation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.fault_scenario.html#failures.fault_scenario.fault_scenario_factory"><code class="docutils literal notranslate"><span class="pre">fault_scenario_factory()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="failures.helper.html">failures.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper._distance_to_ref"><code class="docutils literal notranslate"><span class="pre">_distance_to_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper._penalty"><code class="docutils literal notranslate"><span class="pre">_penalty()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper.gather"><code class="docutils literal notranslate"><span class="pre">gather()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper.remove_lists_with_less_than_n_elements"><code class="docutils literal notranslate"><span class="pre">remove_lists_with_less_than_n_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper.sort_by_position"><code class="docutils literal notranslate"><span class="pre">sort_by_position()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="failures.set_of_cavity_settings.html">failures.set_of_cavity_settings module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings"><code class="docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings._settings_getter"><code class="docutils literal notranslate"><span class="pre">_settings_getter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="failures.strategy.html">failures.strategy module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="failures.strategy.html#failures.strategy.failed_and_compensating"><code class="docutils literal notranslate"><span class="pre">failed_and_compensating()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.strategy.html#failures.strategy.global_compensation"><code class="docutils literal notranslate"><span class="pre">global_compensation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.strategy.html#failures.strategy.global_downstream"><code class="docutils literal notranslate"><span class="pre">global_downstream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.strategy.html#failures.strategy.k_out_of_n"><code class="docutils literal notranslate"><span class="pre">k_out_of_n()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.strategy.html#failures.strategy.l_neighboring_lattices"><code class="docutils literal notranslate"><span class="pre">l_neighboring_lattices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.strategy.html#failures.strategy.manual"><code class="docutils literal notranslate"><span class="pre">manual()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.html">optimisation package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.html">optimisation.algorithms package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.html">optimisation.design_space package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.objective.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracewin_utils.dat_files.html">tracewin_utils.dat_files module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.dat_files.html#tracewin_utils.dat_files._is_needed_element"><code class="docutils literal notranslate"><span class="pre">_is_needed_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.dat_files.html#tracewin_utils.dat_files._is_useful_command"><code class="docutils literal notranslate"><span class="pre">_is_useful_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.dat_files.html#tracewin_utils.dat_files.dat_filecontent_from_smaller_list_of_elements"><code class="docutils literal notranslate"><span class="pre">dat_filecontent_from_smaller_list_of_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.dat_files.html#tracewin_utils.dat_files.export_dat_filecontent"><code class="docutils literal notranslate"><span class="pre">export_dat_filecontent()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html">tracewin_utils.electromagnetic_fields module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES"><code class="docutils literal notranslate"><span class="pre">FIELD_GEOMETRIES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields.FIELD_TYPES"><code class="docutils literal notranslate"><span class="pre">FIELD_TYPES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields.LOADABLE"><code class="docutils literal notranslate"><span class="pre">LOADABLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._geom_to_field_map_type"><code class="docutils literal notranslate"><span class="pre">_geom_to_field_map_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._get_field_components"><code class="docutils literal notranslate"><span class="pre">_get_field_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._get_field_nature"><code class="docutils literal notranslate"><span class="pre">_get_field_nature()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._get_filemap_extensions"><code class="docutils literal notranslate"><span class="pre">_get_filemap_extensions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._get_filemaps_extensions"><code class="docutils literal notranslate"><span class="pre">_get_filemaps_extensions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._get_type"><code class="docutils literal notranslate"><span class="pre">_get_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._is_a_valid_electric_field"><code class="docutils literal notranslate"><span class="pre">_is_a_valid_electric_field()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._load_electromagnetic_fields_for_cython"><code class="docutils literal notranslate"><span class="pre">_load_electromagnetic_fields_for_cython()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._load_field_map_file"><code class="docutils literal notranslate"><span class="pre">_load_field_map_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields._rescale"><code class="docutils literal notranslate"><span class="pre">_rescale()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields.load_electromagnetic_fields"><code class="docutils literal notranslate"><span class="pre">load_electromagnetic_fields()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.electromagnetic_fields.html#tracewin_utils.electromagnetic_fields.output_data_in_tw_fashion"><code class="docutils literal notranslate"><span class="pre">output_data_in_tw_fashion()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tracewin_utils.interface.html">tracewin_utils.interface module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface.ARGS_POSITIONS"><code class="docutils literal notranslate"><span class="pre">ARGS_POSITIONS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface._alter_element"><code class="docutils literal notranslate"><span class="pre">_alter_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface._cavity_settings_to_command"><code class="docutils literal notranslate"><span class="pre">_cavity_settings_to_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface._proper_type"><code class="docutils literal notranslate"><span class="pre">_proper_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface.beam_calculator_to_command"><code class="docutils literal notranslate"><span class="pre">beam_calculator_to_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface.beam_parameters_to_command"><code class="docutils literal notranslate"><span class="pre">beam_parameters_to_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface.list_of_elements_to_command"><code class="docutils literal notranslate"><span class="pre">list_of_elements_to_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface.particle_initial_state_to_command"><code class="docutils literal notranslate"><span class="pre">particle_initial_state_to_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface.set_of_cavity_settings_to_command"><code class="docutils literal notranslate"><span class="pre">set_of_cavity_settings_to_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.interface.html#tracewin_utils.interface.variables_to_command"><code class="docutils literal notranslate"><span class="pre">variables_to_command()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tracewin_utils.load.html">tracewin_utils.load module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.FIELD_MAP_LOADERS"><code class="docutils literal notranslate"><span class="pre">FIELD_MAP_LOADERS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load._get_number_of_cells"><code class="docutils literal notranslate"><span class="pre">_get_number_of_cells()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load._transfer_matrix"><code class="docutils literal notranslate"><span class="pre">_transfer_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.complete_dat_file"><code class="docutils literal notranslate"><span class="pre">complete_dat_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.dat_file"><code class="docutils literal notranslate"><span class="pre">dat_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.electric_field_1d"><code class="docutils literal notranslate"><span class="pre">electric_field_1d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.results"><code class="docutils literal notranslate"><span class="pre">results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.table_structure_file"><code class="docutils literal notranslate"><span class="pre">table_structure_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.transfer_matrices"><code class="docutils literal notranslate"><span class="pre">transfer_matrices()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">util package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="util.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="util.converters.html">util.converters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.converters.html#util.converters.emittance"><code class="docutils literal notranslate"><span class="pre">emittance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.converters.html#util.converters.energy"><code class="docutils literal notranslate"><span class="pre">energy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.converters.html#util.converters.longitudinal"><code class="docutils literal notranslate"><span class="pre">longitudinal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.converters.html#util.converters.position"><code class="docutils literal notranslate"><span class="pre">position()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.converters.html#util.converters.twiss"><code class="docutils literal notranslate"><span class="pre">twiss()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="util.debug.html">util.debug module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.debug.html#util.debug._create_output_fit_dicts"><code class="docutils literal notranslate"><span class="pre">_create_output_fit_dicts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.debug.html#util.debug.compute_error_transfer_matrix"><code class="docutils literal notranslate"><span class="pre">compute_error_transfer_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.debug.html#util.debug.load_phase_space"><code class="docutils literal notranslate"><span class="pre">load_phase_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.debug.html#util.debug.output_cavities"><code class="docutils literal notranslate"><span class="pre">output_cavities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.debug.html#util.debug.output_fit"><code class="docutils literal notranslate"><span class="pre">output_fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.debug.html#util.debug.output_fit_progress"><code class="docutils literal notranslate"><span class="pre">output_fit_progress()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="util.dicts_output.html">util.dicts_output module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.helper.html">util.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.chunks"><code class="docutils literal notranslate"><span class="pre">chunks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.flatten"><code class="docutils literal notranslate"><span class="pre">flatten()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.get_constructor"><code class="docutils literal notranslate"><span class="pre">get_constructor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.get_constructors"><code class="docutils literal notranslate"><span class="pre">get_constructors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.pascal_case"><code class="docutils literal notranslate"><span class="pre">pascal_case()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.pd_output"><code class="docutils literal notranslate"><span class="pre">pd_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.printc"><code class="docutils literal notranslate"><span class="pre">printc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.range_vals"><code class="docutils literal notranslate"><span class="pre">range_vals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.range_vals_object"><code class="docutils literal notranslate"><span class="pre">range_vals_object()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.recursive_getter"><code class="docutils literal notranslate"><span class="pre">recursive_getter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.recursive_items"><code class="docutils literal notranslate"><span class="pre">recursive_items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.remove_duplicates"><code class="docutils literal notranslate"><span class="pre">remove_duplicates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.resample"><code class="docutils literal notranslate"><span class="pre">resample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.save_energy_phase_tm"><code class="docutils literal notranslate"><span class="pre">save_energy_phase_tm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.helper.html#util.helper.save_vcav_and_phis"><code class="docutils literal notranslate"><span class="pre">save_vcav_and_phis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="util.log_manager.html">util.log_manager module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.log_manager.html#util.log_manager.LogFormatter"><code class="docutils literal notranslate"><span class="pre">LogFormatter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.log_manager.html#util.log_manager.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.log_manager.html#util.log_manager.set_up_logging"><code class="docutils literal notranslate"><span class="pre">set_up_logging()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="util.pandas_helper.html">util.pandas_helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.pandas_helper.html#util.pandas_helper.to_csv"><code class="docutils literal notranslate"><span class="pre">to_csv()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="util.phases.html">util.phases module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.phases.html#util.phases.diff_angle"><code class="docutils literal notranslate"><span class="pre">diff_angle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.phases.html#util.phases.phi_0_abs_to_rel"><code class="docutils literal notranslate"><span class="pre">phi_0_abs_to_rel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.phases.html#util.phases.phi_0_rel_to_abs"><code class="docutils literal notranslate"><span class="pre">phi_0_rel_to_abs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.phases.html#util.phases.phi_bunch_to_phi_rf"><code class="docutils literal notranslate"><span class="pre">phi_bunch_to_phi_rf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.phases.html#util.phases.phi_rf_to_phi_bunch"><code class="docutils literal notranslate"><span class="pre">phi_rf_to_phi_bunch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="util.pickling.html">util.pickling module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.pickling.html#util.pickling.MyCloudPickler"><code class="docutils literal notranslate"><span class="pre">MyCloudPickler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.pickling.html#util.pickling.MyPickler"><code class="docutils literal notranslate"><span class="pre">MyPickler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="util.setup.html">util.setup module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.synchronous_phases.html">util.synchronous_phases module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.synchronous_phases.html#util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS"><code class="docutils literal notranslate"><span class="pre">SYNCHRONOUS_PHASE_FUNCTIONS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.synchronous_phases.html#util.synchronous_phases.phi_s_from_tracewin_file"><code class="docutils literal notranslate"><span class="pre">phi_s_from_tracewin_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.synchronous_phases.html#util.synchronous_phases.phi_s_lagniel"><code class="docutils literal notranslate"><span class="pre">phi_s_lagniel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.synchronous_phases.html#util.synchronous_phases.phi_s_legacy"><code class="docutils literal notranslate"><span class="pre">phi_s_legacy()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">visualization package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="visualization.anim.html">visualization.anim module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="visualization.anim.html#visualization.anim.AnimatedScatterDesign"><code class="docutils literal notranslate"><span class="pre">AnimatedScatterDesign</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="visualization.plot.html">visualization.plot module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._all_accelerators_data"><code class="docutils literal notranslate"><span class="pre">_all_accelerators_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._autoscale_based_on"><code class="docutils literal notranslate"><span class="pre">_autoscale_based_on()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._avoid_similar_labels"><code class="docutils literal notranslate"><span class="pre">_avoid_similar_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._compute_ellipse_parameters"><code class="docutils literal notranslate"><span class="pre">_compute_ellipse_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._compute_error"><code class="docutils literal notranslate"><span class="pre">_compute_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._error_calculation_function"><code class="docutils literal notranslate"><span class="pre">_error_calculation_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._keep_colors"><code class="docutils literal notranslate"><span class="pre">_keep_colors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._make_a_subplot"><code class="docutils literal notranslate"><span class="pre">_make_a_subplot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_aperture"><code class="docutils literal notranslate"><span class="pre">_plot_aperture()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_bend"><code class="docutils literal notranslate"><span class="pre">_plot_bend()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_drift"><code class="docutils literal notranslate"><span class="pre">_plot_drift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_edge"><code class="docutils literal notranslate"><span class="pre">_plot_edge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_field_map"><code class="docutils literal notranslate"><span class="pre">_plot_field_map()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_preset"><code class="docutils literal notranslate"><span class="pre">_plot_preset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_quad"><code class="docutils literal notranslate"><span class="pre">_plot_quad()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_section"><code class="docutils literal notranslate"><span class="pre">_plot_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._plot_structure"><code class="docutils literal notranslate"><span class="pre">_plot_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._proper_kwargs"><code class="docutils literal notranslate"><span class="pre">_proper_kwargs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._savefig"><code class="docutils literal notranslate"><span class="pre">_savefig()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._single_accelerator_all_simulations_data"><code class="docutils literal notranslate"><span class="pre">_single_accelerator_all_simulations_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._single_simulation_all_data"><code class="docutils literal notranslate"><span class="pre">_single_simulation_all_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._single_simulation_data"><code class="docutils literal notranslate"><span class="pre">_single_simulation_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot._y_label"><code class="docutils literal notranslate"><span class="pre">_y_label()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.clean_axes"><code class="docutils literal notranslate"><span class="pre">clean_axes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.clean_figure"><code class="docutils literal notranslate"><span class="pre">clean_figure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.create_fig_if_not_exists"><code class="docutils literal notranslate"><span class="pre">create_fig_if_not_exists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.factory"><code class="docutils literal notranslate"><span class="pre">factory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.plot_ellipse"><code class="docutils literal notranslate"><span class="pre">plot_ellipse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.plot_ellipse_emittance"><code class="docutils literal notranslate"><span class="pre">plot_ellipse_emittance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.plot_fit_progress"><code class="docutils literal notranslate"><span class="pre">plot_fit_progress()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.plot_pty_with_data_tags"><code class="docutils literal notranslate"><span class="pre">plot_pty_with_data_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="visualization.plot.html#visualization.plot.remove_artists"><code class="docutils literal notranslate"><span class="pre">remove_artists()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="manual/units.html" class="btn btn-neutral float-left" title="Units and conventions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beam_calculation.html" class="btn btn-neutral float-right" title="beam_calculation package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>evaluator.simulation_output.simulation_output_evaluator module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="evaluator.list_of_simulation_output_evaluators module" href="evaluator.list_of_simulation_output_evaluators.html" />
+    <link rel="prev" title="evaluator.simulation_output.presets module" href="evaluator.simulation_output.presets.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="evaluator.html">evaluator package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="evaluator.simulation_output.html">evaluator.simulation_output package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="evaluator.simulation_output.factory.html">evaluator.simulation_output.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evaluator.simulation_output.presets.html">evaluator.simulation_output.presets module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">evaluator.simulation_output.simulation_output_evaluator module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.list_of_simulation_output_evaluators.html">evaluator.list_of_simulation_output_evaluators module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.post_treaters.html">evaluator.post_treaters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.testers.html">evaluator.testers module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="evaluator.types.html">evaluator.types module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="evaluator.html">evaluator package</a></li>
+          <li class="breadcrumb-item"><a href="evaluator.simulation_output.html">evaluator.simulation_output package</a></li>
+      <li class="breadcrumb-item active">evaluator.simulation_output.simulation_output_evaluator module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/evaluator.simulation_output.simulation_output_evaluator.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-evaluator.simulation_output.simulation_output_evaluator">
+<span id="evaluator-simulation-output-simulation-output-evaluator-module"></span><h1>evaluator.simulation_output.simulation_output_evaluator module<a class="headerlink" href="#module-evaluator.simulation_output.simulation_output_evaluator" title="Link to this heading"></a></h1>
+<p>Define an object to evaluate quality of a set of cavity settings.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We do not directly evaluate a <a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code></a> though, but
+rather a <a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a>.</p>
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>different factories for evaluation during the fit and evaluation after</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SimulationOutputEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">value_getter:</span> <span class="pre">~typing.Callable[[~beam_calculation.simulation_output.simulation_output.SimulationOutput],</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float],</span> <span class="pre">ref_simulation_output:</span> <span class="pre">~beam_calculation.simulation_output.simulation_output.SimulationOutput,</span> <span class="pre">ref_value_getter:</span> <span class="pre">~typing.Callable[[~beam_calculation.simulation_output.simulation_output.SimulationOutput,</span> <span class="pre">~beam_calculation.simulation_output.simulation_output.SimulationOutput],</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">post_treaters:</span> <span class="pre">~collections.abc.Sequence[~typing.Callable[[~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float,</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float],</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">=</span> <span class="pre">(&lt;function</span> <span class="pre">do_nothing&gt;,),</span> <span class="pre">tester:</span> <span class="pre">~typing.Callable[[~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float],</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">bool</span> <span class="pre">|</span> <span class="pre">None]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">descriptor:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'',</span> <span class="pre">markdown:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'',</span> <span class="pre">plt_kwargs:</span> <span class="pre">dict[str,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">raise_error_if_value_getter_returns_none:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>A base class for all the possible types of tests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value_getter</strong> (<em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a><em>]</em><em>, </em><em>value_t</em><em>]</em>) – A function that takes the simulation output under study as argument,
+and returns the value to be studied.</p></li>
+<li><p><strong>ref_simulation_output</strong> (<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a>) – The simulation output of a nominal <a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a>. It is up to
+the user to verify that the <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> is the same
+between the reference and the fixed <a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a>.</p></li>
+<li><p><strong>ref_value_getter</strong> (<em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a><em>, </em><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a><em>]</em><em>,                                 </em><em>ref_value_t</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – A function that takes the reference simulation ouput and the simulation
+output under study as arguments, and returns the reference value. In
+general, only the first argument will be used. The second argument can
+be used in specific cases, eg for the mismatch factor.  The default is
+None.</p></li>
+<li><p><strong>post_treaters</strong> (<em>Sequence</em><em>[</em><em>post_treater_t</em><em>]</em><em>, </em><em>optional</em>) – A tuple of functions that will be called one after each other and
+applied on <code class="docutils literal notranslate"><span class="pre">value</span></code>, which is returned by <code class="docutils literal notranslate"><span class="pre">value_getter</span></code>. First
+argument must be <code class="docutils literal notranslate"><span class="pre">value</span></code>, second argument <code class="docutils literal notranslate"><span class="pre">ref_value</span></code>. They return
+an update <code class="docutils literal notranslate"><span class="pre">value</span></code>, which is passed to the next function in
+<code class="docutils literal notranslate"><span class="pre">post_treaters</span></code>. The default is a tuple containing only
+<code class="xref py py-func docutils literal notranslate"><span class="pre">_do_nothing()</span></code>.</p></li>
+<li><p><strong>tester</strong> (<em>tester_t</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – A function that takes post-treated <code class="docutils literal notranslate"><span class="pre">value</span></code> and test it. It can return
+a boolean or a float. The default is None.</p></li>
+<li><p><strong>fignum</strong> (<em>int</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – The Figure number. The default is None, in which case no plot is
+produced.</p></li>
+<li><p><strong>descriptor</strong> (<em>str</em><em>, </em><em>optional</em>) – A sentence or two to describe what the test is about. The default is an
+empty string.</p></li>
+<li><p><strong>markdown</strong> (<em>str</em><em>, </em><em>optional</em>) – A markdown name for this quantity, used in plots y label. The default
+is an empty string.</p></li>
+<li><p><strong>plt_kwargs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None = None</em>) – A dictionary with keyword arguments passed to the <code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code>. The
+default is None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">value_getter:</span> <span class="pre">~typing.Callable[[~beam_calculation.simulation_output.simulation_output.SimulationOutput],</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float],</span> <span class="pre">ref_simulation_output:</span> <span class="pre">~beam_calculation.simulation_output.simulation_output.SimulationOutput,</span> <span class="pre">ref_value_getter:</span> <span class="pre">~typing.Callable[[~beam_calculation.simulation_output.simulation_output.SimulationOutput,</span> <span class="pre">~beam_calculation.simulation_output.simulation_output.SimulationOutput],</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">post_treaters:</span> <span class="pre">~collections.abc.Sequence[~typing.Callable[[~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float,</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float],</span> <span class="pre">~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">=</span> <span class="pre">(&lt;function</span> <span class="pre">do_nothing&gt;,),</span> <span class="pre">tester:</span> <span class="pre">~typing.Callable[[~numpy.ndarray</span> <span class="pre">|</span> <span class="pre">float],</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">bool</span> <span class="pre">|</span> <span class="pre">None]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">descriptor:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'',</span> <span class="pre">markdown:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'',</span> <span class="pre">plt_kwargs:</span> <span class="pre">dict[str,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">raise_error_if_value_getter_returns_none:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.__post_init__">
+<span class="sig-name descname"><span class="pre">__post_init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.__post_init__" title="Link to this definition"></a></dt>
+<dd><p>Check inputs, create plot if a <code class="docutils literal notranslate"><span class="pre">fignum</span></code> was provided.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._add_a_limit_plot">
+<span class="sig-name descname"><span class="pre">_add_a_limit_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">plot_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._add_a_limit_plot" title="Link to this definition"></a></dt>
+<dd><p>Add limits to the plot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._add_a_value_plot">
+<span class="sig-name descname"><span class="pre">_add_a_value_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">plot_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._add_a_value_plot" title="Link to this definition"></a></dt>
+<dd><p>Add (treated) data to the plot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._add_structure_plot">
+<span class="sig-name descname"><span class="pre">_add_structure_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._add_structure_plot" title="Link to this definition"></a></dt>
+<dd><p>Add a plot of the structure in the bottom ax.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._apply_post_treatments">
+<span class="sig-name descname"><span class="pre">_apply_post_treatments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_ref_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">plot_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._apply_post_treatments" title="Link to this definition"></a></dt>
+<dd><p>Apply all the <code class="docutils literal notranslate"><span class="pre">post_treaters</span></code> functions.</p>
+<p>Can also plot the post-treated data after all or some of the
+post-treatments have been performed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._apply_test">
+<span class="sig-name descname"><span class="pre">_apply_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">plot_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._apply_test" title="Link to this definition"></a></dt>
+<dd><p>Apply da testing functions.</p>
+<p>Can also plot the test results if asked.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._create_plot">
+<span class="sig-name descname"><span class="pre">_create_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fignum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._create_plot" title="Link to this definition"></a></dt>
+<dd><p>Prepare the plot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._get_data">
+<span class="sig-name descname"><span class="pre">_get_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._get_data" title="Link to this definition"></a></dt>
+<dd><p>Get da data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._get_ref_data">
+<span class="sig-name descname"><span class="pre">_get_ref_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._get_ref_data" title="Link to this definition"></a></dt>
+<dd><p>Get da reference data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._resampled">
+<span class="sig-name descname"><span class="pre">_resampled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_ref_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._resampled" title="Link to this definition"></a></dt>
+<dd><p>Resample data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._save_plot">
+<span class="sig-name descname"><span class="pre">_save_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fignum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savefig</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator._save_plot" title="Link to this definition"></a></dt>
+<dd><p>Save the figure if asked, and if <code class="docutils literal notranslate"><span class="pre">out_path</span></code> is defined.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.descriptor">
+<span class="sig-name descname"><span class="pre">descriptor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.descriptor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.markdown">
+<span class="sig-name descname"><span class="pre">markdown</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.markdown" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.plt_kwargs">
+<span class="sig-name descname"><span class="pre">plt_kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.plt_kwargs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.post_treaters">
+<span class="sig-name descname"><span class="pre">post_treaters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">do_nothing&gt;,)</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.post_treaters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.raise_error_if_value_getter_returns_none">
+<span class="sig-name descname"><span class="pre">raise_error_if_value_getter_returns_none</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.raise_error_if_value_getter_returns_none" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.ref_simulation_output">
+<span class="sig-name descname"><span class="pre">ref_simulation_output</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.ref_simulation_output" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.ref_value_getter">
+<span class="sig-name descname"><span class="pre">ref_value_getter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.ref_value_getter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.run" title="Link to this definition"></a></dt>
+<dd><p>Run the test.</p>
+<p>It can return a bool (test passed with success or not), or a float. The
+former is useful for production purposes, when you want to sort the
+settings in valid/invalid categories. The latter is useful for
+development purposes, i.e. to identify the most complex cases in a
+bunch of configurations.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.tester">
+<span class="sig-name descname"><span class="pre">tester</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.tester" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.value_getter">
+<span class="sig-name descname"><span class="pre">value_getter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator.value_getter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator._descriptor">
+<span class="sig-name descname"><span class="pre">_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">descriptor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator._descriptor" title="Link to this definition"></a></dt>
+<dd><p>Clean the given string, raise warning if it is empty.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator._limits_given_in_functoolspartial_args">
+<span class="sig-name descname"><span class="pre">_limits_given_in_functoolspartial_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">partial_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator._limits_given_in_functoolspartial_args" title="Link to this definition"></a></dt>
+<dd><p>Extract the limits given to a test function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator._need_to_resample">
+<span class="sig-name descname"><span class="pre">_need_to_resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator._need_to_resample" title="Link to this definition"></a></dt>
+<dd><p>Determine if we need to resample <code class="docutils literal notranslate"><span class="pre">value</span></code> or <code class="docutils literal notranslate"><span class="pre">ref_value</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator._post_treaters">
+<span class="sig-name descname"><span class="pre">_post_treaters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_treaters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator._post_treaters" title="Link to this definition"></a></dt>
+<dd><p>Check that we have a tuple, convert it to tuple if not.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator._return_value_should_be_plotted">
+<span class="sig-name descname"><span class="pre">_return_value_should_be_plotted</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">partial_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator._return_value_should_be_plotted" title="Link to this definition"></a></dt>
+<dd><p>Determine if keyword ‘to_plot’ was passed and is True.</p>
+<p>This function only works on functions defined by <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code>. If
+it is not (lambda function, “classic” function), we consider that the
+plotting was not desired.
+We check if the ‘to_plot’ keyword was given in the partial definition, and
+if it is not we also consider that the plot was not wanted.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="evaluator.simulation_output.simulation_output_evaluator.kwargs">
+<span class="sig-name descname"><span class="pre">kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plt_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#evaluator.simulation_output.simulation_output_evaluator.kwargs" title="Link to this definition"></a></dt>
+<dd><p>Test plot kwargs, add some default values.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="evaluator.simulation_output.presets.html" class="btn btn-neutral float-left" title="evaluator.simulation_output.presets module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="evaluator.list_of_simulation_output_evaluators.html" class="btn btn-neutral float-right" title="evaluator.list_of_simulation_output_evaluators module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

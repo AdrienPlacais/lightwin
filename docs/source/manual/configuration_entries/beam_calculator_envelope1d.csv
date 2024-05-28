@@ -1,5 +1,0 @@
-Entry,Type,Description,Allowed values,Mandatory?
-``flag_phi_abs``,bool,Simulation realized in absolute phase?,,✅
-``flag_cython``,bool,Use Cython implementation?,,✅
-``n_steps_per_cell``,int,# of integration steps per cavity cell,,✅
-``method``,str,Integration method,:data:`~config.beam_calculator.methods`,✅

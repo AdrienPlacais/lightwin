@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>optimisation.algorithms.nsga module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation.algorithms.pso module" href="optimisation.algorithms.pso.html" />
+    <link rel="prev" title="optimisation.algorithms.least_squares_penalty module" href="optimisation.algorithms.least_squares_penalty.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="optimisation.html">optimisation package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="optimisation.algorithms.html">optimisation.algorithms package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.algorithm.html">optimisation.algorithms.algorithm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html">optimisation.algorithms.differential_evolution module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html">optimisation.algorithms.downhill_simplex module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html">optimisation.algorithms.downhill_simplex_penalty module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.explorator.html">optimisation.algorithms.explorator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.factory.html">optimisation.algorithms.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.least_squares.html">optimisation.algorithms.least_squares module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html">optimisation.algorithms.least_squares_penalty module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">optimisation.algorithms.nsga module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.pso.html">optimisation.algorithms.pso module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.html">optimisation.design_space package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.html">optimisation package</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.algorithms.html">optimisation.algorithms package</a></li>
+      <li class="breadcrumb-item active">optimisation.algorithms.nsga module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/optimisation.algorithms.nsga.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-optimisation.algorithms.nsga">
+<span id="optimisation-algorithms-nsga-module"></span><h1>optimisation.algorithms.nsga module<a class="headerlink" href="#module-optimisation.algorithms.nsga" title="Link to this heading"></a></h1>
+<p>Define :class:<code class="docutils literal notranslate"><span class="pre">.NSGA</span></code>, a genetic algorithm for optimisation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.MyElementwiseProblem">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MyElementwiseProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_wrapper_residuals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.algorithms.nsga.MyElementwiseProblem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ElementwiseProblem</span></code></p>
+<p>A first test implementation, eval single solution at a time.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.MyElementwiseProblem.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_wrapper_residuals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.MyElementwiseProblem.__init__" title="Link to this definition"></a></dt>
+<dd><p>Create object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.MyElementwiseProblem._evaluate">
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.MyElementwiseProblem._evaluate" title="Link to this definition"></a></dt>
+<dd><p>Calculate and return the objectives.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NSGA</span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code></a></p>
+<p>Non-dominated Sorted Genetic Algorithm.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA.__init__" title="Link to this definition"></a></dt>
+<dd><p>Instantiate the object.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._best_solution">
+<span class="sig-name descname"><span class="pre">_best_solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Result</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._best_solution" title="Link to this definition"></a></dt>
+<dd><p>Take the “best” solution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._format_variables">
+<span class="sig-name descname"><span class="pre">_format_variables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._format_variables" title="Link to this definition"></a></dt>
+<dd><p>Format <code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> for this algorithm.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._problem_arguments">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_problem_arguments</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._problem_arguments" title="Link to this definition"></a></dt>
+<dd><p>Gather arguments required for <code class="xref py py-class docutils literal notranslate"><span class="pre">ElementwiseProblem</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._set_algorithm">
+<span class="sig-name descname"><span class="pre">_set_algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Algorithm</span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._set_algorithm" title="Link to this definition"></a></dt>
+<dd><p>Set <code class="docutils literal notranslate"><span class="pre">pymoo`s</span> <span class="pre">`Algorithm</span></code> object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._set_population">
+<span class="sig-name descname"><span class="pre">_set_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Population</span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._set_population" title="Link to this definition"></a></dt>
+<dd><p>Set population, with some predefined individuals.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._set_termination">
+<span class="sig-name descname"><span class="pre">_set_termination</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DefaultMultiObjectiveTermination</span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._set_termination" title="Link to this definition"></a></dt>
+<dd><p>Set the termination condition.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA._wrapper_residuals">
+<span class="sig-name descname"><span class="pre">_wrapper_residuals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA._wrapper_residuals" title="Link to this definition"></a></dt>
+<dd><p>Compute residuals from an array of variable values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA.optimise">
+<span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keep_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptiInfo" title="optimisation.algorithms.algorithm.OptiInfo"><span class="pre">OptiInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA.optimise" title="Link to this definition"></a></dt>
+<dd><p>Set up the optimisation and solve the problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>success</strong> (<em>bool</em>) – Tells if the optimisation algorithm managed to converge.</p></li>
+<li><p><strong>optimized_cavity_settings</strong> (<em>SetOfCavitySettings</em>) – Best solution found by the optimization algorithm.</p></li>
+<li><p><strong>info</strong> (<em>dict[str, list[float]]] | None</em>) – Gives list of solutions, corresponding objective, convergence
+violation if applicable, etc.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA.supports_constraints">
+<span class="sig-name descname"><span class="pre">supports_constraints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA.supports_constraints" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA.x_0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x_0</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA.x_0" title="Link to this definition"></a></dt>
+<dd><p>Return initial value used in <a href="#id1"><span class="problematic" id="id2">`</span></a>LeastSquares’.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga.NSGA.x_max_k_e">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x_max_k_e</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#optimisation.algorithms.nsga.NSGA.x_max_k_e" title="Link to this definition"></a></dt>
+<dd><p>Return a solution with maximum electric fields.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.algorithms.nsga._characteristic_points">
+<span class="sig-name descname"><span class="pre">_characteristic_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Result</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.nsga._characteristic_points" title="Link to this definition"></a></dt>
+<dd><p>Give the ideal and Nadir points as a dict.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimisation.algorithms.least_squares_penalty.html" class="btn btn-neutral float-left" title="optimisation.algorithms.least_squares_penalty module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.algorithms.pso.html" class="btn btn-neutral float-right" title="optimisation.algorithms.pso module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

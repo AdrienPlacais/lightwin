@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.elements.field_maps.cavity_settings module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.elements.field_maps.cavity_settings_factory module" href="core.elements.field_maps.cavity_settings_factory.html" />
+    <link rel="prev" title="core.elements.field_maps package" href="core.elements.field_maps.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="core.elements.html">core.elements package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="core.elements.field_maps.html">core.elements.field_maps package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.aperture.html">core.elements.aperture module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.bend.html">core.elements.bend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html">core.elements.diagnostic module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.drift.html">core.elements.drift module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.dummy.html">core.elements.dummy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.edge.html">core.elements.edge module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.element.html">core.elements.element module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.factory.html">core.elements.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.helper.html">core.elements.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.quad.html">core.elements.quad module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.solenoid.html">core.elements.solenoid module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.superposed_field_map.html">core.elements.superposed_field_map module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.thin_steering.html">core.elements.thin_steering module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+          <li class="breadcrumb-item"><a href="core.elements.html">core.elements package</a></li>
+          <li class="breadcrumb-item"><a href="core.elements.field_maps.html">core.elements.field_maps package</a></li>
+      <li class="breadcrumb-item active">core.elements.field_maps.cavity_settings module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.elements.field_maps.cavity_settings.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.elements.field_maps.cavity_settings">
+<span id="core-elements-field-maps-cavity-settings-module"></span><h1>core.elements.field_maps.cavity_settings module<a class="headerlink" href="#module-core.elements.field_maps.cavity_settings" title="Link to this heading"></a></h1>
+<p>Store cavity settings that can change during an optimisation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As for now, <a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">FieldMap</span></code></a> is the only object to have its properties in
+a dedicated object.</p>
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Similar to synchronous phase, allow for V_cav to be “master” instead of
+k_e.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">NewRfField</span></code></p>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.ALLOWED_REFERENCES">
+<span class="sig-name descname"><span class="pre">ALLOWED_REFERENCES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('phi_0_abs',</span> <span class="pre">'phi_0_rel',</span> <span class="pre">'phi_s')</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.ALLOWED_REFERENCES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.ALLOWED_STATUS">
+<span class="sig-name descname"><span class="pre">ALLOWED_STATUS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('nominal',</span> <span class="pre">'rephased</span> <span class="pre">(in</span> <span class="pre">progress)',</span> <span class="pre">'rephased</span> <span class="pre">(ok)',</span> <span class="pre">'failed',</span> <span class="pre">'compensate</span> <span class="pre">(in</span> <span class="pre">progress)',</span> <span class="pre">'compensate</span> <span class="pre">(ok)',</span> <span class="pre">'compensate</span> <span class="pre">(not</span> <span class="pre">ok)')</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.ALLOWED_STATUS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CavitySettings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k_e</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_bunch_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_cavity_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transf_mat_func_wrappers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_s_funcs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Hold the cavity parameters that can vary during optimisation.</p>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Which syntax for when I want to compute the value of a property but not
+return it? Maybe a <code class="docutils literal notranslate"><span class="pre">_</span> <span class="pre">=</span> <span class="pre">self.phi_0_abs</span></code>? Maybe this case should not
+appear here, appart for when I debug.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In this routine, all phases are defined in radian and are rf phases.</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Determine if status should be kept here or in the field map.</p>
+</div>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>For TraceWin solver, I will also need the field map index.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k_e</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_bunch_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_cavity_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transf_mat_func_wrappers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_s_funcs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.__init__" title="Link to this definition"></a></dt>
+<dd><p>Instantiate the object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k_e</strong> (<em>float</em>) – Amplitude of the electric field.</p></li>
+<li><p><strong>phi</strong> (<em>float</em>) – Input phase. Must be absolute or relative entry phase, or
+synchronous phase.</p></li>
+<li><p><strong>reference</strong> (<em>{'phi_0_abs'</em><em>, </em><em>'phi_0_rel'</em><em>, </em><em>'phi_s'}</em>) – Name of the phase used for reference. When a particle enters the
+cavity, this is the phase that is not recomputed.</p></li>
+<li><p><strong>status</strong> (<em>str</em>) – A value in <a href="#id5"><span class="problematic" id="id6">:var:`ALLOWED_STATUS`</span></a>.</p></li>
+<li><p><strong>freq_bunch_mhz</strong> (<em>float</em>) – Bunch frequency in MHz.</p></li>
+<li><p><strong>freq_cavity_mhz</strong> (<em>float</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Frequency of the cavity in MHz. The default is None, which happens
+when the <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> is under creation and we did not
+process the <code class="docutils literal notranslate"><span class="pre">FREQ</span></code> commands yet.</p></li>
+<li><p><strong>transf_mat_func_wrappers</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Callable</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – A dictionary which keys are the different <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>
+ids, and values are corresponding functions to compute propagation
+of the beam. The default is None, in which case attribute is not
+set.</p></li>
+<li><p><strong>phi_s_funcs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Callable</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – A dictionary which keys are the different <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>
+ids, and values are corresponding functions to compute synchronous
+phase and accelerating voltage from the ouput of corresponding
+<code class="docutils literal notranslate"><span class="pre">transf_mat_func_wrapper</span></code>. The default is None, in which case
+attribute is not set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings._attr_to_str">
+<span class="sig-name descname"><span class="pre">_attr_to_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_deg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings._attr_to_str" title="Link to this definition"></a></dt>
+<dd><p>Give the attribute as string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings._check_consistency_of_status_and_reference">
+<span class="sig-name descname"><span class="pre">_check_consistency_of_status_and_reference</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings._check_consistency_of_status_and_reference" title="Link to this definition"></a></dt>
+<dd><p>Perform some tests on <code class="docutils literal notranslate"><span class="pre">status</span></code> and <code class="docutils literal notranslate"><span class="pre">reference</span></code>.</p>
+<div class="admonition-todo admonition" id="id7">
+<p class="admonition-title">Todo</p>
+<p>Maybe not necessary to raise an error when there is a mismatch.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings._delete_non_reference_phases">
+<span class="sig-name descname"><span class="pre">_delete_non_reference_phases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings._delete_non_reference_phases" title="Link to this definition"></a></dt>
+<dd><p>Reset the phases that are not the reference to None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.from_optimisation_algorithm">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_optimisation_algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_e</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.from_optimisation_algorithm" title="Link to this definition"></a></dt>
+<dd><p>Create settings based on <code class="docutils literal notranslate"><span class="pre">base</span></code> with different <code class="docutils literal notranslate"><span class="pre">k_e</span></code>, <code class="docutils literal notranslate"><span class="pre">phi_0</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base</strong> (<em>Self</em>) – The reference <a class="reference internal" href="#core.elements.field_maps.cavity_settings.CavitySettings" title="core.elements.field_maps.cavity_settings.CavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">CavitySettings</span></code></a>. A priori, this is the
+nominal settings.</p></li>
+<li><p><strong>k_e</strong> (<em>float</em>) – New field amplitude.</p></li>
+<li><p><strong>phi</strong> (<em>float</em>) – New reference phase. Its nature is defined by <code class="docutils literal notranslate"><span class="pre">reference</span></code>.</p></li>
+<li><p><strong>status</strong> (<em>{&quot;compensate</em><em> (</em><em>in progress</em><em>)</em><em>&quot;</em><em>, </em><em>&quot;compensate</em><em> (</em><em>ok</em><em>)</em><em>&quot;</em><em>, </em><em>&quot;compensate</em><em>                 (</em><em>not ok</em><em>)</em><em>&quot;}</em>) – Status of the created settings.</p></li>
+<li><p><strong>reference</strong> (<em>{&quot;phi_0_rel&quot;</em><em>, </em><em>&quot;phi_0_abs&quot;</em><em>, </em><em>&quot;phi_s&quot;}</em>) – The phase used as a reference.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new <a class="reference internal" href="#core.elements.field_maps.cavity_settings.CavitySettings" title="core.elements.field_maps.cavity_settings.CavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">CavitySettings</span></code></a> with modified amplitude and phase.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.from_other_cavity_settings">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_other_cavity_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.from_other_cavity_settings" title="Link to this definition"></a></dt>
+<dd><p>Create settings with same settings as provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_deg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.get" title="Link to this definition"></a></dt>
+<dd><p>Shorthand to get attributes from this class or its attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*keys</strong> (<em>str</em>) – Name of the desired attributes.</p></li>
+<li><p><strong>**kwargs</strong> (<em>bool</em><em> | </em><em>str</em><em> | </em><em>None</em>) – Other arguments passed to recursive getter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – Attribute(s) value(s).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.has">
+<span class="sig-name descname"><span class="pre">has</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.has" title="Link to this definition"></a></dt>
+<dd><p>Tell if the required attribute is in this class.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.phi_0_abs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi_0_abs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.phi_0_abs" title="Link to this definition"></a></dt>
+<dd><p>Get the absolute entry phase, compute if necessary.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.phi_0_rel">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi_0_rel</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.phi_0_rel" title="Link to this definition"></a></dt>
+<dd><p>Get the relative entry phase, compute it if necessary.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.phi_bunch">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi_bunch</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.phi_bunch" title="Link to this definition"></a></dt>
+<dd><p>Return the entry phase of the synchronous particle (bunch ref).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.phi_ref">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi_ref</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.phi_ref" title="Link to this definition"></a></dt>
+<dd><p>Give the reference phase.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.phi_rf">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi_rf</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.phi_rf" title="Link to this definition"></a></dt>
+<dd><p>Get the rf phase of synch particle at entrance of cavity.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.phi_s">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi_s</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.phi_s" title="Link to this definition"></a></dt>
+<dd><p>Get the synchronous phase, and compute it if necessary.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is mandatory for the calculation of this quantity to compute
+propagation of the particle in the cavity.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods" title="core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_cavity_parameters_methods</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.reference">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reference</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.reference" title="Link to this definition"></a></dt>
+<dd><p>Say what is the reference phase.</p>
+<table class="docutils align-default" id="id8">
+<caption><span class="caption-text">Equivalents of <code class="docutils literal notranslate"><span class="pre">reference</span></code> in TraceWin’s                 <code class="docutils literal notranslate"><span class="pre">FIELD_MAP</span></code></span><a class="headerlink" href="#id8" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>LightWin’s <code class="docutils literal notranslate"><span class="pre">reference</span></code></p></th>
+<th class="head"><p>TraceWin</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">'phi_0_rel'</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">=</span> <span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">'phi_0_abs'</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">=</span> <span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">'phi_s'</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SET_SYNC_PHASE</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.set_bunch_to_rf_freq_func">
+<span class="sig-name descname"><span class="pre">set_bunch_to_rf_freq_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq_cavity_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.set_bunch_to_rf_freq_func" title="Link to this definition"></a></dt>
+<dd><p>Use cavity frequency to set a bunch -&gt; rf freq function.</p>
+<p>This method is called by the <a class="reference internal" href="core.commands.freq.html#core.commands.freq.Freq" title="core.commands.freq.Freq"><code class="xref py py-class docutils literal notranslate"><span class="pre">Freq</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>freq_cavity_mhz</strong> (<em>float</em>) – Frequency in the cavity in MHz.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_arguments">
+<span class="sig-name descname"><span class="pre">set_cavity_parameters_arguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_arguments" title="Link to this definition"></a></dt>
+<dd><p>Adapt the cavity parameters methods to beam with <code class="docutils literal notranslate"><span class="pre">w_kin</span></code>.</p>
+<p>This function must be called every time the kinetic energy at the
+entrance of the cavity is changed (like this occurs during optimisation
+process) or when the synchronous phase must be calculated with another
+solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_id</strong> (<em>str</em>) – Name of the solver that will compute <span class="math notranslate nohighlight">\(V_\mathrm{cav}\)</span> and
+<span class="math notranslate nohighlight">\(\phi_s\)</span>.</p></li>
+<li><p><strong>w_kin</strong> (<em>float</em>) – Kinetic energy of the synchronous particle at the entry of the
+cavity.</p></li>
+<li><p><strong>kwargs</strong> – Other keyword arguments that will be passed to the function that
+will compute propagation of the beam in the <a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">FieldMap</span></code></a>.
+Note that you should check that <code class="docutils literal notranslate"><span class="pre">phi_0_rel</span></code> key should be removed
+in your <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>, to avoid a clash in the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">phi_0_rel_to_cavity_parameters()</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods" title="core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_cavity_parameters_methods</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods">
+<span class="sig-name descname"><span class="pre">set_cavity_parameters_methods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transf_mat_function_wrapper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_s_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods" title="Link to this definition"></a></dt>
+<dd><p>Set the generic methods to compute beam propagation, cavity params.</p>
+<dl>
+<dt>This function is called within two contexts:</dt><dd><ul class="simple">
+<li><p>When initializing the <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> specific</p></li>
+</ul>
+<p>parameters (<a class="reference internal" href="beam_calculation.parameters.element_parameters.html#beam_calculation.parameters.element_parameters.ElementBeamCalculatorParameters" title="beam_calculation.parameters.element_parameters.ElementBeamCalculatorParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElementBeamCalculatorParameters</span></code></a>).
+- When re-initalizing the <a class="reference internal" href="beam_calculation.parameters.element_parameters.html#beam_calculation.parameters.element_parameters.ElementBeamCalculatorParameters" title="beam_calculation.parameters.element_parameters.ElementBeamCalculatorParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElementBeamCalculatorParameters</span></code></a>
+because the <code class="docutils literal notranslate"><span class="pre">status</span></code> of the cavity changed, and in particular
+when it switches to <code class="docutils literal notranslate"><span class="pre">'failed'</span></code>. In this case, the <code class="docutils literal notranslate"><span class="pre">phi_s_func</span></code>
+is not altered.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_id</strong> (<em>str</em>) – The name of the solver for which functions must be changed.</p></li>
+<li><p><strong>transf_mat_function_wrapper</strong> (<em>Callable</em>) – A function that compute the propagation of the beam.</p></li>
+<li><p><strong>phi_s_func</strong> (<em>Callable</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – A function that takes in the ouptut of
+<code class="docutils literal notranslate"><span class="pre">transf_mat_function_wrapper</span></code> and return the accelerating voltage
+in MV and the synchronous phase in rad. The default is None, which
+happens when we break the cavity and only the
+<code class="docutils literal notranslate"><span class="pre">transf_mat_function_wrapper</span></code> needs to be updated. In this case,
+the synchronous phase function is left unchanged.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_arguments" title="core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_arguments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_cavity_parameters_arguments</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.shift_phi_bunch">
+<span class="sig-name descname"><span class="pre">shift_phi_bunch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_phi_bunch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_positive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.shift_phi_bunch" title="Link to this definition"></a></dt>
+<dd><p>Shift the synchronous particle entry phase by <code class="docutils literal notranslate"><span class="pre">delta_phi_bunch</span></code>.</p>
+<p>This is mandatory when the reference phase is changed. In particular,
+it is the case when studying a sub-list of elements with
+<a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>. With this solver, the entry phase in the first
+element of the sub-<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> is always 0.0, even if is
+not the first element of the linac.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>delta_phi_bunch</strong> (<em>float</em>) – Phase difference between the new first element of the linac and the
+previous first element of the linac.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phi_in_1st_element</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phi_in_20th_element</span> <span class="o">=</span> <span class="mf">55.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">25</span><span class="n">th_element</span><span class="p">:</span> <span class="n">FieldMap</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">25</span><span class="n">th_element</span><span class="o">.</span><span class="n">cavity_settings</span><span class="o">.</span><span class="n">shift_phi_bunch</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">...</span> <span class="n">phi_in_20th_element</span> <span class="o">-</span> <span class="n">phi_in_1st_element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>  <span class="c1"># now phi_0_abs and phi_0_rel are properly understood</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.status">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.status" title="Link to this definition"></a></dt>
+<dd><p>Give the status of the cavity under study.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings.CavitySettings.v_cav_mv">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">v_cav_mv</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#core.elements.field_maps.cavity_settings.CavitySettings.v_cav_mv" title="Link to this definition"></a></dt>
+<dd><p>Get the accelerating voltage, and compute it if necessary.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is mandatory for the calculation of this quantity to compute
+propagation of the particle in the cavity.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods" title="core.elements.field_maps.cavity_settings.CavitySettings.set_cavity_parameters_methods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_cavity_parameters_methods</span></code></a></p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.elements.field_maps.cavity_settings._get_valid_func">
+<span class="sig-name descname"><span class="pre">_get_valid_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="headerlink" href="#core.elements.field_maps.cavity_settings._get_valid_func" title="Link to this definition"></a></dt>
+<dd><p>Get the function in <code class="docutils literal notranslate"><span class="pre">func_name</span></code> for <code class="docutils literal notranslate"><span class="pre">solver_id</span></code>.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.elements.field_maps.html" class="btn btn-neutral float-left" title="core.elements.field_maps package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.elements.field_maps.cavity_settings_factory.html" class="btn btn-neutral float-right" title="core.elements.field_maps.cavity_settings_factory module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

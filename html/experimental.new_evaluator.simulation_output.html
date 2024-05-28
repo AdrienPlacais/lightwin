@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>experimental.new_evaluator.simulation_output package &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="experimental.new_evaluator.simulation_output.factory module" href="experimental.new_evaluator.simulation_output.factory.html" />
+    <link rel="prev" title="experimental.new_evaluator package" href="experimental.new_evaluator.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="experimental.html">experimental package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="experimental.new_evaluator.html">experimental.new_evaluator package</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">experimental.new_evaluator.simulation_output package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="experimental.new_evaluator.i_evaluator.html">experimental.new_evaluator.i_evaluator module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.plotter.html">experimental.plotter package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.test.html">experimental.test module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="experimental.html">experimental package</a></li>
+          <li class="breadcrumb-item"><a href="experimental.new_evaluator.html">experimental.new_evaluator package</a></li>
+      <li class="breadcrumb-item active">experimental.new_evaluator.simulation_output package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/experimental.new_evaluator.simulation_output.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-experimental.new_evaluator.simulation_output">
+<span id="experimental-new-evaluator-simulation-output-package"></span><h1>experimental.new_evaluator.simulation_output package<a class="headerlink" href="#module-experimental.new_evaluator.simulation_output" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html">experimental.new_evaluator.simulation_output.factory module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html#experimental.new_evaluator.simulation_output.factory.SimulationOutputEvaluatorsFactory"><code class="docutils literal notranslate"><span class="pre">SimulationOutputEvaluatorsFactory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html#experimental.new_evaluator.simulation_output.factory.SimulationOutputEvaluatorsFactory.__init__"><code class="docutils literal notranslate"><span class="pre">SimulationOutputEvaluatorsFactory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html#experimental.new_evaluator.simulation_output.factory.SimulationOutputEvaluatorsFactory._instantiate_evaluators"><code class="docutils literal notranslate"><span class="pre">SimulationOutputEvaluatorsFactory._instantiate_evaluators()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html#experimental.new_evaluator.simulation_output.factory.SimulationOutputEvaluatorsFactory.batch_evaluate"><code class="docutils literal notranslate"><span class="pre">SimulationOutputEvaluatorsFactory.batch_evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html#experimental.new_evaluator.simulation_output.factory.SimulationOutputEvaluatorsFactory.run"><code class="docutils literal notranslate"><span class="pre">SimulationOutputEvaluatorsFactory.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html#experimental.new_evaluator.simulation_output.factory._constructors_n_kwargs"><code class="docutils literal notranslate"><span class="pre">_constructors_n_kwargs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.factory.html#experimental.new_evaluator.simulation_output.factory._out_folders"><code class="docutils literal notranslate"><span class="pre">_out_folders()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html">experimental.new_evaluator.simulation_output.i_simulation_output_evaluator module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator.__init__"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._abc_impl"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._constant_limits"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._constant_limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._default_dummy"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._default_dummy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._dump_no_numerical_data_to_plot"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._dump_no_numerical_data_to_plot</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._elt"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._elt</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._evaluate_single"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._evaluate_single()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._get_kwargs"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._get_kwargs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._get_n_interpolate"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._get_n_interpolate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._getter"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._getter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._pos"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._pos</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._to_deg"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._to_deg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator._x_quantity"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator._x_quantity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator.get"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator.plot"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator.plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.html#experimental.new_evaluator.simulation_output.i_simulation_output_evaluator.ISimulationOutputEvaluator.png_filename"><code class="docutils literal notranslate"><span class="pre">ISimulationOutputEvaluator.png_filename</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html">experimental.new_evaluator.simulation_output.presets module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance.__init__"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance._abc_impl"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance._constant_limits"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance._constant_limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance._fignum"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance._fignum</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance._markdown"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance._markdown</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance._to_deg"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance._to_deg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance._y_quantity"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance._y_quantity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance.evaluate"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalEmittance.post_treat"><code class="docutils literal notranslate"><span class="pre">LongitudinalEmittance.post_treat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor.__init__"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor._abc_impl"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor._constant_limits"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor._constant_limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor._fignum"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor._fignum</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor._getter"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor._getter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor._to_deg"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor._to_deg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor._y_quantity"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor._y_quantity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor.evaluate"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.LongitudinalMismatchFactor.post_treat"><code class="docutils literal notranslate"><span class="pre">LongitudinalMismatchFactor.post_treat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss"><code class="docutils literal notranslate"><span class="pre">PowerLoss</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss.__init__"><code class="docutils literal notranslate"><span class="pre">PowerLoss.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss._abc_impl"><code class="docutils literal notranslate"><span class="pre">PowerLoss._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss._constant_limits"><code class="docutils literal notranslate"><span class="pre">PowerLoss._constant_limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss._fignum"><code class="docutils literal notranslate"><span class="pre">PowerLoss._fignum</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss._y_quantity"><code class="docutils literal notranslate"><span class="pre">PowerLoss._y_quantity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss.evaluate"><code class="docutils literal notranslate"><span class="pre">PowerLoss.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.PowerLoss.post_treat"><code class="docutils literal notranslate"><span class="pre">PowerLoss.post_treat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases.__init__"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases._abc_impl"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases._constant_limits"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases._constant_limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases._fignum"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases._fignum</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases._getter"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases._getter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases._to_deg"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases._to_deg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases._x_quantity"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases._x_quantity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases._y_quantity"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases._y_quantity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases.evaluate"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.SynchronousPhases.post_treat"><code class="docutils literal notranslate"><span class="pre">SynchronousPhases.post_treat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor.__init__"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor._abc_impl"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor._constant_limits"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor._constant_limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor._fignum"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor._fignum</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor._getter"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor._getter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor._to_deg"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor._to_deg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor._y_quantity"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor._y_quantity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor.evaluate"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="experimental.new_evaluator.simulation_output.presets.html#experimental.new_evaluator.simulation_output.presets.TransverseMismatchFactor.post_treat"><code class="docutils literal notranslate"><span class="pre">TransverseMismatchFactor.post_treat()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="experimental.new_evaluator.html" class="btn btn-neutral float-left" title="experimental.new_evaluator package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="experimental.new_evaluator.simulation_output.factory.html" class="btn btn-neutral float-right" title="experimental.new_evaluator.simulation_output.factory module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

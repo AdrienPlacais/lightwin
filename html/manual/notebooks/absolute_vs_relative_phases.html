@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Absolute and relative cavity entry phases &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=84b76982"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Examples" href="../examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Units and conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Absolute and relative cavity entry phases</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Absolute and relative cavity entry phases</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/notebooks/absolute_vs_relative_phases.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Absolute-and-relative-cavity-entry-phases">
+<h1>Absolute and relative cavity entry phases<a class="headerlink" href="#Absolute-and-relative-cavity-entry-phases" title="Link to this heading"></a></h1>
+<p>There are three ways to define the phase of a cavity: by its relative entry phase <span class="math notranslate nohighlight">\(\phi_{0,\,\mathrm{rel}}\)</span>, its absolute entry phase <span class="math notranslate nohighlight">\(\phi_{0,\,\mathrm{abs}}\)</span> or its synchronous phase <span class="math notranslate nohighlight">\(\phi_s\)</span> (still under implementation).</p>
+<p>The relation between relative and entry phases is: <span class="math">\begin{equation}
+E_0\cos{\phi_{0,\,\mathrm{abs}}} = E_0\cos{(\phi_{0,\,\mathrm{rel}} + \phi_\mathrm{in})}
+\end{equation}</span> where <span class="math notranslate nohighlight">\(\phi_\mathrm{in}\)</span> is the phase at which the synchronous particle enters the cavity, <span class="math notranslate nohighlight">\(E_0\)</span> is the amplitude of the electric field.</p>
+<section id="Preparation">
+<h2>Preparation<a class="headerlink" href="#Preparation" title="Link to this heading"></a></h2>
+<section id="Load-libraries">
+<h3>Load libraries<a class="headerlink" href="#Load-libraries" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">import</span> <span class="nn">config_manager</span>
+<span class="kn">from</span> <span class="nn">beam_calculation.beam_calculator</span> <span class="kn">import</span> <span class="n">BeamCalculator</span>
+<span class="kn">from</span> <span class="nn">beam_calculation.factory</span> <span class="kn">import</span> <span class="n">BeamCalculatorsFactory</span>
+<span class="kn">from</span> <span class="nn">beam_calculation.simulation_output.simulation_output</span> <span class="kn">import</span> <span class="n">SimulationOutput</span>
+<span class="kn">from</span> <span class="nn">core.accelerator.accelerator</span> <span class="kn">import</span> <span class="n">Accelerator</span>
+<span class="kn">from</span> <span class="nn">core.accelerator.factory</span> <span class="kn">import</span> <span class="n">NoFault</span><span class="p">,</span> <span class="n">WithFaults</span>
+<span class="kn">from</span> <span class="nn">failures.fault_scenario</span> <span class="kn">import</span> <span class="n">FaultScenario</span><span class="p">,</span> <span class="n">fault_scenario_factory</span>
+<span class="kn">from</span> <span class="nn">visualization</span> <span class="kn">import</span> <span class="n">plot</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.figsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Set-configuration-dicts">
+<h3>Set configuration dicts<a class="headerlink" href="#Set-configuration-dicts" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">LW_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">LW_DIR</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;example&quot;</span>
+<span class="n">OUT_DIR</span> <span class="o">=</span> <span class="n">DATA_DIR</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span>
+<span class="n">CONFIG_PATH</span> <span class="o">=</span> <span class="n">DATA_DIR</span> <span class="o">/</span> <span class="s2">&quot;lightwin.toml&quot;</span>
+<span class="n">CONFIG_KEYS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;files&#39;</span><span class="p">:</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;beam_calculator&#39;</span><span class="p">:</span> <span class="s1">&#39;generic_envelope1d&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;beam&#39;</span><span class="p">:</span> <span class="s1">&#39;beam&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;plots&#39;</span><span class="p">:</span> <span class="s1">&#39;plots_minimal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wtf&#39;</span><span class="p">:</span> <span class="s1">&#39;generic_wtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;design_space&#39;</span><span class="p">:</span> <span class="s1">&#39;generic_design_space&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">override</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;beam_calculator&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;flag_phi_abs&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span> <span class="s1">&#39;plots&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}}</span>
+<span class="n">config_abs</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">process_config</span><span class="p">(</span><span class="n">CONFIG_PATH</span><span class="p">,</span> <span class="n">CONFIG_KEYS</span><span class="p">,</span> <span class="n">warn_mismatch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="n">override</span><span class="p">)</span>
+<span class="n">plots_phase</span> <span class="o">=</span> <span class="n">config_abs</span><span class="p">[</span><span class="s1">&#39;plots&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-white-fg">[INFO    ] [files.py            ]</span> Setting project_path = PosixPath(&#39;/home/placais/LightWin/data/example/results_tests&#39;)
+Setting log_file = PosixPath(&#39;/home/placais/LightWin/data/example/results_tests/lightwin.log&#39;)
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict files successfully tested. After potential  modifications, it looks like:
+                                            dat_file = /home/placais/LightWin/data/example/example.dat
+                                      project_folder = /home/placais/LightWin/data/example/results_tests
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict beam_calculator successfully tested. After potential  modifications, it looks like:
+                                                tool = Envelope1D
+                                        flag_phi_abs = True
+                                         flag_cython = True
+                                    n_steps_per_cell = 40
+                                              method = RK
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict beam successfully tested. After potential  modifications, it looks like:
+                                          e_rest_mev = 938.27203
+                                              q_adim = 1.0
+                                               e_mev = 20.0
+                                         f_bunch_mhz = 100.0
+                                           i_milli_a = 0.0
+                                               sigma = [[ 8.409896e-06  3.548736e-06  0.000000e+00  0.000000e+00  0.000000e+00
+   0.000000e+00]
+ [ 3.548736e-06  1.607857e-06  0.000000e+00  0.000000e+00  0.000000e+00
+   0.000000e+00]
+ [ 0.000000e+00  0.000000e+00  2.941564e-06  6.094860e-07  0.000000e+00
+   0.000000e+00]
+ [ 0.000000e+00  0.000000e+00  6.094860e-07  4.418911e-07  0.000000e+00
+   0.000000e+00]
+ [ 0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  3.593136e-06
+  -2.552518e-07]
+ [ 0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00 -2.552518e-07
+   5.994771e-07]]
+                                      inv_e_rest_mev = 0.0010657889908537506
+                                          gamma_init = 1.021315779817075
+                                       omega_0_bunch = 628318530.7179586
+                                        lambda_bunch = 2997924.58
+                                            q_over_m = 0.0010657889908537506
+                                            m_over_q = 938.27203
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [plots.py            ]</span> Some plots were not recognized: plots_kw = {&#39;config_folder&#39;: PosixPath(&#39;/home/placais/LightWin/data/example&#39;)}.They probably will not do anything.
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict plots successfully tested. After potential  modifications, it looks like:
+                                              energy = False
+                                               phase = True
+                                                 cav = False
+                                           emittance = False
+                                               twiss = False
+                                           envelopes = False
+                                   transfer_matrices = False
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict wtf successfully tested. After potential  modifications, it looks like:
+                              optimisation_algorithm = downhill_simplex
+                                            strategy = k out of n
+                                                   k = 3
+                                                 idx = cavity
+                                              failed = [[10]]
+                                    objective_preset = simple_ADS
+                                           phi_s_fit = False
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict design_space successfully tested. After potential  modifications, it looks like:
+                                           from_file = False
+                                 design_space_preset = unconstrained
+                  max_increase_sync_phase_in_percent = 40.0
+                      max_absolute_sync_phase_in_deg = 0.0
+                      min_absolute_sync_phase_in_deg = -90.0
+                         max_decrease_k_e_in_percent = 20.0
+                         max_increase_k_e_in_percent = 180.0
+maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = True
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [config_manager.py   ]</span> default flags for tracewin
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">override</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;beam_calculator&#39;</span><span class="p">:</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;flag_phi_abs&#39;</span><span class="p">:</span> <span class="kc">False</span>
+        <span class="p">},</span>
+    <span class="s1">&#39;plots&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;cav&#39;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;wtf&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;objective_preset&#39;</span><span class="p">:</span> <span class="s1">&#39;rephased_ADS&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">config_rel</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">process_config</span><span class="p">(</span><span class="n">CONFIG_PATH</span><span class="p">,</span> <span class="n">CONFIG_KEYS</span><span class="p">,</span> <span class="n">warn_mismatch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="n">override</span><span class="p">)</span>
+<span class="n">plots_complete</span> <span class="o">=</span> <span class="n">config_rel</span><span class="p">[</span><span class="s1">&#39;plots&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-white-fg">[INFO    ] [files.py            ]</span> Setting project_path = PosixPath(&#39;/home/placais/LightWin/data/example/results_tests&#39;)
+Setting log_file = PosixPath(&#39;/home/placais/LightWin/data/example/results_tests/lightwin.log&#39;)
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict files successfully tested. After potential  modifications, it looks like:
+                                            dat_file = /home/placais/LightWin/data/example/example.dat
+                                      project_folder = /home/placais/LightWin/data/example/results_tests
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict beam_calculator successfully tested. After potential  modifications, it looks like:
+                                                tool = Envelope1D
+                                        flag_phi_abs = False
+                                         flag_cython = True
+                                    n_steps_per_cell = 40
+                                              method = RK
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict beam successfully tested. After potential  modifications, it looks like:
+                                          e_rest_mev = 938.27203
+                                              q_adim = 1.0
+                                               e_mev = 20.0
+                                         f_bunch_mhz = 100.0
+                                           i_milli_a = 0.0
+                                               sigma = [[ 8.409896e-06  3.548736e-06  0.000000e+00  0.000000e+00  0.000000e+00
+   0.000000e+00]
+ [ 3.548736e-06  1.607857e-06  0.000000e+00  0.000000e+00  0.000000e+00
+   0.000000e+00]
+ [ 0.000000e+00  0.000000e+00  2.941564e-06  6.094860e-07  0.000000e+00
+   0.000000e+00]
+ [ 0.000000e+00  0.000000e+00  6.094860e-07  4.418911e-07  0.000000e+00
+   0.000000e+00]
+ [ 0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  3.593136e-06
+  -2.552518e-07]
+ [ 0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00 -2.552518e-07
+   5.994771e-07]]
+                                      inv_e_rest_mev = 0.0010657889908537506
+                                          gamma_init = 1.021315779817075
+                                       omega_0_bunch = 628318530.7179586
+                                        lambda_bunch = 2997924.58
+                                            q_over_m = 0.0010657889908537506
+                                            m_over_q = 938.27203
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [plots.py            ]</span> Some plots were not recognized: plots_kw = {&#39;config_folder&#39;: PosixPath(&#39;/home/placais/LightWin/data/example&#39;)}.They probably will not do anything.
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict plots successfully tested. After potential  modifications, it looks like:
+                                              energy = True
+                                               phase = True
+                                                 cav = True
+                                           emittance = False
+                                               twiss = False
+                                           envelopes = False
+                                   transfer_matrices = False
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict wtf successfully tested. After potential  modifications, it looks like:
+                              optimisation_algorithm = downhill_simplex
+                                            strategy = k out of n
+                                                   k = 3
+                                                 idx = cavity
+                                              failed = [[10]]
+                                    objective_preset = rephased_ADS
+                                           phi_s_fit = False
+<span class="ansi-white-fg">[INFO    ] [config_manager.py   ]</span> Config dict design_space successfully tested. After potential  modifications, it looks like:
+                                           from_file = False
+                                 design_space_preset = unconstrained
+                  max_increase_sync_phase_in_percent = 40.0
+                      max_absolute_sync_phase_in_deg = 0.0
+                      min_absolute_sync_phase_in_deg = -90.0
+                         max_decrease_k_e_in_percent = 20.0
+                         max_increase_k_e_in_percent = 180.0
+maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = True
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [config_manager.py   ]</span> default flags for tracewin
+</pre></div></div>
+</div>
+</section>
+<section id="Set-BeamCalculator-objects">
+<h3>Set BeamCalculator objects<a class="headerlink" href="#Set-BeamCalculator-objects" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">factory</span> <span class="o">=</span> <span class="n">BeamCalculatorsFactory</span><span class="p">(</span><span class="n">beam_calculator</span><span class="o">=</span><span class="n">config_abs</span><span class="p">[</span><span class="s1">&#39;beam_calculator&#39;</span><span class="p">],</span>
+                                 <span class="n">files</span><span class="o">=</span><span class="n">config_abs</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">])</span>
+<span class="n">solver_abs</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">run_all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">factory</span> <span class="o">=</span> <span class="n">BeamCalculatorsFactory</span><span class="p">(</span><span class="n">beam_calculator</span><span class="o">=</span><span class="n">config_rel</span><span class="p">[</span><span class="s1">&#39;beam_calculator&#39;</span><span class="p">],</span>
+                                 <span class="n">files</span><span class="o">=</span><span class="n">config_rel</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">])</span>
+<span class="n">solver_rel</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">run_all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Set-Accelerator-objects">
+<h3>Set Accelerator objects<a class="headerlink" href="#Set-Accelerator-objects" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">factory</span> <span class="o">=</span> <span class="n">WithFaults</span><span class="p">(</span><span class="n">beam_calculators</span><span class="o">=</span><span class="n">solver_abs</span><span class="p">,</span> <span class="o">**</span><span class="n">config_abs</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">config_abs</span><span class="p">[</span><span class="s1">&#39;wtf&#39;</span><span class="p">])</span>
+<span class="n">accelerators_abs</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">run_all</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">acc</span> <span class="ow">in</span> <span class="n">accelerators_abs</span><span class="p">:</span>
+    <span class="n">acc</span><span class="o">.</span><span class="n">name</span> <span class="o">+=</span> <span class="sa">r</span><span class="s1">&#39; (absolute $\phi_0$)&#39;</span>
+<span class="n">working_abs</span> <span class="o">=</span> <span class="n">accelerators_abs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">broken_abs</span> <span class="o">=</span> <span class="n">accelerators_abs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">factory</span> <span class="o">=</span> <span class="n">WithFaults</span><span class="p">(</span><span class="n">beam_calculators</span><span class="o">=</span><span class="n">solver_rel</span><span class="p">,</span> <span class="o">**</span><span class="n">config_rel</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">config_rel</span><span class="p">[</span><span class="s1">&#39;wtf&#39;</span><span class="p">])</span>
+<span class="n">accelerators_rel</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">run_all</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">acc</span> <span class="ow">in</span> <span class="n">accelerators_rel</span><span class="p">:</span>
+    <span class="n">acc</span><span class="o">.</span><span class="n">name</span> <span class="o">+=</span> <span class="sa">r</span><span class="s1">&#39; (relative $\phi_0$)&#39;</span>
+<span class="n">working_rel</span> <span class="o">=</span> <span class="n">accelerators_rel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">broken_rel</span> <span class="o">=</span> <span class="n">accelerators_rel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">working</span> <span class="o">=</span> <span class="p">(</span><span class="n">working_abs</span><span class="p">,</span> <span class="n">working_rel</span><span class="p">)</span>
+<span class="n">broken</span> <span class="o">=</span> <span class="p">(</span><span class="n">broken_abs</span><span class="p">,</span> <span class="n">broken_rel</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> First initialisation of ListOfElements, ecompassing all linac. Created with dat_file = PosixPath(&#39;/home/placais/LightWin/data/example/example.dat&#39;)
+<span class="ansi-white-fg">[INFO    ] [list_of_elements.py ]</span> Successfully created a ListOfElements with self.w_kin_in = 20.0 MeV and self.phi_abs_in = 0.0 rad.
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [factory.py          ]</span> You asked LW a simulation in absolute phase, while there is at least one cavity in relative phase in the .dat file used by TW. You can expect a phase difference between LightWin results and TraceWin results for the same input .dat, after the first failed cavity. No difference should appear with the output .dat, or when using TraceWin solver within LightWin.
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> First initialisation of ListOfElements, ecompassing all linac. Created with dat_file = PosixPath(&#39;/home/placais/LightWin/data/example/example.dat&#39;)
+<span class="ansi-white-fg">[INFO    ] [list_of_elements.py ]</span> Successfully created a ListOfElements with self.w_kin_in = 20.0 MeV and self.phi_abs_in = 0.0 rad.
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [factory.py          ]</span> You asked LW a simulation in absolute phase, while there is at least one cavity in relative phase in the .dat file used by TW. You can expect a phase difference between LightWin results and TraceWin results for the same input .dat, after the first failed cavity. No difference should appear with the output .dat, or when using TraceWin solver within LightWin.
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> First initialisation of ListOfElements, ecompassing all linac. Created with dat_file = PosixPath(&#39;/home/placais/LightWin/data/example/example.dat&#39;)
+<span class="ansi-white-fg">[INFO    ] [list_of_elements.py ]</span> Successfully created a ListOfElements with self.w_kin_in = 20.0 MeV and self.phi_abs_in = 0.0 rad.
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> First initialisation of ListOfElements, ecompassing all linac. Created with dat_file = PosixPath(&#39;/home/placais/LightWin/data/example/example.dat&#39;)
+<span class="ansi-white-fg">[INFO    ] [list_of_elements.py ]</span> Successfully created a ListOfElements with self.w_kin_in = 20.0 MeV and self.phi_abs_in = 0.0 rad.
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Propagate-the-beam">
+<h2>Propagate the beam<a class="headerlink" href="#Propagate-the-beam" title="Link to this heading"></a></h2>
+<section id="Nominal-linac">
+<h3>Nominal linac<a class="headerlink" href="#Nominal-linac" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">solver_abs</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">working_abs</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">solver_rel</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">working_rel</span><span class="p">)</span>
+<span class="n">figs</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">working</span><span class="p">,</span> <span class="n">plots_phase</span><span class="p">,</span> <span class="n">save_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [simulation_output.py]</span> data_in_tw_fashion is bugged
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000000_ref/0_Envelope1D/example.dat.
+<span class="ansi-white-fg">[INFO    ] [beam_calculator.py  ]</span> Elapsed time in beam calculation: 0:00:00.480093
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [simulation_output.py]</span> data_in_tw_fashion is bugged
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000000_ref/0_Envelope1D/example.dat.
+<span class="ansi-white-fg">[INFO    ] [beam_calculator.py  ]</span> Elapsed time in beam calculation: 0:00:00.474856
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_14_1.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_14_1.png" />
+</div>
+</div>
+<div class="admonition note">
+<p>The reference <span class="math notranslate nohighlight">\(\phi_0\)</span> that is used is the one defined in the <code class="docutils literal notranslate"><span class="pre">.dat</span></code>. As a matter of a fact, we need to propagate the beam a first time to know the entry phase of the synchronous particle in every cavity. This quantity is necessary to link <span class="math notranslate nohighlight">\(\phi_{0,\,\mathrm{abs}}\)</span> with <span class="math notranslate nohighlight">\(\phi_{0,\,\mathrm{rel}}\)</span>.</p>
+</div>
+</section>
+</section>
+<section id="Linac-with-one-broken-cavity">
+<h2>Linac with one broken cavity<a class="headerlink" href="#Linac-with-one-broken-cavity" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fault_scenarios_abs</span> <span class="o">=</span> <span class="n">fault_scenario_factory</span><span class="p">(</span><span class="n">accelerators_abs</span><span class="p">,</span> <span class="n">solver_abs</span><span class="p">,</span> <span class="n">config_abs</span><span class="p">[</span><span class="s1">&#39;wtf&#39;</span><span class="p">],</span> <span class="n">config_abs</span><span class="p">[</span><span class="s1">&#39;design_space&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> Created variables:
+====================================================================================================
+Variable                  | Element         | x_0      | Lower lim | Upper lim
+----------------------------------------------------------------------------------------------------
+$\phi_{0, abs}$ [deg]     | ELT9            |  272.279 |  -360.000 |   360.000
+$\phi_{0, abs}$ [deg]     | ELT10           |   55.649 |  -360.000 |   360.000
+$\phi_{0, abs}$ [deg]     | ELT12           |  101.288 |  -360.000 |   360.000
+$k_e$ [1]                 | ELT9            |    1.649 |     1.319 |     4.756
+$k_e$ [1]                 | ELT10           |    1.649 |     1.319 |     4.756
+$k_e$ [1]                 | ELT12           |    1.698 |     1.359 |     4.756
+====================================================================================================
+Created constraints:
+
+====================================================================================================
+Constraint                | Element         | x_0      | Lower lim | Upper lim
+----------------------------------------------------------------------------------------------------
+====================================================================================================
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> Created objectives:
+====================================================================================================
+                        What, where, etc |  wgt. |  ideal val
+----------------------------------------------------------------------------------------------------
+                  w_kin @elt  DR36 (out) |   1.0 | 25.771551199731583
+                phi_abs @elt  DR36 (out) |   1.0 | 177.9905075357864
+          $M_{z\delta}$ @elt  DR36 (out) |   1.0 |        0.0
+====================================================================================================
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> Initalisation of ListOfElements from already initialized elements: ELT9 to DR36.
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/tmp/tmp.dat.
+<span class="ansi-white-fg">[INFO    ] [list_of_elements.py ]</span> Successfully created a ListOfElements with self.w_kin_in = 23.496060468989743 MeV and self.phi_abs_in = 133.38246030585947 rad.
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/tmp/tmp.dat.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fault_scenarios_rel</span> <span class="o">=</span> <span class="n">fault_scenario_factory</span><span class="p">(</span><span class="n">accelerators_rel</span><span class="p">,</span> <span class="n">solver_rel</span><span class="p">,</span> <span class="n">config_rel</span><span class="p">[</span><span class="s1">&#39;wtf&#39;</span><span class="p">],</span> <span class="n">config_rel</span><span class="p">[</span><span class="s1">&#39;design_space&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> Created variables:
+====================================================================================================
+Variable                  | Element         | x_0      | Lower lim | Upper lim
+----------------------------------------------------------------------------------------------------
+$\phi_{0, abs}$ [deg]     | ELT9            |  272.279 |  -360.000 |   360.000
+$\phi_{0, abs}$ [deg]     | ELT10           |   55.649 |  -360.000 |   360.000
+$\phi_{0, abs}$ [deg]     | ELT12           |  101.288 |  -360.000 |   360.000
+$k_e$ [1]                 | ELT9            |    1.649 |     1.319 |     4.756
+$k_e$ [1]                 | ELT10           |    1.649 |     1.319 |     4.756
+$k_e$ [1]                 | ELT12           |    1.698 |     1.359 |     4.756
+====================================================================================================
+Created constraints:
+
+====================================================================================================
+Constraint                | Element         | x_0      | Lower lim | Upper lim
+----------------------------------------------------------------------------------------------------
+====================================================================================================
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> Created objectives:
+====================================================================================================
+                        What, where, etc |  wgt. |  ideal val
+----------------------------------------------------------------------------------------------------
+                  w_kin @elt  DR36 (out) |   1.0 | 25.771551199731583
+          $M_{z\delta}$ @elt  DR36 (out) |   1.0 |        0.0
+====================================================================================================
+<span class="ansi-white-fg">[INFO    ] [factory.py          ]</span> Initalisation of ListOfElements from already initialized elements: ELT9 to DR36.
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/tmp/tmp.dat.
+<span class="ansi-white-fg">[INFO    ] [list_of_elements.py ]</span> Successfully created a ListOfElements with self.w_kin_in = 23.496060468989743 MeV and self.phi_abs_in = 133.38246030585947 rad.
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [fault_scenario.py   ]</span> The phases in the broken linac are relative. It may be more relatable to use absolute phases, as it would avoid the rephasing of the linac at each cavity.
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/tmp/tmp.dat.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">solver_abs</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">broken_abs</span><span class="p">)</span>
+<span class="n">figs</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">accelerators_abs</span><span class="p">,</span> <span class="n">plots_phase</span><span class="p">,</span> <span class="n">save_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [simulation_output.py]</span> data_in_tw_fashion is bugged
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/0_Envelope1D/example.dat.
+<span class="ansi-white-fg">[INFO    ] [beam_calculator.py  ]</span> Elapsed time in beam calculation: 0:00:00.547165
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_19_1.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_19_1.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">solver_rel</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">broken_rel</span><span class="p">)</span>
+<span class="n">figs</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">accelerators_rel</span><span class="p">,</span> <span class="n">plots_phase</span><span class="p">,</span> <span class="n">save_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [simulation_output.py]</span> data_in_tw_fashion is bugged
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/0_Envelope1D/example.dat.
+<span class="ansi-white-fg">[INFO    ] [beam_calculator.py  ]</span> Elapsed time in beam calculation: 0:00:00.482832
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_20_1.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_20_1.png" />
+</div>
+</div>
+<div class="admonition note">
+<p>After a cavity failure, the definition of the reference <span class="math notranslate nohighlight">\(\phi_0\)</span> becomes important. With <span class="math notranslate nohighlight">\(\phi_\mathrm{ref} = \phi_{0,\,\mathrm{abs}}\)</span>, the cavities after the failure keep their absolute entry phase. With <span class="math notranslate nohighlight">\(\phi_\mathrm{ref} = \phi_{0,\,\mathrm{rel}}\)</span>, the cavities after the failure (olive color) are rephased, so that they keep their relative entry phase.</p>
+</div>
+</section>
+<section id="Fixing-the-fault">
+<h2>Fixing the fault<a class="headerlink" href="#Fixing-the-fault" title="Link to this heading"></a></h2>
+<p>In the absolute phase calculation, it is mandatory to retrieve the nominal energy and the nominal phase of the beam at the exit of the compensation zone. In the relative phase calculation, the phase no longer needs to be retrieved, as the integrity of the linac after the failure is rephased.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">scenario</span> <span class="ow">in</span> <span class="n">fault_scenarios_abs</span><span class="p">:</span>
+    <span class="n">scenario</span><span class="o">.</span><span class="n">fix_all</span><span class="p">()</span>
+<span class="n">figs</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">accelerators_abs</span><span class="p">,</span> <span class="n">plots_complete</span><span class="p">,</span> <span class="n">save_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully.
+         Current function value: 0.000010
+         Iterations: 237
+         Function evaluations: 405
+<span class="ansi-white-fg">[INFO    ] [downhill_simplex.py ]</span> Objective functions results:
+0:                                     | 3.525559733930095e-06
+1:                                     | 2.8023950449096446e-06
+2:                                     | 8.57189652547774e-06
+Norm: 9.682995376883164e-06
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [simulation_output.py]</span> data_in_tw_fashion is bugged
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/0_Envelope1D/example.dat.
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/tmp/tmp.dat.
+<span class="ansi-white-fg">[INFO    ] [debug.py            ]</span> Fixed (1 of 1)
+----------------------------------------------------------------------------------------------------
+    name           status       k_e phi_0_abs phi_0_rel  v_cav_mv     phi_s
+1   ELT9  compensate (ok)  1.396623  5.304986  3.839113  0.613335 -0.186859
+2  ELT10  compensate (ok)  2.174922  0.823152  3.169552  0.971894 -0.924121
+3  ELT12  compensate (ok)  2.851343  1.889864  3.571021  1.327753 -0.611272
+----------------------------------------------------------------------------------------------------
+<span class="ansi-white-fg">[INFO    ] [list_of_simulation_output_evaluators.py]</span> Fit quality:(FIXME: settings in FaultScenario, not config_manager)
+----------------------------------------------------------------------------------------------------
+                                      end comp zone (DR36) end linac RMS [usual units]
+Beam energy [MeV]                                   0.000%   -0.000%             0.000
+Beam phase [rad]                                    0.000%   -0.000%             0.000
+Norm. $\sigma_\phi$ @ $1\sigma$ [rad]              -0.001%   -0.002%             0.000
+Norm. $\sigma_\phi$ @ $1\sigma$ [MeV]               0.000%    0.001%             0.000
+$\epsilon_{\phi W}$ [$\pi$.rad.MeV]                -0.001%   -0.001%             0.000
+$M_{z\delta}$                                        0.000     0.000               nan
+----------------------------------------------------------------------------------------------------
+<span class="ansi-white-fg">[INFO    ] [fault_scenario.py   ]</span> Elapsed time in optimisation: 0:00:03.461598
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_24_1.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_24_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_24_2.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_24_2.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_24_3.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_24_3.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">scenario</span> <span class="ow">in</span> <span class="n">fault_scenarios_rel</span><span class="p">:</span>
+    <span class="n">scenario</span><span class="o">.</span><span class="n">fix_all</span><span class="p">()</span>
+<span class="n">figs</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">accelerators_rel</span><span class="p">,</span> <span class="n">plots_complete</span><span class="p">,</span> <span class="n">save_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully.
+         Current function value: 0.000014
+         Iterations: 194
+         Function evaluations: 347
+<span class="ansi-white-fg">[INFO    ] [downhill_simplex.py ]</span> Objective functions results:
+0:                                     | -3.0456890556251892e-06
+1:                                     | 1.3755448432961614e-05
+Norm: 1.408859763835355e-05
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [simulation_output.py]</span> data_in_tw_fashion is bugged
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/0_Envelope1D/example.dat.
+<span class="ansi-white-fg">[INFO    ] [dat_files.py        ]</span> New dat saved in /home/placais/LightWin/data/example/results_tests/000001/tmp/tmp.dat.
+<span class="ansi-yellow-intense-fg ansi-bold">[WARNING ] [fault_scenario.py   ]</span> Changed the way of defining idx1 and idx2.
+<span class="ansi-magenta-intense-fg ansi-bold">[CRITICAL] [fault_scenario.py   ]</span> Calculation in relative phase. Check if necessary to reperform simulation?
+<span class="ansi-white-fg">[INFO    ] [debug.py            ]</span> Fixed (1 of 1)
+----------------------------------------------------------------------------------------------------
+    name           status       k_e phi_0_abs phi_0_rel  v_cav_mv     phi_s
+1   ELT9  compensate (ok)  1.573024  5.464923  3.999051  0.693787 -0.030682
+2  ELT10  compensate (ok)   1.70301  0.549345  2.862516  0.758889  -1.24041
+3  ELT12  compensate (ok)  3.035455  1.742644   3.82891  1.412413 -0.330618
+----------------------------------------------------------------------------------------------------
+<span class="ansi-white-fg">[INFO    ] [list_of_simulation_output_evaluators.py]</span> Fit quality:(FIXME: settings in FaultScenario, not config_manager)
+----------------------------------------------------------------------------------------------------
+                                      end comp zone (DR36) end linac RMS [usual units]
+Beam energy [MeV]                                  -0.000%   -0.000%             0.000
+Beam phase [rad]                                    0.068%    0.010%             0.001
+Norm. $\sigma_\phi$ @ $1\sigma$ [rad]              -0.001%   -0.002%             0.000
+Norm. $\sigma_\phi$ @ $1\sigma$ [MeV]              -0.000%    0.000%             0.000
+$\epsilon_{\phi W}$ [$\pi$.rad.MeV]                -0.001%   -0.001%             0.000
+$M_{z\delta}$                                        0.000     0.000               nan
+----------------------------------------------------------------------------------------------------
+<span class="ansi-white-fg">[INFO    ] [fault_scenario.py   ]</span> Elapsed time in optimisation: 0:00:03.057740
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_25_1.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_25_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_25_2.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_25_2.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/manual_notebooks_absolute_vs_relative_phases_25_3.png" src="../../_images/manual_notebooks_absolute_vs_relative_phases_25_3.png" />
+</div>
+</div>
+<p>The main advantage with the studies in relative phase is that we do not need to recover the absolute beam phase at the exit of the compensation zone. It is one less variable for the optimisation objective.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

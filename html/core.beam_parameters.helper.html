@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.beam_parameters.helper module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.beam_parameters.initial_beam_parameters module" href="core.beam_parameters.initial_beam_parameters.html" />
+    <link rel="prev" title="core.beam_parameters.factory module" href="core.beam_parameters.factory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.html">core.beam_parameters.phase_space package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.beam_parameters.html">core.beam_parameters.beam_parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.factory.html">core.beam_parameters.factory module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">core.beam_parameters.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html">core.beam_parameters.initial_beam_parameters module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+          <li class="breadcrumb-item"><a href="core.beam_parameters.html">core.beam_parameters package</a></li>
+      <li class="breadcrumb-item active">core.beam_parameters.helper module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.beam_parameters.helper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.beam_parameters.helper">
+<span id="core-beam-parameters-helper-module"></span><h1>core.beam_parameters.helper module<a class="headerlink" href="#module-core.beam_parameters.helper" title="Link to this heading"></a></h1>
+<p>Define functions useful for beam parameters calculations.</p>
+<p>For more information on the units that are used in this module, see
+<a class="reference internal" href="manual/units.html#units-label"><span class="std std-ref">Units and conventions</span></a>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.envelopes_from_sigma">
+<span class="sig-name descname"><span class="pre">envelopes_from_sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.envelopes_from_sigma" title="Link to this definition"></a></dt>
+<dd><p>Compute the envelopes.</p>
+<p>Units are <span class="math notranslate nohighlight">\(mm\)</span> for the position envelope in <span class="math notranslate nohighlight">\([z-\delta]\)</span>,
+<span class="math notranslate nohighlight">\([x-x']\)</span>, <span class="math notranslate nohighlight">\([y-y']\)</span>.
+Units are <span class="math notranslate nohighlight">\(%\)</span> for the energy envelope in <span class="math notranslate nohighlight">\([z-\delta]\)</span>, and
+<span class="math notranslate nohighlight">\(mrad\)</span> for  <span class="math notranslate nohighlight">\([x-x']\)</span> and <span class="math notranslate nohighlight">\([y-y']\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_space_name</strong> (<em>str</em>) – Name of the phase space, used to set the proper normalization.</p></li>
+<li><p><strong>sigma</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2,</span> <span class="pre">2)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">2)</span></code>) array holding <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>envelopes</strong> – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">)</span></code>) array with position envelope in first column,
+energy envelope in second.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.envelopes_from_twiss_eps">
+<span class="sig-name descname"><span class="pre">envelopes_from_twiss_eps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">twiss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.envelopes_from_twiss_eps" title="Link to this definition"></a></dt>
+<dd><p>Compute the envelopes from the Twiss parameters and emittance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>twiss</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">)</span></code>) array of Twiss parameters.</p></li>
+<li><p><strong>eps</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array of emittance. If the phase space is <span class="math notranslate nohighlight">\([\phi-W]\)</span>,
+the emittance should be normalized. Else, it should be un-normalized.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>envelopes</strong> – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">)</span></code>) array with position envelope in first column,
+energy envelope in second.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.eps_from_other_phase_space">
+<span class="sig-name descname"><span class="pre">eps_from_other_phase_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other_phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps_other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.beam_parameters.helper.eps_from_other_phase_space" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">eps_from_other_phase_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other_phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps_other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Convert emittance from another phase space.</p>
+<p>Output emittance is normalized if input is, and is un-normalized if the
+input emittance is not normalized.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>old funct returned eps with same normalisation state as given eps_other</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other_phase_space_name</strong> (<em>str</em>) – Name of the original phase space.</p></li>
+<li><p><strong>phase_space_name</strong> (<em>str</em>) – Name of the phase space, used to ensure correct
+normalization/denormalization.</p></li>
+<li><p><strong>eps_other</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of emittance of starting phase-space.</p></li>
+<li><p><strong>gamma_kin</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of Lorentz gamma.</p></li>
+<li><p><strong>beta_kin</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of Lorentz beta</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>eps_no_normalisation</strong> (<em>np.ndarray | float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of emittance, not normalized.</p></li>
+<li><p><strong>eps_normalized</strong> (<em>np.ndarray | float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of emittance, normalized.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.eps_from_sigma">
+<span class="sig-name descname"><span class="pre">eps_from_sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.beam_parameters.helper.eps_from_sigma" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">eps_from_sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Compute emittance from <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix.</p>
+<p>In the <span class="math notranslate nohighlight">\([z-\delta]\)</span> phase space, emittance is in
+<span class="math notranslate nohighlight">\(\pi.\mathrm{mm.\%}\)</span>.
+In the transverse phase spaces, emittance is in
+<span class="math notranslate nohighlight">\(\pi.\mathrm{mm.mrad}\)</span>. <span class="math notranslate nohighlight">\(\sigma\)</span> is always in SI units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_space_name</strong> (<em>str</em>) – Name of the phase space, used to apply proper normalization factor.</p></li>
+<li><p><strong>sigma</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2,</span> <span class="pre">2)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">2)</span></code>) <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix in SI units.</p></li>
+<li><p><strong>gamma_kin</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> (or float) Lorentz gamma factor.</p></li>
+<li><p><strong>beta_kin</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> (or float) Lorentz beta factor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>eps_no_normalisation</strong> (<em>np.ndarray | float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of emittance, not normalized.</p></li>
+<li><p><strong>eps_normalized</strong> (<em>np.ndarray float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of emittance, normalized.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.mismatch_from_arrays">
+<span class="sig-name descname"><span class="pre">mismatch_from_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.mismatch_from_arrays" title="Link to this definition"></a></dt>
+<dd><p>Compute the mismatch factor between two ellipses.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.reconstruct_sigma">
+<span class="sig-name descname"><span class="pre">reconstruct_sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_00</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_01</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps_is_normalized</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.reconstruct_sigma" title="Link to this definition"></a></dt>
+<dd><p>Set <span class="math notranslate nohighlight">\(\sigma\)</span> matrix from the two top components and emittance.</p>
+<p>Inputs are in <span class="math notranslate nohighlight">\(\mathrm{mm}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{mrad}\)</span>, but the
+<span class="math notranslate nohighlight">\(\sigma\)</span> matrix is in SI units (<span class="math notranslate nohighlight">\(\mathrm{m}\)</span> and
+<span class="math notranslate nohighlight">\(\mathrm{rad}\)</span>).</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="manual/units.html#units-label"><span class="std std-ref">Units and conventions</span></a></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_space_name</strong> (<em>str</em>) – Name of the phase space.</p></li>
+<li><p><strong>sigma_00</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array of top-left sigma matrix components.</p></li>
+<li><p><strong>sigma_01</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array of top-right (bottom-left) sigma matrix components.</p></li>
+<li><p><strong>eps</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> un-normalized emittance array, in units consistent with
+<code class="docutils literal notranslate"><span class="pre">sigma_00</span></code> and <code class="docutils literal notranslate"><span class="pre">sigma_01</span></code>.</p></li>
+<li><p><strong>tol</strong> (<em>float</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">sigma_00</span></code> is set to np.NaN where it is under <code class="docutils literal notranslate"><span class="pre">tol</span></code> to avoid
+<code class="docutils literal notranslate"><span class="pre">RuntimeWarning</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">1e-8</span></code>.</p></li>
+<li><p><strong>eps_is_normalized</strong> (<em>bool</em><em>, </em><em>optional</em>) – To tell if the given emittance is already normalized. The default is
+True. In this case, it is de-normalized and <code class="docutils literal notranslate"><span class="pre">gamma_kin</span></code> must be
+provided.</p></li>
+<li><p><strong>gamma_kin</strong> (<em>np.ndarray</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Lorentz gamma factor. The default is None. It is mandatory to give it
+if the emittance is given unnormalized.</p></li>
+<li><p><strong>beta_kin</strong> (<em>np.ndarray</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Lorentz beta factor. The default is None. In this case, we compute it
+from <code class="docutils literal notranslate"><span class="pre">gamma_kin</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>sigma</strong> – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2,</span> <span class="pre">2)</span></code> full sigma matrix along the linac.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.resample_twiss_on_fix">
+<span class="sig-name descname"><span class="pre">resample_twiss_on_fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twiss_ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.resample_twiss_on_fix" title="Link to this definition"></a></dt>
+<dd><p>Interpolate ref Twiss on fix Twiss to compute mismatch afterwards.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.sigma_from_transfer_matrices">
+<span class="sig-name descname"><span class="pre">sigma_from_transfer_matrices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tm_cumul</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.sigma_from_transfer_matrices" title="Link to this definition"></a></dt>
+<dd><p>Compute the <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrices over the linac.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sigma_in</span></code> and transfer matrices shall have same units, in the same phase
+space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tm_cumul</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2,</span> <span class="pre">2)</span></code> cumulated transfer matrices along the linac.</p></li>
+<li><p><strong>sigma_in</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">2)</span></code> <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix at the linac entrance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>sigma</strong> – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2,</span> <span class="pre">2)</span></code> <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix along the linac.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.twiss_from_other_phase_space">
+<span class="sig-name descname"><span class="pre">twiss_from_other_phase_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other_phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twiss_other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.twiss_from_other_phase_space" title="Link to this definition"></a></dt>
+<dd><p>Compute Twiss parameters from Twiss parameters in another plane.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other_phase_space_name</strong> (<em>str</em>) – Name of the original phase space.</p></li>
+<li><p><strong>phase_space_name</strong> (<em>str</em>) – Name of the phase space.</p></li>
+<li><p><strong>twiss_other</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code> Twiss array from original phase space.</p></li>
+<li><p><strong>gamma_kin</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of Lorentz gamma.</p></li>
+<li><p><strong>beta_kin</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of Lorentz beta</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>twiss</strong> – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code> array of Twiss parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.beam_parameters.helper.twiss_from_sigma">
+<span class="sig-name descname"><span class="pre">twiss_from_sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_space_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps_no_normalisation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-08</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.beam_parameters.helper.twiss_from_sigma" title="Link to this definition"></a></dt>
+<dd><p>Compute the Twiss parameters using the <span class="math notranslate nohighlight">\(\sigma\)</span> matrix.</p>
+<p>In the <span class="math notranslate nohighlight">\([z-\delta]\)</span> phase space, emittance and Twiss are in
+<span class="math notranslate nohighlight">\(\mathrm{mm}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{\%}\)</span>.
+In the transverse phase spaces, emittance and Twiss are in
+<span class="math notranslate nohighlight">\(\mathrm{mm}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{mrad}\)</span>.
+<span class="math notranslate nohighlight">\(\sigma\)</span> is always in SI units.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Would be better if all emittances had the same units? Check
+consistency with rest of the code…</p>
+</div>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Check if property setter work with the <a href="#id2"><span class="problematic" id="id3">*</span></a>= thingy</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_space_name</strong> (<em>str</em>) – Name of the phase space, used to set the proper normalization.</p></li>
+<li><p><strong>sigma</strong> (<em>np.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2,</span> <span class="pre">2)</span></code> array (or <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">2)</span></code>) holding <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix.</p></li>
+<li><p><strong>eps_no_normalisation</strong> (<em>np.ndarray</em><em> | </em><em>float</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">)</span></code> array (or float) of unnormalized emittance.</p></li>
+<li><p><strong>tol</strong> (<em>float</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">eps_no_normalisation</span></code> is set to np.NaN where it is under <code class="docutils literal notranslate"><span class="pre">tol</span></code>
+to avoid <code class="docutils literal notranslate"><span class="pre">RuntimeWarning</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">1e-8</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>twiss</strong> – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">)</span></code>) array of Twiss parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.beam_parameters.factory.html" class="btn btn-neutral float-left" title="core.beam_parameters.factory module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.beam_parameters.initial_beam_parameters.html" class="btn btn-neutral float-right" title="core.beam_parameters.initial_beam_parameters module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

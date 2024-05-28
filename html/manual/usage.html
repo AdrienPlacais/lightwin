@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=84b76982"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Cython" href="cython.html" />
+    <link rel="prev" title="Welcome to LightWin’s documentation!" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Units and conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/manual/usage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Ease re-usage of old simulations. Very easy, just use the <code class="docutils literal notranslate"><span class="pre">recompute</span></code> flag, override the <code class="docutils literal notranslate"><span class="pre">run_with_this</span></code> method, and user must provide a <code class="docutils literal notranslate"><span class="pre">results</span></code> dir.</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Create a real transfer matrix object.</p>
+</div>
+<section id="general-structure-of-the-code">
+<h2>General structure of the code<a class="headerlink" href="#general-structure-of-the-code" title="Link to this heading"></a></h2>
+<p>The highest-level object is an <a class="reference internal" href="../core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a>.
+It is initialized thanks to a <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file (the same format as TraceWin).
+It’s main purpose is to store a <a class="reference internal" href="../core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>, which is a <code class="docutils literal notranslate"><span class="pre">list</span></code> containing all the <a class="reference internal" href="../core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>s of the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file.</p>
+<p>The propagation of the beam through the accelerator is performed thanks to a <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>.
+As for now, two different <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>s are implemented:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="../beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a>, which computes the propagation of the beam in envelope and in 1D (longitudinal).</p></li>
+<li><p><a class="reference internal" href="../beam_calculation.envelope_3d.envelope_3d.html#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a>, which computes the propagation of the beam in envelope and in 3D.</p></li>
+<li><p><a class="reference internal" href="../beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>, which simply calls TraceWin from the command-line interface.</p></li>
+</ul>
+</div></blockquote>
+<p>All <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>s have a <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator.run" title="beam_calculation.beam_calculator.BeamCalculator.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BeamCalculator.run()</span></code></a> method, which perform the beam dynamics calculation along the linac; it takes in a <a class="reference internal" href="../core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> and returns a <a class="reference internal" href="../beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a>.
+This last object contains all the useful information, such as kinetic energy along the linac.</p>
+</section>
+<section id="breaking-and-fixing-a-linac">
+<h2>Breaking and fixing a linac<a class="headerlink" href="#breaking-and-fixing-a-linac" title="Link to this heading"></a></h2>
+<p>The methods to break – and then fix – a linac are stored in the <a class="reference internal" href="../failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> objects, gathered in <a class="reference internal" href="../failures.fault_scenario.html#failures.fault_scenario.FaultScenario" title="failures.fault_scenario.FaultScenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaultScenario</span></code></a>.
+A <a class="reference internal" href="../failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> is composed of one or several failed cavities that are fixed together.
+A <a class="reference internal" href="../failures.fault_scenario.html#failures.fault_scenario.FaultScenario" title="failures.fault_scenario.FaultScenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaultScenario</span></code></a> is composed of one or several <a class="reference internal" href="../failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> happening at the same time.</p>
+<p>The compensation is realized by an <a class="reference internal" href="../optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code></a>.
+It will try to find the <em>best</em> <a class="reference internal" href="../optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>s that match the <a class="reference internal" href="../optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><code class="xref py py-class docutils literal notranslate"><span class="pre">Objective</span></code></a>s while respecting the <a class="reference internal" href="../optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint" title="optimisation.design_space.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a>s.
+Under the hood, it converts at each iteration the list of <a class="reference internal" href="../optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>s into a <a class="reference internal" href="../failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code></a>.
+The latter is given as argument to the <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator.run_with_this" title="beam_calculation.beam_calculator.BeamCalculator.run_with_this"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BeamCalculator.run_with_this()</span></code></a> which gives a <a class="reference internal" href="../beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a> from which the <a class="reference internal" href="../optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><code class="xref py py-class docutils literal notranslate"><span class="pre">Objective</span></code></a>s are evaluated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See example.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to LightWin’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cython.html" class="btn btn-neutral float-right" title="Cython" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

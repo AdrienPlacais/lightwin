@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>failures.fault module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="failures.fault_scenario module" href="failures.fault_scenario.html" />
+    <link rel="prev" title="failures package" href="failures.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="failures.html">failures package</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">failures.fault module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="failures.fault_scenario.html">failures.fault_scenario module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="failures.helper.html">failures.helper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="failures.set_of_cavity_settings.html">failures.set_of_cavity_settings module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="failures.strategy.html">failures.strategy module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="failures.html">failures package</a></li>
+      <li class="breadcrumb-item active">failures.fault module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/failures.fault.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-failures.fault">
+<span id="failures-fault-module"></span><h1>failures.fault module<a class="headerlink" href="#module-failures.fault" title="Link to this heading"></a></h1>
+<p>Define the class <a class="reference internal" href="#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a>.</p>
+<p>Its purpose is to hold information on a failure and to fix it.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>not clear what happens here. separate __init__ in several functions</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>store DesignSpace as attribute rather than Variable Constraint
+compute_constraints</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="failures.fault.Fault">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">files_from_full_list_of_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wtf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory" title="optimisation.design_space.factory.DesignSpaceFactory"><span class="pre">DesignSpaceFactory</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_elements_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory" title="core.list_of_elements.factory.ListOfElementsFactory"><span class="pre">ListOfElementsFactory</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#failures.fault.Fault" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handle and fix a single failure.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="failures.fault.Fault.failed_elements">
+<span class="sig-name descname"><span class="pre">failed_elements</span></span><a class="headerlink" href="#failures.fault.Fault.failed_elements" title="Link to this definition"></a></dt>
+<dd><p>Holds the failed elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element">Element</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="failures.fault.Fault.compensating_elements">
+<span class="sig-name descname"><span class="pre">compensating_elements</span></span><a class="headerlink" href="#failures.fault.Fault.compensating_elements" title="Link to this definition"></a></dt>
+<dd><p>Holds the compensating elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element">Element</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="failures.fault.Fault.elts">
+<span class="sig-name descname"><span class="pre">elts</span></span><a class="headerlink" href="#failures.fault.Fault.elts" title="Link to this definition"></a></dt>
+<dd><p>Holds the portion of the linac that will be computed again and again in
+the optimisation process. It is as short as possible, but must contain
+all <code class="docutils literal notranslate"><span class="pre">failed_elements</span></code>, <code class="docutils literal notranslate"><span class="pre">compensating_elements</span></code> and
+<code class="docutils literal notranslate"><span class="pre">elt_eval_objectives</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements">ListOfElements</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="failures.fault.Fault.variables">
+<span class="sig-name descname"><span class="pre">variables</span></span><a class="headerlink" href="#failures.fault.Fault.variables" title="Link to this definition"></a></dt>
+<dd><p>Holds information on the optimisation variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable">Variable</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="failures.fault.Fault.constraints">
+<span class="sig-name descname"><span class="pre">constraints</span></span><a class="headerlink" href="#failures.fault.Fault.constraints" title="Link to this definition"></a></dt>
+<dd><p>Holds infomation on the optimisation constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint" title="optimisation.design_space.constraint.Constraint">Constraint</a>] | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">compute_constraints</span> <span class="pre">:</span> <span class="pre">Callable[[SimulationOutput],</span> <span class="pre">np.ndarray]</span> <span class="pre">|</span> <span class="pre">None</span></span></dt>
+<dd><p>Compute the constraint violation for a given <code class="docutils literal notranslate"><span class="pre">SimulationOutput</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">compute_residuals</span> <span class="pre">:</span> <span class="pre">Callable[[SimulationOutput],</span> <span class="pre">np.ndarray]</span></span></dt>
+<dd><p>A function that takes in a <code class="docutils literal notranslate"><span class="pre">SimulationOutput</span></code> and returns the residues
+of every objective w.r.t the reference one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="failures.fault.Fault.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">files_from_full_list_of_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wtf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory" title="optimisation.design_space.factory.DesignSpaceFactory"><span class="pre">DesignSpaceFactory</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_elements_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory" title="core.list_of_elements.factory.ListOfElementsFactory"><span class="pre">ListOfElementsFactory</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#failures.fault.Fault.__init__" title="Link to this definition"></a></dt>
+<dd><p>Create the Fault object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference_elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – List of elements of the reference linac. In particular, these
+elements hold the original element settings.</p></li>
+<li><p><strong>reference_simulation_output</strong> (<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a>) – Nominal simulation.</p></li>
+<li><p><strong>files_from_full_list_of_elements</strong> (<em>dict</em>) – <code class="docutils literal notranslate"><span class="pre">files</span></code> attribute from the linac under fixing. Used to set
+calculation paths.</p></li>
+<li><p><strong>wtf</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em> | </em><em>int</em><em> | </em><em>bool</em><em> | </em><em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>list</em><em>[</em><em>float</em><em>]</em><em>]</em>) – What To Fit dictionary. Holds information on the fixing method.</p></li>
+<li><p><strong>design_space_factory</strong> (<a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory" title="optimisation.design_space.factory.DesignSpaceFactory"><em>DesignSpaceFactory</em></a>) – An object to easily create the proper <a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace" title="optimisation.design_space.design_space.DesignSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">DesignSpace</span></code></a>.</p></li>
+<li><p><strong>failed_elements</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – Holds the failed elements.</p></li>
+<li><p><strong>compensating_elements</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – Holds the compensating elements.</p></li>
+<li><p><strong>elts</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – Holds the portion of the linac that will be computed again and
+again in the optimisation process. It is as short as possible, but
+must contain all altered elements as well as the elements where
+objectives will be evaluated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="failures.fault.Fault.fix">
+<span class="sig-name descname"><span class="pre">fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimisation_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><span class="pre">OptimisationAlgorithm</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.fault.Fault.fix" title="Link to this definition"></a></dt>
+<dd><p>Fix the <a class="reference internal" href="#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>optimisation_algorithm</strong> (<a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><em>OptimisationAlgorithm</em></a>) – The optimisation algorithm to be used, already initialized.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>success</strong> (<em>bool</em>) – Indicates convergence of the <code class="xref py py-class docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code>.</p></li>
+<li><p><strong>optimized_cavity_settings</strong> (<em>SetOfCavitySettings</em>) – Best cavity settings found by the <code class="xref py py-class docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code>.</p></li>
+<li><p><strong>self.info</strong> (<em>dict</em>) – Useful information, such as the best solution.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="failures.fault.Fault.from_pickle">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_pickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pickler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="util.pickling.html#util.pickling.MyPickler" title="util.pickling.MyPickler"><span class="pre">MyPickler</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#failures.fault.Fault.from_pickle" title="Link to this definition"></a></dt>
+<dd><p>Instantiate object from previously pickled file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="failures.fault.Fault.pickle">
+<span class="sig-name descname"><span class="pre">pickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pickler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="util.pickling.html#util.pickling.MyPickler" title="util.pickling.MyPickler"><span class="pre">MyPickler</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="headerlink" href="#failures.fault.Fault.pickle" title="Link to this definition"></a></dt>
+<dd><p>Pickle (save) the object.</p>
+<p>This is useful for debug and temporary saves; do not use it for long
+time saving.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="failures.fault.Fault.update_elements_status">
+<span class="sig-name descname"><span class="pre">update_elements_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimisation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#failures.fault.Fault.update_elements_status" title="Link to this definition"></a></dt>
+<dd><p>Update status of compensating and failed elements.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="failures.html" class="btn btn-neutral float-left" title="failures package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="failures.fault_scenario.html" class="btn btn-neutral float-right" title="failures.fault_scenario module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>optimisation.algorithms package &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation.algorithms.algorithm module" href="optimisation.algorithms.algorithm.html" />
+    <link rel="prev" title="optimisation package" href="optimisation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="optimisation.html">optimisation package</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">optimisation.algorithms package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.algorithm.html">optimisation.algorithms.algorithm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html">optimisation.algorithms.differential_evolution module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html">optimisation.algorithms.downhill_simplex module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html">optimisation.algorithms.downhill_simplex_penalty module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.explorator.html">optimisation.algorithms.explorator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.factory.html">optimisation.algorithms.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.least_squares.html">optimisation.algorithms.least_squares module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html">optimisation.algorithms.least_squares_penalty module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.nsga.html">optimisation.algorithms.nsga module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.pso.html">optimisation.algorithms.pso module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.html">optimisation.design_space package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.html">optimisation package</a></li>
+      <li class="breadcrumb-item active">optimisation.algorithms package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/optimisation.algorithms.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-optimisation.algorithms">
+<span id="optimisation-algorithms-package"></span><h1>optimisation.algorithms package<a class="headerlink" href="#module-optimisation.algorithms" title="Link to this heading"></a></h1>
+<p>This subpackage holds all the optimisation algorithms used for compensation.</p>
+<p>When you implement you own algorithm, do not forget to add it in the
+<a class="reference internal" href="optimisation.algorithms.factory.html#module-optimisation.algorithms.factory" title="optimisation.algorithms.factory"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optimisation.algorithms.factory</span></code></a> module.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.algorithm.html">optimisation.algorithms.algorithm module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptiInfo"><code class="docutils literal notranslate"><span class="pre">OptiInfo</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptiInfo.hist_F"><code class="docutils literal notranslate"><span class="pre">OptiInfo.hist_F</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptiInfo.hist_G"><code class="docutils literal notranslate"><span class="pre">OptiInfo.hist_G</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptiInfo.hist_X"><code class="docutils literal notranslate"><span class="pre">OptiInfo.hist_X</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptiSol"><code class="docutils literal notranslate"><span class="pre">OptiSol</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptiSol.x"><code class="docutils literal notranslate"><span class="pre">OptiSol.x</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm.__init__"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._abc_impl"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._create_set_of_cavity_settings"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._create_set_of_cavity_settings()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._default_kwargs"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._default_kwargs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._format_constraints"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._format_constraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._format_objectives"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._format_objectives()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._format_variables"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._format_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._generate_optimisation_history"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._generate_optimisation_history()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._get_objective_values"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._get_objective_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._norm_wrapper_residuals"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._norm_wrapper_residuals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm._wrapper_residuals"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm._wrapper_residuals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm.n_constr"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm.n_constr</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm.n_obj"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm.n_obj</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm.n_var"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm.n_var</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm.optimise"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm.optimise()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm.supports_constraints"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm.supports_constraints</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm.variable_names"><code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm.variable_names</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html">optimisation.algorithms.differential_evolution module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution.__init__"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution.__post_init__"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution._abc_impl"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution._algorithm_parameters"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution._algorithm_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution._format_variables"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution._format_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution._output_some_info"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution._output_some_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html#optimisation.algorithms.differential_evolution.DifferentialEvolution.optimise"><code class="docutils literal notranslate"><span class="pre">DifferentialEvolution.optimise()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html">optimisation.algorithms.downhill_simplex module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex.__init__"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex._abc_impl"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex._default_kwargs"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex._default_kwargs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex._format_variables"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex._format_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex._output_some_info"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex._output_some_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex.optimise"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex.optimise()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html#optimisation.algorithms.downhill_simplex.DownhillSimplex.supports_constraints"><code class="docutils literal notranslate"><span class="pre">DownhillSimplex.supports_constraints</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html">optimisation.algorithms.downhill_simplex_penalty module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html#optimisation.algorithms.downhill_simplex_penalty.DownhillSimplexPenalty"><code class="docutils literal notranslate"><span class="pre">DownhillSimplexPenalty</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html#optimisation.algorithms.downhill_simplex_penalty.DownhillSimplexPenalty.__init__"><code class="docutils literal notranslate"><span class="pre">DownhillSimplexPenalty.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html#optimisation.algorithms.downhill_simplex_penalty.DownhillSimplexPenalty._abc_impl"><code class="docutils literal notranslate"><span class="pre">DownhillSimplexPenalty._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html#optimisation.algorithms.downhill_simplex_penalty.DownhillSimplexPenalty._default_kwargs"><code class="docutils literal notranslate"><span class="pre">DownhillSimplexPenalty._default_kwargs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html#optimisation.algorithms.downhill_simplex_penalty.DownhillSimplexPenalty._norm_wrapper_residuals"><code class="docutils literal notranslate"><span class="pre">DownhillSimplexPenalty._norm_wrapper_residuals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html#optimisation.algorithms.downhill_simplex_penalty.DownhillSimplexPenalty._penalty"><code class="docutils literal notranslate"><span class="pre">DownhillSimplexPenalty._penalty()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html#optimisation.algorithms.downhill_simplex_penalty.DownhillSimplexPenalty.supports_constraints"><code class="docutils literal notranslate"><span class="pre">DownhillSimplexPenalty.supports_constraints</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.explorator.html">optimisation.algorithms.explorator module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator"><code class="docutils literal notranslate"><span class="pre">Explorator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator.__init__"><code class="docutils literal notranslate"><span class="pre">Explorator.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._abc_impl"><code class="docutils literal notranslate"><span class="pre">Explorator._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._add_the_best_point"><code class="docutils literal notranslate"><span class="pre">Explorator._add_the_best_point()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._algorithm_parameters"><code class="docutils literal notranslate"><span class="pre">Explorator._algorithm_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._array_of_values_to_mesh"><code class="docutils literal notranslate"><span class="pre">Explorator._array_of_values_to_mesh()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._check_dimensions"><code class="docutils literal notranslate"><span class="pre">Explorator._check_dimensions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._generate_combinations"><code class="docutils literal notranslate"><span class="pre">Explorator._generate_combinations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._plot_design_space"><code class="docutils literal notranslate"><span class="pre">Explorator._plot_design_space()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._save_optimization_history"><code class="docutils literal notranslate"><span class="pre">Explorator._save_optimization_history()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._take_best_solution"><code class="docutils literal notranslate"><span class="pre">Explorator._take_best_solution()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._wrapper_residuals"><code class="docutils literal notranslate"><span class="pre">Explorator._wrapper_residuals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator.compute_constraints"><code class="docutils literal notranslate"><span class="pre">Explorator.compute_constraints</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator.optimise"><code class="docutils literal notranslate"><span class="pre">Explorator.optimise()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator.supports_constraints"><code class="docutils literal notranslate"><span class="pre">Explorator.supports_constraints</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.factory.html">optimisation.algorithms.factory module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.factory.html#optimisation.algorithms.factory._check_common_keys"><code class="docutils literal notranslate"><span class="pre">_check_common_keys()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.factory.html#optimisation.algorithms.factory._default_kwargs"><code class="docutils literal notranslate"><span class="pre">_default_kwargs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.factory.html#optimisation.algorithms.factory.algorithms"><code class="docutils literal notranslate"><span class="pre">algorithms</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.factory.html#optimisation.algorithms.factory.optimisation_algorithm_factory"><code class="docutils literal notranslate"><span class="pre">optimisation_algorithm_factory()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.least_squares.html">optimisation.algorithms.least_squares module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares"><code class="docutils literal notranslate"><span class="pre">LeastSquares</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares.__init__"><code class="docutils literal notranslate"><span class="pre">LeastSquares.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares._abc_impl"><code class="docutils literal notranslate"><span class="pre">LeastSquares._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares._default_kwargs"><code class="docutils literal notranslate"><span class="pre">LeastSquares._default_kwargs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares._format_variables"><code class="docutils literal notranslate"><span class="pre">LeastSquares._format_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares._output_some_info"><code class="docutils literal notranslate"><span class="pre">LeastSquares._output_some_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares.optimise"><code class="docutils literal notranslate"><span class="pre">LeastSquares.optimise()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares.html#optimisation.algorithms.least_squares.LeastSquares.supports_constraints"><code class="docutils literal notranslate"><span class="pre">LeastSquares.supports_constraints</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html">optimisation.algorithms.least_squares_penalty module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html#optimisation.algorithms.least_squares_penalty.LeastSquaresPenalty"><code class="docutils literal notranslate"><span class="pre">LeastSquaresPenalty</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html#optimisation.algorithms.least_squares_penalty.LeastSquaresPenalty.__init__"><code class="docutils literal notranslate"><span class="pre">LeastSquaresPenalty.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html#optimisation.algorithms.least_squares_penalty.LeastSquaresPenalty._abc_impl"><code class="docutils literal notranslate"><span class="pre">LeastSquaresPenalty._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html#optimisation.algorithms.least_squares_penalty.LeastSquaresPenalty._norm_wrapper_residuals"><code class="docutils literal notranslate"><span class="pre">LeastSquaresPenalty._norm_wrapper_residuals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html#optimisation.algorithms.least_squares_penalty.LeastSquaresPenalty._penalty"><code class="docutils literal notranslate"><span class="pre">LeastSquaresPenalty._penalty()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html#optimisation.algorithms.least_squares_penalty.LeastSquaresPenalty.supports_constraints"><code class="docutils literal notranslate"><span class="pre">LeastSquaresPenalty.supports_constraints</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.nsga.html">optimisation.algorithms.nsga module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.MyElementwiseProblem"><code class="docutils literal notranslate"><span class="pre">MyElementwiseProblem</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.MyElementwiseProblem.__init__"><code class="docutils literal notranslate"><span class="pre">MyElementwiseProblem.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.MyElementwiseProblem._evaluate"><code class="docutils literal notranslate"><span class="pre">MyElementwiseProblem._evaluate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA"><code class="docutils literal notranslate"><span class="pre">NSGA</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA.__init__"><code class="docutils literal notranslate"><span class="pre">NSGA.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._abc_impl"><code class="docutils literal notranslate"><span class="pre">NSGA._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._best_solution"><code class="docutils literal notranslate"><span class="pre">NSGA._best_solution()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._format_variables"><code class="docutils literal notranslate"><span class="pre">NSGA._format_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._problem_arguments"><code class="docutils literal notranslate"><span class="pre">NSGA._problem_arguments</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._set_algorithm"><code class="docutils literal notranslate"><span class="pre">NSGA._set_algorithm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._set_population"><code class="docutils literal notranslate"><span class="pre">NSGA._set_population()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._set_termination"><code class="docutils literal notranslate"><span class="pre">NSGA._set_termination()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA._wrapper_residuals"><code class="docutils literal notranslate"><span class="pre">NSGA._wrapper_residuals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA.optimise"><code class="docutils literal notranslate"><span class="pre">NSGA.optimise()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA.supports_constraints"><code class="docutils literal notranslate"><span class="pre">NSGA.supports_constraints</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA.x_0"><code class="docutils literal notranslate"><span class="pre">NSGA.x_0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga.NSGA.x_max_k_e"><code class="docutils literal notranslate"><span class="pre">NSGA.x_max_k_e</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.algorithms.nsga.html#optimisation.algorithms.nsga._characteristic_points"><code class="docutils literal notranslate"><span class="pre">_characteristic_points()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.algorithms.pso.html">optimisation.algorithms.pso module</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimisation.html" class="btn btn-neutral float-left" title="optimisation package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.algorithms.algorithm.html" class="btn btn-neutral float-right" title="optimisation.algorithms.algorithm module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

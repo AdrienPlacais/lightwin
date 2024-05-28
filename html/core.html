@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core package &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.accelerator package" href="core.accelerator.html" />
+    <link rel="prev" title="constants module" href="constants.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">core package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+      <li class="breadcrumb-item active">core package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core">
+<span id="core-package"></span><h1>core package<a class="headerlink" href="#module-core" title="Link to this heading"></a></h1>
+<p>This module holds the most central modules and subpackages.</p>
+<p>They define the structure of the accelerator, the elements, the main parameters
+of the beam.</p>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.accelerator.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.accelerator.html">core.accelerator.accelerator module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator"><code class="docutils literal notranslate"><span class="pre">Accelerator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.factory.html">core.accelerator.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.accelerator.factory.html#core.accelerator.factory.AcceleratorFactory"><code class="docutils literal notranslate"><span class="pre">AcceleratorFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.accelerator.factory.html#core.accelerator.factory.FullStudyAcceleratorFactory"><code class="docutils literal notranslate"><span class="pre">FullStudyAcceleratorFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.accelerator.factory.html#core.accelerator.factory.NoFault"><code class="docutils literal notranslate"><span class="pre">NoFault</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.accelerator.factory.html#core.accelerator.factory.StudyWithoutFaultsAcceleratorFactory"><code class="docutils literal notranslate"><span class="pre">StudyWithoutFaultsAcceleratorFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.accelerator.factory.html#core.accelerator.factory.WithFaults"><code class="docutils literal notranslate"><span class="pre">WithFaults</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.phase_space.html">core.beam_parameters.phase_space package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html">core.beam_parameters.beam_parameters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters"><code class="docutils literal notranslate"><span class="pre">BeamParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters._to_float_if_necessary"><code class="docutils literal notranslate"><span class="pre">_to_float_if_necessary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html">core.beam_parameters.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.helper.html">core.beam_parameters.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.envelopes_from_sigma"><code class="docutils literal notranslate"><span class="pre">envelopes_from_sigma()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.envelopes_from_twiss_eps"><code class="docutils literal notranslate"><span class="pre">envelopes_from_twiss_eps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.eps_from_other_phase_space"><code class="docutils literal notranslate"><span class="pre">eps_from_other_phase_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.eps_from_sigma"><code class="docutils literal notranslate"><span class="pre">eps_from_sigma()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.mismatch_from_arrays"><code class="docutils literal notranslate"><span class="pre">mismatch_from_arrays()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.reconstruct_sigma"><code class="docutils literal notranslate"><span class="pre">reconstruct_sigma()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.resample_twiss_on_fix"><code class="docutils literal notranslate"><span class="pre">resample_twiss_on_fix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.sigma_from_transfer_matrices"><code class="docutils literal notranslate"><span class="pre">sigma_from_transfer_matrices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.twiss_from_other_phase_space"><code class="docutils literal notranslate"><span class="pre">twiss_from_other_phase_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.twiss_from_sigma"><code class="docutils literal notranslate"><span class="pre">twiss_from_sigma()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html">core.beam_parameters.initial_beam_parameters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.phase_space_name_hidden_in_key"><code class="docutils literal notranslate"><span class="pre">phase_space_name_hidden_in_key()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.separate_var_from_phase_space"><code class="docutils literal notranslate"><span class="pre">separate_var_from_phase_space()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.commands.html">core.commands package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.command.html">core.commands.command module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.command.html#core.commands.command.Command"><code class="docutils literal notranslate"><span class="pre">Command</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.dummy_command.html">core.commands.dummy_command module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.dummy_command.html#core.commands.dummy_command.DummyCommand"><code class="docutils literal notranslate"><span class="pre">DummyCommand</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.end.html">core.commands.end module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.end.html#core.commands.end.End"><code class="docutils literal notranslate"><span class="pre">End</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.factory.html">core.commands.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.factory.html#core.commands.factory.CommandFactory"><code class="docutils literal notranslate"><span class="pre">CommandFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.factory.html#core.commands.factory.IMPLEMENTED_COMMANDS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_COMMANDS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.field_map_path.html">core.commands.field_map_path module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.field_map_path.html#core.commands.field_map_path.FieldMapPath"><code class="docutils literal notranslate"><span class="pre">FieldMapPath</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.freq.html">core.commands.freq module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.freq.html#core.commands.freq.Freq"><code class="docutils literal notranslate"><span class="pre">Freq</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.helper.html">core.commands.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.helper.html#core.commands.helper.apply_commands"><code class="docutils literal notranslate"><span class="pre">apply_commands()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.lattice.html">core.commands.lattice module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.lattice.html#core.commands.lattice.Lattice"><code class="docutils literal notranslate"><span class="pre">Lattice</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.lattice.html#core.commands.lattice.LatticeEnd"><code class="docutils literal notranslate"><span class="pre">LatticeEnd</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.marker.html">core.commands.marker module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.marker.html#core.commands.marker.Marker"><code class="docutils literal notranslate"><span class="pre">Marker</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.shift.html">core.commands.shift module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.shift.html#core.commands.shift.Shift"><code class="docutils literal notranslate"><span class="pre">Shift</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.steerer.html">core.commands.steerer module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.steerer.html#core.commands.steerer.Steerer"><code class="docutils literal notranslate"><span class="pre">Steerer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.superpose_map.html">core.commands.superpose_map module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.superpose_map.html#core.commands.superpose_map.SuperposeMap"><code class="docutils literal notranslate"><span class="pre">SuperposeMap</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.elements.html">core.elements package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.field_maps.html">core.elements.field_maps package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.field_maps.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.elements.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.aperture.html">core.elements.aperture module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.aperture.html#core.elements.aperture.Aperture"><code class="docutils literal notranslate"><span class="pre">Aperture</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.bend.html">core.elements.bend module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.bend.html#core.elements.bend.Bend"><code class="docutils literal notranslate"><span class="pre">Bend</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.diagnostic.html">core.elements.diagnostic module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagAchromat"><code class="docutils literal notranslate"><span class="pre">DiagAchromat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagBeta"><code class="docutils literal notranslate"><span class="pre">DiagBeta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagCurrent"><code class="docutils literal notranslate"><span class="pre">DiagCurrent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDBeta"><code class="docutils literal notranslate"><span class="pre">DiagDBeta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDCurrent"><code class="docutils literal notranslate"><span class="pre">DiagDCurrent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDDivergence"><code class="docutils literal notranslate"><span class="pre">DiagDDivergence</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDEnergy"><code class="docutils literal notranslate"><span class="pre">DiagDEnergy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPSize2"><code class="docutils literal notranslate"><span class="pre">DiagDPSize2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPhase"><code class="docutils literal notranslate"><span class="pre">DiagDPhase</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDPosition"><code class="docutils literal notranslate"><span class="pre">DiagDPosition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize"><code class="docutils literal notranslate"><span class="pre">DiagDSize</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2"><code class="docutils literal notranslate"><span class="pre">DiagDSize2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize2FWHM"><code class="docutils literal notranslate"><span class="pre">DiagDSize2FWHM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSize3"><code class="docutils literal notranslate"><span class="pre">DiagDSize3</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDSizeFWHM"><code class="docutils literal notranslate"><span class="pre">DiagDSizeFWHM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDTwiss2"><code class="docutils literal notranslate"><span class="pre">DiagDTwiss2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagDivergence"><code class="docutils literal notranslate"><span class="pre">DiagDivergence</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit"><code class="docutils literal notranslate"><span class="pre">DiagEmit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEmit99"><code class="docutils literal notranslate"><span class="pre">DiagEmit99</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagEnergy"><code class="docutils literal notranslate"><span class="pre">DiagEnergy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagHalo"><code class="docutils literal notranslate"><span class="pre">DiagHalo</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagLuminosity"><code class="docutils literal notranslate"><span class="pre">DiagLuminosity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhase"><code class="docutils literal notranslate"><span class="pre">DiagPhase</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPhaseAdv"><code class="docutils literal notranslate"><span class="pre">DiagPhaseAdv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagPosition"><code class="docutils literal notranslate"><span class="pre">DiagPosition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSeparation"><code class="docutils literal notranslate"><span class="pre">DiagSeparation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSetMatrix"><code class="docutils literal notranslate"><span class="pre">DiagSetMatrix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSize"><code class="docutils literal notranslate"><span class="pre">DiagSize</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeFWHM"><code class="docutils literal notranslate"><span class="pre">DiagSizeFWHM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeMax"><code class="docutils literal notranslate"><span class="pre">DiagSizeMax</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeMin"><code class="docutils literal notranslate"><span class="pre">DiagSizeMin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagSizeP"><code class="docutils literal notranslate"><span class="pre">DiagSizeP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagTwiss"><code class="docutils literal notranslate"><span class="pre">DiagTwiss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.DiagWaist"><code class="docutils literal notranslate"><span class="pre">DiagWaist</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic"><code class="docutils literal notranslate"><span class="pre">Diagnostic</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.drift.html">core.elements.drift module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.drift.html#core.elements.drift.Drift"><code class="docutils literal notranslate"><span class="pre">Drift</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.dummy.html">core.elements.dummy module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.dummy.html#core.elements.dummy.DummyElement"><code class="docutils literal notranslate"><span class="pre">DummyElement</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.edge.html">core.elements.edge module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.edge.html#core.elements.edge.Edge"><code class="docutils literal notranslate"><span class="pre">Edge</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.element.html">core.elements.element module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element"><code class="docutils literal notranslate"><span class="pre">Element</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.factory.html">core.elements.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.factory.html#core.elements.factory.ElementFactory"><code class="docutils literal notranslate"><span class="pre">ElementFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.factory.html#core.elements.factory._get_constructor"><code class="docutils literal notranslate"><span class="pre">_get_constructor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.factory.html#core.elements.factory.implemented_elements"><code class="docutils literal notranslate"><span class="pre">implemented_elements</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.helper.html">core.elements.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.helper.html#core.elements.helper.force_a_lattice_for_every_element"><code class="docutils literal notranslate"><span class="pre">force_a_lattice_for_every_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.helper.html#core.elements.helper.force_a_section_for_every_element"><code class="docutils literal notranslate"><span class="pre">force_a_section_for_every_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.helper.html#core.elements.helper.give_name_to_elements"><code class="docutils literal notranslate"><span class="pre">give_name_to_elements()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.quad.html">core.elements.quad module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.quad.html#core.elements.quad.Quad"><code class="docutils literal notranslate"><span class="pre">Quad</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.solenoid.html">core.elements.solenoid module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.solenoid.html#core.elements.solenoid.Solenoid"><code class="docutils literal notranslate"><span class="pre">Solenoid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.superposed_field_map.html">core.elements.superposed_field_map module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.superposed_field_map.html#core.elements.superposed_field_map.SuperposedFieldMap"><code class="docutils literal notranslate"><span class="pre">SuperposedFieldMap</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.thin_steering.html">core.elements.thin_steering module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.elements.thin_steering.html#core.elements.thin_steering.ThinSteering"><code class="docutils literal notranslate"><span class="pre">ThinSteering</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.list_of_elements.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.factory.html">core.list_of_elements.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory"><code class="docutils literal notranslate"><span class="pre">ListOfElementsFactory</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.helper.html">core.list_of_elements.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper._get_first_key_of_idx_dict_higher_than"><code class="docutils literal notranslate"><span class="pre">_get_first_key_of_idx_dict_higher_than()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.elt_at_this_s_idx"><code class="docutils literal notranslate"><span class="pre">elt_at_this_s_idx()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.equivalent_elt"><code class="docutils literal notranslate"><span class="pre">equivalent_elt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.equivalent_elt_idx"><code class="docutils literal notranslate"><span class="pre">equivalent_elt_idx()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.filter_cav"><code class="docutils literal notranslate"><span class="pre">filter_cav()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.filter_elts"><code class="docutils literal notranslate"><span class="pre">filter_elts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.filter_out"><code class="docutils literal notranslate"><span class="pre">filter_out()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.first"><code class="docutils literal notranslate"><span class="pre">first()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.group_elements_by_lattice"><code class="docutils literal notranslate"><span class="pre">group_elements_by_lattice()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.group_elements_by_section"><code class="docutils literal notranslate"><span class="pre">group_elements_by_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.group_elements_by_section_and_lattice"><code class="docutils literal notranslate"><span class="pre">group_elements_by_section_and_lattice()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.indiv_to_cumul_transf_mat"><code class="docutils literal notranslate"><span class="pre">indiv_to_cumul_transf_mat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.is_list_of"><code class="docutils literal notranslate"><span class="pre">is_list_of()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.is_list_of_elements"><code class="docutils literal notranslate"><span class="pre">is_list_of_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.is_list_of_list_of_elements"><code class="docutils literal notranslate"><span class="pre">is_list_of_list_of_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html#core.list_of_elements.helper.is_list_of_list_of_field_maps"><code class="docutils literal notranslate"><span class="pre">is_list_of_list_of_field_maps()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.list_of_elements.html">core.list_of_elements.list_of_elements module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements"><code class="docutils literal notranslate"><span class="pre">ListOfElements</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.transfer_matrix.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.factory.html">core.transfer_matrix.factory module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.transfer_matrix.factory.html#core.transfer_matrix.factory.TransferMatrixFactory"><code class="docutils literal notranslate"><span class="pre">TransferMatrixFactory</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.transfer_matrix.html">core.transfer_matrix.transfer_matrix module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.transfer_matrix.transfer_matrix.html#core.transfer_matrix.transfer_matrix.TransferMatrix"><code class="docutils literal notranslate"><span class="pre">TransferMatrix</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField"><code class="docutils literal notranslate"><span class="pre">NewRfField</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField.e_spat"><code class="docutils literal notranslate"><span class="pre">NewRfField.e_spat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField.n_cell"><code class="docutils literal notranslate"><span class="pre">NewRfField.n_cell</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField.n_z"><code class="docutils literal notranslate"><span class="pre">NewRfField.n_z</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField.__init__"><code class="docutils literal notranslate"><span class="pre">NewRfField.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField.get"><code class="docutils literal notranslate"><span class="pre">NewRfField.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField.has"><code class="docutils literal notranslate"><span class="pre">NewRfField.has()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.NewRfField.set_e_spat"><code class="docutils literal notranslate"><span class="pre">NewRfField.set_e_spat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField"><code class="docutils literal notranslate"><span class="pre">RfField</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.e_spat"><code class="docutils literal notranslate"><span class="pre">RfField.e_spat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.k_e"><code class="docutils literal notranslate"><span class="pre">RfField.k_e</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.phi_0"><code class="docutils literal notranslate"><span class="pre">RfField.phi_0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.v_cav_mv"><code class="docutils literal notranslate"><span class="pre">RfField.v_cav_mv</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.phi_s"><code class="docutils literal notranslate"><span class="pre">RfField.phi_s</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.omega0_rf"><code class="docutils literal notranslate"><span class="pre">RfField.omega0_rf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.bunch_to_rf"><code class="docutils literal notranslate"><span class="pre">RfField.bunch_to_rf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.n_cell"><code class="docutils literal notranslate"><span class="pre">RfField.n_cell</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.n_z"><code class="docutils literal notranslate"><span class="pre">RfField.n_z</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.__init__"><code class="docutils literal notranslate"><span class="pre">RfField.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.get"><code class="docutils literal notranslate"><span class="pre">RfField.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.has"><code class="docutils literal notranslate"><span class="pre">RfField.has()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.set_e_spat"><code class="docutils literal notranslate"><span class="pre">RfField.set_e_spat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.set_rf_freq"><code class="docutils literal notranslate"><span class="pre">RfField.set_rf_freq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html#core.electric_field.RfField.update_phi_0_abs_to_adapt_to_new_ref_phase"><code class="docutils literal notranslate"><span class="pre">RfField.update_phi_0_abs_to_adapt_to_new_ref_phase()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.electric_field.html#core.electric_field.compute_param_cav"><code class="docutils literal notranslate"><span class="pre">compute_param_cav()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.instruction.html">core.instruction module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.instruction.html#core.instruction.Comment"><code class="docutils literal notranslate"><span class="pre">Comment</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Comment.__init__"><code class="docutils literal notranslate"><span class="pre">Comment.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Comment._abc_impl"><code class="docutils literal notranslate"><span class="pre">Comment._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.instruction.html#core.instruction.Dummy"><code class="docutils literal notranslate"><span class="pre">Dummy</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Dummy.__init__"><code class="docutils literal notranslate"><span class="pre">Dummy.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Dummy._abc_impl"><code class="docutils literal notranslate"><span class="pre">Dummy._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Dummy.is_implemented"><code class="docutils literal notranslate"><span class="pre">Dummy.is_implemented</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction"><code class="docutils literal notranslate"><span class="pre">Instruction</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction.__init__"><code class="docutils literal notranslate"><span class="pre">Instruction.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction._abc_impl"><code class="docutils literal notranslate"><span class="pre">Instruction._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction._assert_correct_number_of_args"><code class="docutils literal notranslate"><span class="pre">Instruction._assert_correct_number_of_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction.idx"><code class="docutils literal notranslate"><span class="pre">Instruction.idx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction.is_implemented"><code class="docutils literal notranslate"><span class="pre">Instruction.is_implemented</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction.line"><code class="docutils literal notranslate"><span class="pre">Instruction.line</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction.n_attributes"><code class="docutils literal notranslate"><span class="pre">Instruction.n_attributes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction.name"><code class="docutils literal notranslate"><span class="pre">Instruction.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction.to_line"><code class="docutils literal notranslate"><span class="pre">Instruction.to_line()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory.__init__"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory._call_proper_factory"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory._call_proper_factory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory._check_every_elt_has_lattice_and_section"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory._check_every_elt_has_lattice_and_section()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory._check_last_lattice_of_every_lattice_is_complete"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory._check_last_lattice_of_every_lattice_is_complete()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory._handle_lattice_and_section"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory._handle_lattice_and_section()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory.run"><code class="docutils literal notranslate"><span class="pre">InstructionsFactory.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.particle.html">core.particle module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.__init__"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.__post_init__"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.compute_complementary_data"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.compute_complementary_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.get"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.has"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.has()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.phi_abs"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.phi_abs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.synchronous"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.synchronous</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.tracewin_command"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.tracewin_command</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleFullTrajectory.w_kin"><code class="docutils literal notranslate"><span class="pre">ParticleFullTrajectory.w_kin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState.__init__"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState.phi_abs"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState.phi_abs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState.synchronous"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState.synchronous</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState.tracewin_command"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState.tracewin_command</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState.w_kin"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState.w_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState.z_in"><code class="docutils literal notranslate"><span class="pre">ParticleInitialState.z_in</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="constants.html" class="btn btn-neutral float-left" title="constants module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.accelerator.html" class="btn btn-neutral float-right" title="core.accelerator package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

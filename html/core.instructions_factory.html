@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.instructions_factory module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.particle module" href="core.particle.html" />
+    <link rel="prev" title="core.instruction module" href="core.instruction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+      <li class="breadcrumb-item active">core.instructions_factory module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.instructions_factory.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.instructions_factory">
+<span id="core-instructions-factory-module"></span><h1>core.instructions_factory module<a class="headerlink" href="#module-core.instructions_factory" title="Link to this heading"></a></h1>
+<p>Define methods to easily create <a class="reference internal" href="core.commands.command.html#core.commands.command.Command" title="core.commands.command.Command"><code class="xref py py-class docutils literal notranslate"><span class="pre">Command</span></code></a> or <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Instantiate this in <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>. It could be initialized with
+the <code class="docutils literal notranslate"><span class="pre">load_electromagnetic_files</span></code> flag (False for TraceWin), the list of
+implemented elements/commands (ex Envelope3D, not everything is set).</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>maybe ElementFactory and CommandFactory should be instantiated from this?
+Or from another class, but they do have a lot in common</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>for now, forcing loading of cython field maps</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="core.instructions_factory.InstructionsFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">InstructionsFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq_bunch_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_field_map_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_maps_in_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_cython_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">factory_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.instructions_factory.InstructionsFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Define a factory class to easily create commands and elements.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="core.instructions_factory.InstructionsFactory.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq_bunch_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_field_map_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_maps_in_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_cython_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">factory_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.instructions_factory.InstructionsFactory.__init__" title="Link to this definition"></a></dt>
+<dd><p>Instantiate the command and element factories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq_bunch_mhz</strong> (<em>float</em>) – Beam bunch frequency in MHz.</p></li>
+<li><p><strong>default_field_map_folder</strong> (<em>Path</em>) – Where to look for field maps when no <code class="docutils literal notranslate"><span class="pre">FIELD_MAP_PATH</span></code> is
+precised. This is also the folder where the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> is.</p></li>
+<li><p><strong>load_field_maps</strong> (<em>bool</em>) – To load or not the field maps (useless to do it with
+<a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>).</p></li>
+<li><p><strong>field_maps_in_3d</strong> (<em>bool</em>) – To load or not the field maps in 3D (useful only with
+<a class="reference internal" href="beam_calculation.envelope_3d.envelope_3d.html#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a>… Except that this is not supported yet, so
+it is never useful.</p></li>
+<li><p><strong>load_cython_field_maps</strong> (<em>bool</em>) – To load or not the field maps for Cython (useful only with
+<a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a> and <a class="reference internal" href="beam_calculation.envelope_3d.envelope_3d.html#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a> used with Cython).</p></li>
+<li><p><strong>phi_s_definition</strong> (<em>str</em><em>, </em><em>optional</em>) – Definition for the synchronous phases that will be used. Allowed
+values are in
+<a href="#id4"><span class="problematic" id="id5">:var:`util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS`</span></a>. The
+default is <code class="docutils literal notranslate"><span class="pre">'historical'</span></code>.</p></li>
+<li><p><strong>factory_kw</strong> (<em>Any</em>) – Other parameters passed to the <a class="reference internal" href="core.commands.factory.html#core.commands.factory.CommandFactory" title="core.commands.factory.CommandFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandFactory</span></code></a> and
+<a class="reference internal" href="core.elements.factory.html#core.elements.factory.ElementFactory" title="core.elements.factory.ElementFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElementFactory</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.instructions_factory.InstructionsFactory._call_proper_factory">
+<span class="sig-name descname"><span class="pre">_call_proper_factory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dat_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">instruction_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a></span></span><a class="headerlink" href="#core.instructions_factory.InstructionsFactory._call_proper_factory" title="Link to this definition"></a></dt>
+<dd><p>Create proper <a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code></a>, or <a class="reference internal" href="core.instruction.html#core.instruction.Dummy" title="core.instruction.Dummy"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dummy</span></code></a>.</p>
+<p>We go across every word of <code class="docutils literal notranslate"><span class="pre">line</span></code>, and create the first instruction
+that we find. If we do not recognize it, we return a dummy instruction
+instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A single line of the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file.</p></li>
+<li><p><strong>dat_idx</strong> (<em>int</em>) – Line number of the line (starts at 0).</p></li>
+<li><p><strong>command_fac</strong> (<a class="reference internal" href="core.commands.factory.html#core.commands.factory.CommandFactory" title="core.commands.factory.CommandFactory"><em>CommandFactory</em></a>) – A factory to create <a class="reference internal" href="core.commands.command.html#core.commands.command.Command" title="core.commands.command.Command"><code class="xref py py-class docutils literal notranslate"><span class="pre">Command</span></code></a>.</p></li>
+<li><p><strong>element_fac</strong> (<a class="reference internal" href="core.elements.factory.html#core.elements.factory.ElementFactory" title="core.elements.factory.ElementFactory"><em>ElementFactory</em></a>) – A factory to create <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>.</p></li>
+<li><p><strong>instruction_kw</strong> (<em>dict</em>) – Keywords given to the <code class="docutils literal notranslate"><span class="pre">run</span></code> method of the proper factory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Proper <a class="reference internal" href="core.commands.command.html#core.commands.command.Command" title="core.commands.command.Command"><code class="xref py py-class docutils literal notranslate"><span class="pre">Command</span></code></a> or <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>, or <a class="reference internal" href="core.instruction.html#core.instruction.Dummy" title="core.instruction.Dummy"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dummy</span></code></a>,
+or <a class="reference internal" href="core.instruction.html#core.instruction.Comment" title="core.instruction.Comment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Comment</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction">Instruction</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.instructions_factory.InstructionsFactory._check_every_elt_has_lattice_and_section">
+<span class="sig-name descname"><span class="pre">_check_every_elt_has_lattice_and_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.instructions_factory.InstructionsFactory._check_every_elt_has_lattice_and_section" title="Link to this definition"></a></dt>
+<dd><p>Check that every element has a lattice and section index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.instructions_factory.InstructionsFactory._check_last_lattice_of_every_lattice_is_complete">
+<span class="sig-name descname"><span class="pre">_check_last_lattice_of_every_lattice_is_complete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.instructions_factory.InstructionsFactory._check_last_lattice_of_every_lattice_is_complete" title="Link to this definition"></a></dt>
+<dd><p>Check that last lattice of every section is complete.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.instructions_factory.InstructionsFactory._handle_lattice_and_section">
+<span class="sig-name descname"><span class="pre">_handle_lattice_and_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.instructions_factory.InstructionsFactory._handle_lattice_and_section" title="Link to this definition"></a></dt>
+<dd><p>Ensure that every element has proper lattice, section indexes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.instructions_factory.InstructionsFactory.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat_content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.instructions_factory.InstructionsFactory.run" title="Link to this definition"></a></dt>
+<dd><p>Create all the elements and commands.</p>
+<div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>Check if the return value from <code class="docutils literal notranslate"><span class="pre">apply_commands</span></code> is necessary.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dat_content</strong> (<em>list</em><em>[</em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – List containing all the lines of <code class="docutils literal notranslate"><span class="pre">dat_filepath</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.instruction.html" class="btn btn-neutral float-left" title="core.instruction module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.particle.html" class="btn btn-neutral float-right" title="core.particle module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

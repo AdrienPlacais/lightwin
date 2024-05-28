@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beam_calculation.simulation_output.factory module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beam_calculation.simulation_output.simulation_output module" href="beam_calculation.simulation_output.simulation_output.html" />
+    <link rel="prev" title="beam_calculation.simulation_output package" href="beam_calculation.simulation_output.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_1d.html">beam_calculation.envelope_1d package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_3d.html">beam_calculation.envelope_3d package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.parameters.html">beam_calculation.parameters package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="beam_calculation.simulation_output.html">beam_calculation.simulation_output package</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">beam_calculation.simulation_output.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html">beam_calculation.simulation_output.simulation_output module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.tracewin.html">beam_calculation.tracewin package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.beam_calculator.html">beam_calculation.beam_calculator module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.factory.html">beam_calculation.factory module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="beam_calculation.html">beam_calculation package</a></li>
+          <li class="breadcrumb-item"><a href="beam_calculation.simulation_output.html">beam_calculation.simulation_output package</a></li>
+      <li class="breadcrumb-item active">beam_calculation.simulation_output.factory module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beam_calculation.simulation_output.factory.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-beam_calculation.simulation_output.factory">
+<span id="beam-calculation-simulation-output-factory-module"></span><h1>beam_calculation.simulation_output.factory module<a class="headerlink" href="#module-beam_calculation.simulation_output.factory" title="Link to this heading"></a></h1>
+<p>Define a class to easily generate the <a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a>.</p>
+<p>This class should be subclassed by every <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> to match its
+own specific outputs.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SimulationOutputFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_solver_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>A base class for creation of <a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_solver_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory.__post_init__">
+<span class="sig-name descname"><span class="pre">__post_init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory.__post_init__" title="Link to this definition"></a></dt>
+<dd><p>Create the factories.</p>
+<p>The created factories are <a class="reference internal" href="core.transfer_matrix.factory.html#core.transfer_matrix.factory.TransferMatrixFactory" title="core.transfer_matrix.factory.TransferMatrixFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransferMatrixFactory</span></code></a> and
+<a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory" title="core.beam_parameters.factory.BeamParametersFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamParametersFactory</span></code></a>. The sub-class that is used is declared
+in <a class="reference internal" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._transfer_matrix_factory_class" title="beam_calculation.simulation_output.factory.SimulationOutputFactory._transfer_matrix_factory_class"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_transfer_matrix_factory_class()</span></code></a> and
+<a class="reference internal" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._beam_parameters_factory_class" title="beam_calculation.simulation_output.factory.SimulationOutputFactory._beam_parameters_factory_class"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_beam_parameters_factory_class()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory._beam_parameters_factory_class">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_beam_parameters_factory_class</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ABCMeta</span></em><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._beam_parameters_factory_class" title="Link to this definition"></a></dt>
+<dd><p>Declare the <strong>class</strong> of the beam parameters factory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory._generate_element_to_index_func">
+<span class="sig-name descname"><span class="pre">_generate_element_to_index_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._generate_element_to_index_func" title="Link to this definition"></a></dt>
+<dd><p>Create the func to easily get data at proper mesh index.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory._is_3d">
+<span class="sig-name descname"><span class="pre">_is_3d</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._is_3d" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory._is_multipart">
+<span class="sig-name descname"><span class="pre">_is_multipart</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._is_multipart" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory._solver_id">
+<span class="sig-name descname"><span class="pre">_solver_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._solver_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory._transfer_matrix_factory_class">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_transfer_matrix_factory_class</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ABCMeta</span></em><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory._transfer_matrix_factory_class" title="Link to this definition"></a></dt>
+<dd><p>Declare the <strong>class</strong> of the transfer matrix factory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory.SimulationOutputFactory.run">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></span><a class="headerlink" href="#beam_calculation.simulation_output.factory.SimulationOutputFactory.run" title="Link to this definition"></a></dt>
+<dd><p>Create the <a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.simulation_output.factory._element_to_index">
+<span class="sig-name descname"><span class="pre">_element_to_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">_shift</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_solver_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_elt_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">slice</span></span></span><a class="headerlink" href="#beam_calculation.simulation_output.factory._element_to_index" title="Link to this definition"></a></dt>
+<dd><p>Convert <code class="docutils literal notranslate"><span class="pre">elt</span></code> and <code class="docutils literal notranslate"><span class="pre">pos</span></code> into a mesh index.</p>
+<p>This way, you can call <code class="docutils literal notranslate"><span class="pre">get('w_kin',</span> <span class="pre">elt='FM5',</span> <span class="pre">pos='out')</span></code> and
+systematically get the energy at the exit of FM5, whatever the
+<a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> or the mesh size is.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>different functions, for different outputs. At least, an
+_element_to_index and a _element_to_indexes. And also a different
+function for when the index element is desired.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – List of <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> where <code class="docutils literal notranslate"><span class="pre">elt</span></code> should be. Must be set by a
+<code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code>.</p></li>
+<li><p><strong>_shift</strong> (<em>int</em>) – Mesh index of first <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>. Used when the first
+<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> of <code class="docutils literal notranslate"><span class="pre">_elts</span></code> is not the first of the
+<a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a>. Must be set by <code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code>.</p></li>
+<li><p><strong>_solver_id</strong> (<em>str</em>) – Name of the solver, to identify and take the proper
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SingleElementBeamParameters</span></code>.</p></li>
+<li><p><strong>elt</strong> (<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em> | </em><em>str</em>) – Element of which you want the index.</p></li>
+<li><p><strong>pos</strong> (<em>{'in'</em><em>, </em><em>'out}</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Index of entry or exit of the <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>. If None, return full
+indexes array. The default is None.</p></li>
+<li><p><strong>return_elt_idx</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the returned index is the position of the element in
+<code class="docutils literal notranslate"><span class="pre">_elts</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Index of range of indexes where <code class="docutils literal notranslate"><span class="pre">elt</span></code> is.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int | slice</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beam_calculation.simulation_output.html" class="btn btn-neutral float-left" title="beam_calculation.simulation_output package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beam_calculation.simulation_output.simulation_output.html" class="btn btn-neutral float-right" title="beam_calculation.simulation_output.simulation_output module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

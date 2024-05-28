@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.list_of_elements.helper module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.list_of_elements.list_of_elements module" href="core.list_of_elements.list_of_elements.html" />
+    <link rel="prev" title="core.list_of_elements.factory module" href="core.list_of_elements.factory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.factory.html">core.list_of_elements.factory module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">core.list_of_elements.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.list_of_elements.html">core.list_of_elements.list_of_elements module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+          <li class="breadcrumb-item"><a href="core.list_of_elements.html">core.list_of_elements package</a></li>
+      <li class="breadcrumb-item active">core.list_of_elements.helper module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.list_of_elements.helper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.list_of_elements.helper">
+<span id="core-list-of-elements-helper-module"></span><h1>core.list_of_elements.helper module<a class="headerlink" href="#module-core.list_of_elements.helper" title="Link to this heading"></a></h1>
+<p>Define some helper functions to filter list of elements.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Filtering consistency.</p>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper._get_first_key_of_idx_dict_higher_than">
+<span class="sig-name descname"><span class="pre">_get_first_key_of_idx_dict_higher_than</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_or_last</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">higher_than</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_to_check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#core.list_of_elements.helper._get_first_key_of_idx_dict_higher_than" title="Link to this definition"></a></dt>
+<dd><p>Take first valid idx in <code class="docutils literal notranslate"><span class="pre">n_to_check</span></code> first/last elements of <code class="docutils literal notranslate"><span class="pre">elts</span></code>.</p>
+<p>Typical usage is getting the number of sections or lattice by taking the
+last element with a section/lattice index higher than -1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elts</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – List of elements to check.</p></li>
+<li><p><strong>index_name</strong> (<em>str</em>) – Name of the index to get. Must be a key of <code class="xref py py-attr docutils literal notranslate"><span class="pre">Element.idx</span></code>.</p></li>
+<li><p><strong>first_or_last</strong> (<em>{'first'</em><em>, </em><em>'last'}</em>) – If we want to check the <code class="docutils literal notranslate"><span class="pre">n_to_check</span></code> first or last elements.</p></li>
+<li><p><strong>higher_than</strong> (<em>int</em><em>, </em><em>optional</em>) – The index under which the value is invalid. The default is -1, which is
+the initialisation index for all the values of the <code class="docutils literal notranslate"><span class="pre">idx</span></code> dictionary.</p></li>
+<li><p><strong>n_to_check</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of elements in which we will look for the index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The first valid index that is found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.elt_at_this_s_idx">
+<span class="sig-name descname"><span class="pre">elt_at_this_s_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ListOfElements</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#core.list_of_elements.helper.elt_at_this_s_idx" title="Link to this definition"></a></dt>
+<dd><p>Give the element where the given index is.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a><em> | </em><em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – List of elements in which to look for.</p></li>
+<li><p><strong>s_idx</strong> (<em>int</em>) – Index to look for.</p></li>
+<li><p><strong>show_info</strong> (<em>bool</em>) – If the element that we found should be outputed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>elt</strong> – Element where the mesh index <code class="docutils literal notranslate"><span class="pre">s_idx</span></code> is in <code class="docutils literal notranslate"><span class="pre">elts</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element">Element</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.equivalent_elt">
+<span class="sig-name descname"><span class="pre">equivalent_elt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ListOfElements</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></span><a class="headerlink" href="#core.list_of_elements.helper.equivalent_elt" title="Link to this definition"></a></dt>
+<dd><p>Return the element from <code class="docutils literal notranslate"><span class="pre">elts</span></code> corresponding to <code class="docutils literal notranslate"><span class="pre">elt</span></code>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This routine uses the name of the element and not its adress. So
+it will not complain if the <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> object that you asked for
+is not in this list of elements.
+In the contrary, it was meant to find equivalent cavities between
+different lists of elements.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#core.list_of_elements.helper.equivalent_elt_idx" title="core.list_of_elements.helper.equivalent_elt_idx"><code class="xref py py-func docutils literal notranslate"><span class="pre">equivalent_elt_idx()</span></code></a>, <a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator.equivalent_elt" title="core.accelerator.accelerator.Accelerator.equivalent_elt"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Accelerator.equivalent_elt()</span></code></a></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a><em> | </em><em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – List of elements where you want the position.</p></li>
+<li><p><strong>elt</strong> (<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em> | </em><em>str</em>) – Element of which you want the position. If you give a str, it should be
+the name of an element. If it is an <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>, we take its name
+in the routine. Magic keywords <code class="docutils literal notranslate"><span class="pre">'first'</span></code>, <code class="docutils literal notranslate"><span class="pre">'last'</span></code> are also
+accepted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out_elt</strong> – Equivalent element.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element">Element</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.equivalent_elt_idx">
+<span class="sig-name descname"><span class="pre">equivalent_elt_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ListOfElements</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#core.list_of_elements.helper.equivalent_elt_idx" title="Link to this definition"></a></dt>
+<dd><p>Return the index of element from <code class="docutils literal notranslate"><span class="pre">elts</span></code> corresponding to <code class="docutils literal notranslate"><span class="pre">elt</span></code>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This routine uses the name of the element and not its adress. So
+it will not complain if the <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> object that you asked for
+is not in this list of elements.
+In the contrary, it was meant to find equivalent cavities between
+different lists of elements.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#core.list_of_elements.helper.equivalent_elt" title="core.list_of_elements.helper.equivalent_elt"><code class="xref py py-func docutils literal notranslate"><span class="pre">equivalent_elt()</span></code></a>, <a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator.equivalent_elt" title="core.accelerator.accelerator.Accelerator.equivalent_elt"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Accelerator.equivalent_elt()</span></code></a></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a><em> | </em><em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – List of elements where you want the position.</p></li>
+<li><p><strong>elt</strong> (<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em> | </em><em>str</em>) – Element of which you want the position. If you give a str, it should be
+the name of an element. If it is an <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>, we take its name
+in the routine. Magic keywords <code class="docutils literal notranslate"><span class="pre">'first'</span></code>, <code class="docutils literal notranslate"><span class="pre">'last'</span></code> are also
+accepted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Index of equivalent element.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.filter_cav">
+<span class="sig-name descname"><span class="pre">filter_cav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">elts:</span> <span class="pre">~core.list_of_elements.helper.ListOfElements</span> <span class="pre">|</span> <span class="pre">~typing.Sequence[~core.elements.element.Element],</span> <span class="pre">*,</span> <span class="pre">type_to_check:</span> <span class="pre">~typing.Type</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'core.elements.field_maps.field_map.FieldMap'&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.filter_cav" title="Link to this definition"></a></dt>
+<dd><p>Filter elements according to their type.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Used only for <a class="reference internal" href="#core.list_of_elements.helper.filter_cav" title="core.list_of_elements.helper.filter_cav"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter_cav()</span></code></a>, may be simpler?</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.filter_elts">
+<span class="sig-name descname"><span class="pre">filter_elts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ListOfElements</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_to_check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.filter_elts" title="Link to this definition"></a></dt>
+<dd><p>Filter elements according to their type.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Used only for <a class="reference internal" href="#core.list_of_elements.helper.filter_cav" title="core.list_of_elements.helper.filter_cav"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter_cav()</span></code></a>, may be simpler?</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.filter_out">
+<span class="sig-name descname"><span class="pre">filter_out</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ListOfElements</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_exclude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#core.list_of_elements.helper.filter_out" title="Link to this definition"></a></dt>
+<dd><p>Filter out types while keeping the input list structure.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Function not used anymore. Keeping it just in case.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.first">
+<span class="sig-name descname"><span class="pre">first</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">iterable:</span> <span class="pre">~collections.abc.Iterable,</span> <span class="pre">default:</span> <span class="pre">T</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">condition:</span> <span class="pre">~collections.abc.Callable[[T],</span> <span class="pre">bool]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T</span></span></span><a class="headerlink" href="#core.list_of_elements.helper.first" title="Link to this definition"></a></dt>
+<dd><p>Return the first item in <code class="docutils literal notranslate"><span class="pre">iterable</span></code> satisfying <code class="docutils literal notranslate"><span class="pre">condition</span></code>.</p>
+<p>If the condition is not given, returns the first item of
+the iterable.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">default</span></code> argument is given and the iterable is empty,
+or if it has no items matching the condition, the <code class="docutils literal notranslate"><span class="pre">default</span></code> argument
+is returned if it matches the condition.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">default</span></code> argument being None is the same as it not being given.</p>
+<p>Raises <code class="docutils literal notranslate"><span class="pre">StopIteration</span></code> if no item satisfying the condition is found
+and default is not given or doesn’t satisfy the condition.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">first</span><span class="p">(</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">condition</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">first</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">first</span><span class="p">(</span> <span class="p">()</span> <span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">StopIteration</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">first</span><span class="p">([],</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">first</span><span class="p">([],</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">StopIteration</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">first</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">StopIteration</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.group_elements_by_lattice">
+<span class="sig-name descname"><span class="pre">group_elements_by_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.group_elements_by_lattice" title="Link to this definition"></a></dt>
+<dd><p>Regroup the Element belonging to the same Lattice.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.group_elements_by_section">
+<span class="sig-name descname"><span class="pre">group_elements_by_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_to_check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.group_elements_by_section" title="Link to this definition"></a></dt>
+<dd><p>Group elements by section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.group_elements_by_section_and_lattice">
+<span class="sig-name descname"><span class="pre">group_elements_by_section_and_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">by_section</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.group_elements_by_section_and_lattice" title="Link to this definition"></a></dt>
+<dd><p>Regroup Elements by Section and then by Lattice.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.indiv_to_cumul_transf_mat">
+<span class="sig-name descname"><span class="pre">indiv_to_cumul_transf_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tm_cumul_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_zz_elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#core.list_of_elements.helper.indiv_to_cumul_transf_mat" title="Link to this definition"></a></dt>
+<dd><p>Compute cumulated transfer matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tm_cumul_in</strong> (<em>np.ndarray</em>) – Cumulated transfer matrix &#64; first element. Should be eye matrix if we
+are at the first element.</p></li>
+<li><p><strong>r_zz_elt</strong> (<em>list</em><em>[</em><em>np.ndarray</em><em>]</em>) – List of individual transfer matrix of the elements.</p></li>
+<li><p><strong>n_steps</strong> (<em>int</em>) – Number of elements or elements slices.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cumulated_transfer_matrices</strong> – Cumulated transfer matrices.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.is_list_of">
+<span class="sig-name descname"><span class="pre">is_list_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_to_check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypeGuard</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.is_list_of" title="Link to this definition"></a></dt>
+<dd><p>Check that all items of <code class="docutils literal notranslate"><span class="pre">elts</span></code> are of type <code class="docutils literal notranslate"><span class="pre">type_to_check</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.is_list_of_elements">
+<span class="sig-name descname"><span class="pre">is_list_of_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypeGuard</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.is_list_of_elements" title="Link to this definition"></a></dt>
+<dd><p>Check that all elements of input are <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.is_list_of_list_of_elements">
+<span class="sig-name descname"><span class="pre">is_list_of_list_of_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypeGuard</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.is_list_of_list_of_elements" title="Link to this definition"></a></dt>
+<dd><p>Check that input is a nested list of <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="core.list_of_elements.helper.is_list_of_list_of_field_maps">
+<span class="sig-name descname"><span class="pre">is_list_of_list_of_field_maps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypeGuard</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.helper.is_list_of_list_of_field_maps" title="Link to this definition"></a></dt>
+<dd><p>Check that input is a nested list of <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.list_of_elements.factory.html" class="btn btn-neutral float-left" title="core.list_of_elements.factory module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.list_of_elements.list_of_elements.html" class="btn btn-neutral float-right" title="core.list_of_elements.list_of_elements module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

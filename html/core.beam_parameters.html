@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.beam_parameters package &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.beam_parameters.phase_space package" href="core.beam_parameters.phase_space.html" />
+    <link rel="prev" title="core.accelerator.factory module" href="core.accelerator.factory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">core.beam_parameters package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.html">core.beam_parameters.phase_space package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.beam_parameters.html">core.beam_parameters.beam_parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.factory.html">core.beam_parameters.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.helper.html">core.beam_parameters.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html">core.beam_parameters.initial_beam_parameters module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+      <li class="breadcrumb-item active">core.beam_parameters package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.beam_parameters.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.beam_parameters">
+<span id="core-beam-parameters-package"></span><h1>core.beam_parameters package<a class="headerlink" href="#module-core.beam_parameters" title="Link to this heading"></a></h1>
+<p>Store and compute beam parameters in all the phase spaces.</p>
+<p>In particular, this subpackage handles the calculation of the Twiss parameters,
+the emittances, the mismatch factors, the <span class="math notranslate nohighlight">\(\sigma\)</span> matrix.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Remove tracewin command from BeamParameters</p>
+</div>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core.beam_parameters.phase_space.html">core.beam_parameters.phase_space package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.phase_space.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.phase_space.i_phase_space_beam_parameters.html">core.beam_parameters.phase_space.i_phase_space_beam_parameters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.i_phase_space_beam_parameters.html#core.beam_parameters.phase_space.i_phase_space_beam_parameters.IMPLEMENTED_PHASE_SPACES"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_PHASE_SPACES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.i_phase_space_beam_parameters.html#core.beam_parameters.phase_space.i_phase_space_beam_parameters.IPhaseSpaceBeamParameters"><code class="docutils literal notranslate"><span class="pre">IPhaseSpaceBeamParameters</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.phase_space.initial_phase_space_beam_parameters.html">core.beam_parameters.phase_space.initial_phase_space_beam_parameters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.initial_phase_space_beam_parameters.html#core.beam_parameters.phase_space.initial_phase_space_beam_parameters.InitialPhaseSpaceBeamParameters"><code class="docutils literal notranslate"><span class="pre">InitialPhaseSpaceBeamParameters</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.phase_space.phase_space_beam_parameters.html">core.beam_parameters.phase_space.phase_space_beam_parameters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.beam_parameters.phase_space.phase_space_beam_parameters.html#core.beam_parameters.phase_space.phase_space_beam_parameters.PhaseSpaceBeamParameters"><code class="docutils literal notranslate"><span class="pre">PhaseSpaceBeamParameters</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core.beam_parameters.beam_parameters.html">core.beam_parameters.beam_parameters module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters"><code class="docutils literal notranslate"><span class="pre">BeamParameters</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.z_abs"><code class="docutils literal notranslate"><span class="pre">BeamParameters.z_abs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.gamma_kin"><code class="docutils literal notranslate"><span class="pre">BeamParameters.gamma_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.beta_kin"><code class="docutils literal notranslate"><span class="pre">BeamParameters.beta_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.sigma_in"><code class="docutils literal notranslate"><span class="pre">BeamParameters.sigma_in</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.element_to_index"><code class="docutils literal notranslate"><span class="pre">BeamParameters.element_to_index</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.__init__"><code class="docutils literal notranslate"><span class="pre">BeamParameters.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.__post_init__"><code class="docutils literal notranslate"><span class="pre">BeamParameters.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters._create_tracewin_command"><code class="docutils literal notranslate"><span class="pre">BeamParameters._create_tracewin_command()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters._get_phase_spaces"><code class="docutils literal notranslate"><span class="pre">BeamParameters._get_phase_spaces()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters._set_mismatch_for_transverse"><code class="docutils literal notranslate"><span class="pre">BeamParameters._set_mismatch_for_transverse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#id0"><code class="docutils literal notranslate"><span class="pre">BeamParameters.beta_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#id1"><code class="docutils literal notranslate"><span class="pre">BeamParameters.element_to_index()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#id2"><code class="docutils literal notranslate"><span class="pre">BeamParameters.gamma_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.get"><code class="docutils literal notranslate"><span class="pre">BeamParameters.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.set_mismatches"><code class="docutils literal notranslate"><span class="pre">BeamParameters.set_mismatches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.sigma"><code class="docutils literal notranslate"><span class="pre">BeamParameters.sigma</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#id3"><code class="docutils literal notranslate"><span class="pre">BeamParameters.sigma_in</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.sub_sigma_in"><code class="docutils literal notranslate"><span class="pre">BeamParameters.sub_sigma_in()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.tracewin_command"><code class="docutils literal notranslate"><span class="pre">BeamParameters.tracewin_command</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#id4"><code class="docutils literal notranslate"><span class="pre">BeamParameters.z_abs</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters._to_float_if_necessary"><code class="docutils literal notranslate"><span class="pre">_to_float_if_necessary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.beam_parameters.factory.html">core.beam_parameters.factory module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory.__init__"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._abc_impl"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._check_and_set_arrays"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._check_and_set_arrays()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._check_sigma_in"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._check_sigma_in()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._determine_phase_spaces"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._determine_phase_spaces()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._set_from_other_phase_space"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._set_from_other_phase_space()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._set_from_sigma"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._set_from_sigma()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._set_from_transfer_matrix"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._set_from_transfer_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._set_only_emittance"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._set_only_emittance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory._set_transverse_from_x_and_y"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory._set_transverse_from_x_and_y()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.BeamParametersFactory.factory_method"><code class="docutils literal notranslate"><span class="pre">BeamParametersFactory.factory_method()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory.__init__"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory._abc_impl"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory._initial_beam_parameters_kw"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory._initial_beam_parameters_kw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory._initial_phase_space_beam_parameters_kw"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory._initial_phase_space_beam_parameters_kw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory._set_from_other_phase_space"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory._set_from_other_phase_space()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory._set_from_sigma"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory._set_from_sigma()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory.factory_new"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory.factory_new()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory.factory_subset"><code class="docutils literal notranslate"><span class="pre">InitialBeamParametersFactory.factory_subset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.beam_parameters.helper.html">core.beam_parameters.helper module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.envelopes_from_sigma"><code class="docutils literal notranslate"><span class="pre">envelopes_from_sigma()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.envelopes_from_twiss_eps"><code class="docutils literal notranslate"><span class="pre">envelopes_from_twiss_eps()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.eps_from_other_phase_space"><code class="docutils literal notranslate"><span class="pre">eps_from_other_phase_space()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.eps_from_sigma"><code class="docutils literal notranslate"><span class="pre">eps_from_sigma()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.mismatch_from_arrays"><code class="docutils literal notranslate"><span class="pre">mismatch_from_arrays()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.reconstruct_sigma"><code class="docutils literal notranslate"><span class="pre">reconstruct_sigma()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.resample_twiss_on_fix"><code class="docutils literal notranslate"><span class="pre">resample_twiss_on_fix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.sigma_from_transfer_matrices"><code class="docutils literal notranslate"><span class="pre">sigma_from_transfer_matrices()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.twiss_from_other_phase_space"><code class="docutils literal notranslate"><span class="pre">twiss_from_other_phase_space()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.helper.html#core.beam_parameters.helper.twiss_from_sigma"><code class="docutils literal notranslate"><span class="pre">twiss_from_sigma()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html">core.beam_parameters.initial_beam_parameters module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.z_abs"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.z_abs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.gamma_kin"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.gamma_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.beta_kin"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.beta_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.__init__"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.__post_init__"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters._create_tracewin_command"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters._create_tracewin_command()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#id0"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.beta_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#id1"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.gamma_kin</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.get"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.has"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.has()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.sigma"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.sigma</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.InitialBeamParameters.tracewin_command"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.tracewin_command</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#id3"><code class="docutils literal notranslate"><span class="pre">InitialBeamParameters.z_abs</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.phase_space_name_hidden_in_key"><code class="docutils literal notranslate"><span class="pre">phase_space_name_hidden_in_key()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.beam_parameters.initial_beam_parameters.html#core.beam_parameters.initial_beam_parameters.separate_var_from_phase_space"><code class="docutils literal notranslate"><span class="pre">separate_var_from_phase_space()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.accelerator.factory.html" class="btn btn-neutral float-left" title="core.accelerator.factory module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.beam_parameters.phase_space.html" class="btn btn-neutral float-right" title="core.beam_parameters.phase_space package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>optimisation.design_space package &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation.design_space.constraint module" href="optimisation.design_space.constraint.html" />
+    <link rel="prev" title="optimisation.algorithms.pso module" href="optimisation.algorithms.pso.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="optimisation.html">optimisation package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.html">optimisation.algorithms package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">optimisation.design_space package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.constraint.html">optimisation.design_space.constraint module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.design_space.html">optimisation.design_space.design_space module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html">optimisation.design_space.design_space_parameter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.factory.html">optimisation.design_space.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.helper.html">optimisation.design_space.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.variable.html">optimisation.design_space.variable module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.html">optimisation package</a></li>
+      <li class="breadcrumb-item active">optimisation.design_space package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/optimisation.design_space.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-optimisation.design_space">
+<span id="optimisation-design-space-package"></span><h1>optimisation.design_space package<a class="headerlink" href="#module-optimisation.design_space" title="Link to this heading"></a></h1>
+<p>This folder holds all the objects needed to parametrize the design space.</p>
+<p>Used by the optimisation algorithms.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.design_space.constraint.html">optimisation.design_space.constraint module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint"><code class="docutils literal notranslate"><span class="pre">Constraint</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint.__init__"><code class="docutils literal notranslate"><span class="pre">Constraint.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint.__post_init__"><code class="docutils literal notranslate"><span class="pre">Constraint.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint._abc_impl"><code class="docutils literal notranslate"><span class="pre">Constraint._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint.evaluate"><code class="docutils literal notranslate"><span class="pre">Constraint.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint.get_value"><code class="docutils literal notranslate"><span class="pre">Constraint.get_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint.kwargs"><code class="docutils literal notranslate"><span class="pre">Constraint.kwargs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint.n_constraints"><code class="docutils literal notranslate"><span class="pre">Constraint.n_constraints</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.IMPLEMENTED_CONSTRAINTS"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_CONSTRAINTS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.design_space.design_space.html">optimisation.design_space.design_space module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace"><code class="docutils literal notranslate"><span class="pre">DesignSpace</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.__init__"><code class="docutils literal notranslate"><span class="pre">DesignSpace.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.__post_init__"><code class="docutils literal notranslate"><span class="pre">DesignSpace.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace._check_dimensions"><code class="docutils literal notranslate"><span class="pre">DesignSpace._check_dimensions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace._parameters_to_single_file_line"><code class="docutils literal notranslate"><span class="pre">DesignSpace._parameters_to_single_file_line()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace._str_constraints"><code class="docutils literal notranslate"><span class="pre">DesignSpace._str_constraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace._str_variables"><code class="docutils literal notranslate"><span class="pre">DesignSpace._str_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace._to_file"><code class="docutils literal notranslate"><span class="pre">DesignSpace._to_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.compute_constraints"><code class="docutils literal notranslate"><span class="pre">DesignSpace.compute_constraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.constraints"><code class="docutils literal notranslate"><span class="pre">DesignSpace.constraints</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.from_files"><code class="docutils literal notranslate"><span class="pre">DesignSpace.from_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.to_files"><code class="docutils literal notranslate"><span class="pre">DesignSpace.to_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.to_pandas_dataframe"><code class="docutils literal notranslate"><span class="pre">DesignSpace.to_pandas_dataframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space.DesignSpace.variables"><code class="docutils literal notranslate"><span class="pre">DesignSpace.variables</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space._from_file"><code class="docutils literal notranslate"><span class="pre">_from_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space._gather_dicts_by_key"><code class="docutils literal notranslate"><span class="pre">_gather_dicts_by_key()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space._merge"><code class="docutils literal notranslate"><span class="pre">_merge()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.design_space.html#optimisation.design_space.design_space._parameters_to_dict"><code class="docutils literal notranslate"><span class="pre">_parameters_to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html">optimisation.design_space.design_space_parameter module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.name"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.element_name"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.element_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.limits"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.__init__"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.__post_init__"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter._abc_impl"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_0"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter._fmt_x_0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_max"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter._fmt_x_max</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_min"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter._fmt_x_min</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.change_limits"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.change_limits()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#id0"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.element_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.from_floats"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.from_floats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.from_pd_series"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.from_pd_series()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.header_of__str__"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.header_of__str__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#id1"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#id2"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.to_dict"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.x_max"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.x_max</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html#optimisation.design_space.design_space_parameter.DesignSpaceParameter.x_min"><code class="docutils literal notranslate"><span class="pre">DesignSpaceParameter.x_min</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.design_space.factory.html">optimisation.design_space.factory module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitude"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitude</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitude.__init__"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitude.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitude._abc_impl"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitude._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitude.variables_names"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitude.variables_names</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitudeWithConstrainedSyncPhase"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitudeWithConstrainedSyncPhase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitudeWithConstrainedSyncPhase.__init__"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitudeWithConstrainedSyncPhase.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitudeWithConstrainedSyncPhase._abc_impl"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitudeWithConstrainedSyncPhase._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitudeWithConstrainedSyncPhase.constraints_names"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitudeWithConstrainedSyncPhase.constraints_names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.AbsPhaseAmplitudeWithConstrainedSyncPhase.variables_names"><code class="docutils literal notranslate"><span class="pre">AbsPhaseAmplitudeWithConstrainedSyncPhase.variables_names</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.ConstrainedSyncPhase"><code class="docutils literal notranslate"><span class="pre">ConstrainedSyncPhase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.ConstrainedSyncPhase.__init__"><code class="docutils literal notranslate"><span class="pre">ConstrainedSyncPhase.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.ConstrainedSyncPhase._abc_impl"><code class="docutils literal notranslate"><span class="pre">ConstrainedSyncPhase._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DESIGN_SPACE_FACTORY_PRESETS"><code class="docutils literal notranslate"><span class="pre">DESIGN_SPACE_FACTORY_PRESETS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.reference_elements"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.reference_elements</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.compensating_elements"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.compensating_elements</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.design_space_kw"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.design_space_kw</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.__init__"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.__post_init__"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._abc_impl"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._check_can_be_retuned"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory._check_can_be_retuned()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._get_initial_value_from_kw"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory._get_initial_value_from_kw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._get_limits_from_kw"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory._get_limits_from_kw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._run_constraints"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory._run_constraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._run_from_file"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory._run_from_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._run_variables"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory._run_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#id0"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.design_space_kw</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.run"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.use_files"><code class="docutils literal notranslate"><span class="pre">DesignSpaceFactory.use_files()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Everything"><code class="docutils literal notranslate"><span class="pre">Everything</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Everything.__init__"><code class="docutils literal notranslate"><span class="pre">Everything.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Everything._abc_impl"><code class="docutils literal notranslate"><span class="pre">Everything._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Everything.constraints_names"><code class="docutils literal notranslate"><span class="pre">Everything.constraints_names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Everything.run"><code class="docutils literal notranslate"><span class="pre">Everything.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Everything.variables_names"><code class="docutils literal notranslate"><span class="pre">Everything.variables_names</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitude"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitude</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitude.__init__"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitude.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitude._abc_impl"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitude._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitude.variables_names"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitude.variables_names</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitudeWithConstrainedSyncPhase"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitudeWithConstrainedSyncPhase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitudeWithConstrainedSyncPhase.__init__"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitudeWithConstrainedSyncPhase.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitudeWithConstrainedSyncPhase._abc_impl"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitudeWithConstrainedSyncPhase._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitudeWithConstrainedSyncPhase.constraints_names"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitudeWithConstrainedSyncPhase.constraints_names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitudeWithConstrainedSyncPhase.variables_names"><code class="docutils literal notranslate"><span class="pre">RelPhaseAmplitudeWithConstrainedSyncPhase.variables_names</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.SyncPhaseAmplitude"><code class="docutils literal notranslate"><span class="pre">SyncPhaseAmplitude</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.SyncPhaseAmplitude.__init__"><code class="docutils literal notranslate"><span class="pre">SyncPhaseAmplitude.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.SyncPhaseAmplitude._abc_impl"><code class="docutils literal notranslate"><span class="pre">SyncPhaseAmplitude._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.SyncPhaseAmplitude.variables_names"><code class="docutils literal notranslate"><span class="pre">SyncPhaseAmplitude.variables_names</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.SyncPhaseAsVariable"><code class="docutils literal notranslate"><span class="pre">SyncPhaseAsVariable</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.SyncPhaseAsVariable.__init__"><code class="docutils literal notranslate"><span class="pre">SyncPhaseAsVariable.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.SyncPhaseAsVariable._abc_impl"><code class="docutils literal notranslate"><span class="pre">SyncPhaseAsVariable._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Unconstrained"><code class="docutils literal notranslate"><span class="pre">Unconstrained</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Unconstrained.__init__"><code class="docutils literal notranslate"><span class="pre">Unconstrained.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.Unconstrained._abc_impl"><code class="docutils literal notranslate"><span class="pre">Unconstrained._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.UnconstrainedRel"><code class="docutils literal notranslate"><span class="pre">UnconstrainedRel</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.UnconstrainedRel.__init__"><code class="docutils literal notranslate"><span class="pre">UnconstrainedRel.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.UnconstrainedRel._abc_impl"><code class="docutils literal notranslate"><span class="pre">UnconstrainedRel._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.get_design_space_factory"><code class="docutils literal notranslate"><span class="pre">get_design_space_factory()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.design_space.helper.html">optimisation.design_space.helper module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.helper.html#optimisation.design_space.helper._get_maximum_k_e_of_section"><code class="docutils literal notranslate"><span class="pre">_get_maximum_k_e_of_section()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.helper.html#optimisation.design_space.helper.k_e_limits"><code class="docutils literal notranslate"><span class="pre">k_e_limits()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.helper.html#optimisation.design_space.helper.phi_0_limits"><code class="docutils literal notranslate"><span class="pre">phi_0_limits()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.helper.html#optimisation.design_space.helper.phi_s_limits"><code class="docutils literal notranslate"><span class="pre">phi_s_limits()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.helper.html#optimisation.design_space.helper.same_value_as_nominal"><code class="docutils literal notranslate"><span class="pre">same_value_as_nominal()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimisation.design_space.variable.html">optimisation.design_space.variable module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.IMPLEMENTED_VARIABLES"><code class="docutils literal notranslate"><span class="pre">IMPLEMENTED_VARIABLES</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable"><code class="docutils literal notranslate"><span class="pre">Variable</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.name"><code class="docutils literal notranslate"><span class="pre">Variable.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.element_name"><code class="docutils literal notranslate"><span class="pre">Variable.element_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.limits"><code class="docutils literal notranslate"><span class="pre">Variable.limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.x_0"><code class="docutils literal notranslate"><span class="pre">Variable.x_0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.__init__"><code class="docutils literal notranslate"><span class="pre">Variable.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.__post_init__"><code class="docutils literal notranslate"><span class="pre">Variable.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable._abc_impl"><code class="docutils literal notranslate"><span class="pre">Variable._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.from_floats"><code class="docutils literal notranslate"><span class="pre">Variable.from_floats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable.from_pd_series"><code class="docutils literal notranslate"><span class="pre">Variable.from_pd_series()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.variable.html#id0"><code class="docutils literal notranslate"><span class="pre">Variable.x_0</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimisation.algorithms.pso.html" class="btn btn-neutral float-left" title="optimisation.algorithms.pso module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.design_space.constraint.html" class="btn btn-neutral float-right" title="optimisation.design_space.constraint module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

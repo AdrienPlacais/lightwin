@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tracewin_utils.electromagnetic_fields module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tracewin_utils.interface module" href="tracewin_utils.interface.html" />
+    <link rel="prev" title="tracewin_utils.dat_files module" href="tracewin_utils.dat_files.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="tracewin_utils.dat_files.html">tracewin_utils.dat_files module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">tracewin_utils.electromagnetic_fields module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracewin_utils.interface.html">tracewin_utils.interface module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracewin_utils.load.html">tracewin_utils.load module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="tracewin_utils.html">tracewin_utils package</a></li>
+      <li class="breadcrumb-item active">tracewin_utils.electromagnetic_fields module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tracewin_utils.electromagnetic_fields.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-tracewin_utils.electromagnetic_fields">
+<span id="tracewin-utils-electromagnetic-fields-module"></span><h1>tracewin_utils.electromagnetic_fields module<a class="headerlink" href="#module-tracewin_utils.electromagnetic_fields" title="Link to this heading"></a></h1>
+<p>Define functions to handle TraceWin electromagnetic fields.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Last compatibility check: TraceWin v2.22.1.0</p>
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>some functions are not used anymore I guess…</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Better handling of the module import</p>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES">
+<span class="sig-name descname"><span class="pre">FIELD_GEOMETRIES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{0:</span> <span class="pre">'no</span> <span class="pre">field',</span> <span class="pre">1:</span> <span class="pre">'1D:</span> <span class="pre">F(z)',</span> <span class="pre">2:</span> <span class="pre">'not</span> <span class="pre">available',</span> <span class="pre">3:</span> <span class="pre">'not</span> <span class="pre">available',</span> <span class="pre">4:</span> <span class="pre">'2D</span> <span class="pre">cylindrical</span> <span class="pre">static</span> <span class="pre">or</span> <span class="pre">RF</span> <span class="pre">electric</span> <span class="pre">field',</span> <span class="pre">5:</span> <span class="pre">'2D</span> <span class="pre">cylindrical</span> <span class="pre">static</span> <span class="pre">or</span> <span class="pre">RF</span> <span class="pre">magnetic</span> <span class="pre">field',</span> <span class="pre">6:</span> <span class="pre">'2D</span> <span class="pre">cartesian</span> <span class="pre">field',</span> <span class="pre">7:</span> <span class="pre">'3D</span> <span class="pre">cartesian</span> <span class="pre">field',</span> <span class="pre">8:</span> <span class="pre">'3D</span> <span class="pre">cylindrical</span> <span class="pre">field',</span> <span class="pre">9:</span> <span class="pre">'1D:</span> <span class="pre">G(z)'}</span></em><a class="headerlink" href="#tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields.FIELD_TYPES">
+<span class="sig-name descname"><span class="pre">FIELD_TYPES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('static</span> <span class="pre">electric</span> <span class="pre">field',</span> <span class="pre">'static</span> <span class="pre">magnetic</span> <span class="pre">field',</span> <span class="pre">'RF</span> <span class="pre">electric</span> <span class="pre">field',</span> <span class="pre">'RF</span> <span class="pre">magnetic</span> <span class="pre">field',</span> <span class="pre">'3D</span> <span class="pre">aperture</span> <span class="pre">map')</span></em><a class="headerlink" href="#tracewin_utils.electromagnetic_fields.FIELD_TYPES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields.LOADABLE">
+<span class="sig-name descname"><span class="pre">LOADABLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.edz',)</span></em><a class="headerlink" href="#tracewin_utils.electromagnetic_fields.LOADABLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._geom_to_field_map_type">
+<span class="sig-name descname"><span class="pre">_geom_to_field_map_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._geom_to_field_map_type" title="Link to this definition"></a></dt>
+<dd><p>Determine the field map type from TraceWin’s <code class="docutils literal notranslate"><span class="pre">geom</span></code> parameter.</p>
+<p class="rubric">Examples</p>
+<p><code class="docutils literal notranslate"><span class="pre">geom</span> <span class="pre">==</span> <span class="pre">100</span></code> will lead to <code class="docutils literal notranslate"><span class="pre">{'RF</span> <span class="pre">electric</span> <span class="pre">field':</span> <span class="pre">'1D:</span> <span class="pre">F(z)',</span> <span class="pre">'static</span> <span class="pre">magnetic</span> <span class="pre">field':</span> <span class="pre">'no</span> <span class="pre">field',</span> <span class="pre">'static</span> <span class="pre">electric</span> <span class="pre">field':</span> <span class="pre">'no</span> <span class="pre">field'}</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">geom</span> <span class="pre">==</span> <span class="pre">7700</span></code> will lead to <code class="docutils literal notranslate"><span class="pre">{'RF</span> <span class="pre">magnetic</span> <span class="pre">field':</span> <span class="pre">'3D</span> <span class="pre">cartesian</span> <span class="pre">field',</span> <span class="pre">'RF</span> <span class="pre">electric</span> <span class="pre">field':</span> <span class="pre">'3D</span> <span class="pre">cartesian</span> <span class="pre">field',</span> <span class="pre">'static</span> <span class="pre">magnetic</span> <span class="pre">field':</span> <span class="pre">'no</span> <span class="pre">field',</span> <span class="pre">'static</span> <span class="pre">electric</span> <span class="pre">field':</span> <span class="pre">'no</span> <span class="pre">field'}</span></code></p>
+<p>Note that every key associated with a <code class="docutils literal notranslate"><span class="pre">'no</span> <span class="pre">field'</span></code> or <code class="docutils literal notranslate"><span class="pre">'not</span> <span class="pre">available'</span></code>
+value will be removed from the dictionary before returning.</p>
+<p class="rubric">Notes</p>
+<p>Last compatibility check: TraceWin v2.22.1.0</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._get_field_components">
+<span class="sig-name descname"><span class="pre">_get_field_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_words_field_geometry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._get_field_components" title="Link to this definition"></a></dt>
+<dd><p>Give last letter of the extension of every file to load.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>first_words_field_geometry</strong> (<em>{'1D:'</em><em>, </em><em>'2D cylindrical'</em><em>, </em><em>'2D cartesian'</em><em>,                                  </em><em>'3D cartesian'</em><em>, </em><em>'3D cylindrical'}</em>) – Beginning of a <a class="reference internal" href="#tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES" title="tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">FIELD_GEOMETRIES</span></code></a> value.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>third_characters</strong> – Last extension character of every file to load.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._get_field_nature">
+<span class="sig-name descname"><span class="pre">_get_field_nature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">second_word_field_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._get_field_nature" title="Link to this definition"></a></dt>
+<dd><p>Give first letter of the file extension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>second_word_field_type</strong> (<em>{'electric'</em><em>, </em><em>'magnetic'}</em>) – This is the second word in a <code class="xref py py-data docutils literal notranslate"><span class="pre">FIELD_TYPE</span></code> entry.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>first_character</strong> – First character in the file extension.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{‘e’, ‘b’}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._get_filemap_extensions">
+<span class="sig-name descname"><span class="pre">_get_filemap_extensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_geometry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._get_filemap_extensions" title="Link to this definition"></a></dt>
+<dd><p>Get the proper file extensions for the file map under study.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field_type</strong> (<em>str</em>) – Type of the field/aperture. Allowed values are in <a class="reference internal" href="#tracewin_utils.electromagnetic_fields.FIELD_TYPES" title="tracewin_utils.electromagnetic_fields.FIELD_TYPES"><code class="xref py py-data docutils literal notranslate"><span class="pre">FIELD_TYPES</span></code></a>.</p></li>
+<li><p><strong>field_geometry</strong> (<em>str</em>) – Name of the geometry of the field, as in TraceWin. Allowed values are
+values of <a class="reference internal" href="#tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES" title="tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">FIELD_GEOMETRIES</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>extensions</strong> – Extension without ‘.’ of every file to load.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._get_filemaps_extensions">
+<span class="sig-name descname"><span class="pre">_get_filemaps_extensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_map_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._get_filemaps_extensions" title="Link to this definition"></a></dt>
+<dd><p>Get the proper file extensions for every field map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>field_map_type</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – Dictionary which keys are in <code class="xref py py-data docutils literal notranslate"><span class="pre">FIELD_TYPE</span></code> and values are values
+of <a class="reference internal" href="#tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES" title="tracewin_utils.electromagnetic_fields.FIELD_GEOMETRIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">FIELD_GEOMETRIES</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>extensions</strong> – Dictionary with the same keys as input. The values are lists containing
+all the extensions of the files to load, without a ‘.’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, list[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._get_type">
+<span class="sig-name descname"><span class="pre">_get_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_word_field_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._get_type" title="Link to this definition"></a></dt>
+<dd><p>Give second letter of the file extension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>first_word_field_type</strong> (<em>{'static'</em><em>, </em><em>'RF'}</em>) – The first word in a <code class="xref py py-data docutils literal notranslate"><span class="pre">FIELD_TYPE</span></code> entry.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>second_character</strong> – Second character in the file extension.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{‘s’, ‘d’}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._is_a_valid_electric_field">
+<span class="sig-name descname"><span class="pre">_is_a_valid_electric_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cavity_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._is_a_valid_electric_field" title="Link to this definition"></a></dt>
+<dd><p>Assert that the electric field that we loaded is valid.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._load_electromagnetic_fields_for_cython">
+<span class="sig-name descname"><span class="pre">_load_electromagnetic_fields_for_cython</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loadable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._load_electromagnetic_fields_for_cython" title="Link to this definition"></a></dt>
+<dd><p>Load one electric field per section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._load_field_map_file">
+<span class="sig-name descname"><span class="pre">_load_field_map_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">loadable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._load_field_map_file" title="Link to this definition"></a></dt>
+<dd><p>Go across the field map file names and load the first recognized.</p>
+<p>For now, only <code class="docutils literal notranslate"><span class="pre">.edz</span></code> files (1D electric RF) are implemented. This will be
+a problem with <code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code>, but <code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code> does not care.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields._rescale">
+<span class="sig-name descname"><span class="pre">_rescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields._rescale" title="Link to this definition"></a></dt>
+<dd><p>Rescale the array if it was given scaled.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields.load_electromagnetic_fields">
+<span class="sig-name descname"><span class="pre">load_electromagnetic_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cython</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loadable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">('.edz',)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields.load_electromagnetic_fields" title="Link to this definition"></a></dt>
+<dd><p>Load field map files into the <a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">FieldMap</span></code></a> objects.</p>
+<p>As for now, only 1D RF electric field are handled by <a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a>.
+With <a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>, every field is supported.</p>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>I think that this should be a method right? Different FieldMap objects
+-&gt; different loading func?</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.electromagnetic_fields.output_data_in_tw_fashion">
+<span class="sig-name descname"><span class="pre">output_data_in_tw_fashion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linac</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#tracewin_utils.electromagnetic_fields.output_data_in_tw_fashion" title="Link to this definition"></a></dt>
+<dd><p>Mimick TW’s Data tab.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tracewin_utils.dat_files.html" class="btn btn-neutral float-left" title="tracewin_utils.dat_files module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tracewin_utils.interface.html" class="btn btn-neutral float-right" title="tracewin_utils.interface module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

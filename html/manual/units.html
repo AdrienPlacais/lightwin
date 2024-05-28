@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Units and conventions &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=84b76982"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="source" href="../modules.html" />
+    <link rel="prev" title="evaluators section" href="configuration.evaluators.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Units and conventions</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Units and conventions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/manual/units.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="units-and-conventions">
+<span id="units-label"></span><h1>Units and conventions<a class="headerlink" href="#units-and-conventions" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Consistency between font size of normal text and math text. Not aesthetic when I have text and units side to side.</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>General units: MeV etc</p>
+</div>
+<section id="beam-parameters">
+<span id="units-beam-parameters-label"></span><h2>Beam parameters<a class="headerlink" href="#beam-parameters" title="Link to this heading"></a></h2>
+<p>The beam parameters are defined in <a class="reference internal" href="../core.beam_parameters.html#module-core.beam_parameters" title="core.beam_parameters"><code class="xref py py-mod docutils literal notranslate"><span class="pre">core.beam_parameters</span></code></a> and stored in the <a class="reference internal" href="../core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamParameters</span></code></a> object.
+We use the same units and conventions as TraceWin.</p>
+<section id="rms-emittances">
+<h3>RMS emittances<a class="headerlink" href="#rms-emittances" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+<col style="width: 10.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>In LightWin</p></th>
+<th class="head"><p>In TraceWin</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Normalized?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eps_x</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\epsilon_{xx'}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\pi\mathrm{.mm.mrad}\)</span></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eps_y</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\epsilon_{yy'}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\pi\mathrm{.mm.mrad}\)</span></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eps_z</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\epsilon_{zn}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\pi\mathrm{.mm.mrad}\)</span></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eps_zdelta</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\epsilon_{z\delta}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\pi\mathrm{.mm.\%}\)</span></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eps_phiw</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\epsilon_{\phi W}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\pi\mathrm{.deg.MeV}\)</span></p></td>
+<td><p>✅</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In TraceWin’s output files <code class="docutils literal notranslate"><span class="pre">partran.out</span></code> and <code class="docutils literal notranslate"><span class="pre">tracewin.out</span></code>, <code class="docutils literal notranslate"><span class="pre">eps_zdelta</span></code> is expressed in <span class="math notranslate nohighlight">\(\pi\mathrm{.mm.mrad}\)</span>, not in <span class="math notranslate nohighlight">\(\pi\mathrm{mm.\%}\)</span>!
+The conversion is: <span class="math notranslate nohighlight">\(1\pi\mathrm{.mm.mrad} = 10\pi\mathrm{.mm.\%}\)</span></p>
+</div>
+</section>
+<section id="twiss">
+<h3>Twiss<a class="headerlink" href="#twiss" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>In LightWin</p></th>
+<th class="head"><p>In TraceWin</p></th>
+<th class="head"><p>Units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_z</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha_{zz'}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_zdelta</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha_{z\delta}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_phiw</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha_{\phi W}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">beta_z</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\beta_{zz'}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mm}/(\pi.\mathrm{mrad})\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">beta_zdelta</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\beta_{z\delta}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mm}/(\pi.\%)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">beta_phiw</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\beta_{\phi W}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{deg}/(\pi.\mathrm{MeV})\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gamma_z</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\gamma_{zz'}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mrad}/(\pi.\mathrm{mm})\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gamma_zdelta</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\gamma_{z\delta}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{\%}/(\pi.\mathrm{mm})\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gamma_phiw</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\gamma_{\phi W}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{MeV}/(\pi.\mathrm{deg})\)</span></p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">beta_kin</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma_kin</span></code> are the Lorentz factors.</p>
+</section>
+<section id="envelopes">
+<h3>Envelopes<a class="headerlink" href="#envelopes" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>In LightWin</p></th>
+<th class="head"><p>In TraceWin</p></th>
+<th class="head"><p>Units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">x.envelope_pos</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mm}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">x.envelope_energy</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mrad}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">y.envelope_pos</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mm}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">y.envelope_energy</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mrad}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">z.envelope_pos</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mm}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">z.envelope_energy</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mrad}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zdelta.envelope_pos</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{mm}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zdelta.envelope_energy</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{\%}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phiw.envelope_pos</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{deg}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phiw.envelope_energy</span></code></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{MeV}\)</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Envelopes are at <span class="math notranslate nohighlight">\(1\sigma\)</span> in LightWin, while they are plotted at
+<span class="math notranslate nohighlight">\(6\sigma\)</span> by default in TraceWin.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Envelopes are calculated with un-normalized emittances in the
+<span class="math notranslate nohighlight">\([z-\delta]\)</span> and <span class="math notranslate nohighlight">\([z-z']\)</span> planes, but they are calculated with
+normalized emittance in the <span class="math notranslate nohighlight">\([\phi-W]\)</span> plane.</p>
+</div>
+</section>
+<section id="sigma-beam-matrix">
+<h3><span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix<a class="headerlink" href="#sigma-beam-matrix" title="Link to this heading"></a></h3>
+<p>We save this matrix in SI units, <em>i.e.</em> in <span class="math notranslate nohighlight">\(\mathrm{m}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{rad}\)</span>.
+When given in the <code class="docutils literal notranslate"><span class="pre">.ini</span></code> configuration file, it must also be in SI units.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configuration.evaluators.html" class="btn btn-neutral float-left" title="evaluators section" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../modules.html" class="btn btn-neutral float-right" title="source" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

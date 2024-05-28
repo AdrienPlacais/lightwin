@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>optimisation.design_space.helper module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation.design_space.variable module" href="optimisation.design_space.variable.html" />
+    <link rel="prev" title="optimisation.design_space.factory module" href="optimisation.design_space.factory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="optimisation.html">optimisation package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.html">optimisation.algorithms package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="optimisation.design_space.html">optimisation.design_space package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.constraint.html">optimisation.design_space.constraint module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.design_space.html">optimisation.design_space.design_space module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.design_space_parameter.html">optimisation.design_space.design_space_parameter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.factory.html">optimisation.design_space.factory module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">optimisation.design_space.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.variable.html">optimisation.design_space.variable module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.html">optimisation package</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.design_space.html">optimisation.design_space package</a></li>
+      <li class="breadcrumb-item active">optimisation.design_space.helper module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/optimisation.design_space.helper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-optimisation.design_space.helper">
+<span id="optimisation-design-space-helper-module"></span><h1>optimisation.design_space.helper module<a class="headerlink" href="#module-optimisation.design_space.helper" title="Link to this heading"></a></h1>
+<p>Set initial values/limits in DesignSpaceFactory.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>check docstrings ref [1]</p>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.design_space.helper._get_maximum_k_e_of_section">
+<span class="sig-name descname"><span class="pre">_get_maximum_k_e_of_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#optimisation.design_space.helper._get_maximum_k_e_of_section" title="Link to this definition"></a></dt>
+<dd><p>Get the maximum <code class="docutils literal notranslate"><span class="pre">k_e</span></code> of section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.design_space.helper.k_e_limits">
+<span class="sig-name descname"><span class="pre">k_e_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_decrease_k_e_in_percent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_increase_k_e_in_percent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_k_e_is_calculated_wrt_maximum_k_e_of_section</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.design_space.helper.k_e_limits" title="Link to this definition"></a></dt>
+<dd><p>Get classic limits for <code class="docutils literal notranslate"><span class="pre">k_e</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference_element</strong> (<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a>) – The nominal element.</p></li>
+<li><p><strong>max_decrease_in_percent</strong> (<em>float</em>) – Allowed decrease in percent with respect to the nominal <code class="docutils literal notranslate"><span class="pre">k_e</span></code>.</p></li>
+<li><p><strong>max_increase_in_percent</strong> (<em>float</em>) – Allowed increase in percent with respect to the nominal <code class="docutils literal notranslate"><span class="pre">k_e</span></code>.</p></li>
+<li><p><strong>maximum_k_e_is_calculated_wrt_maximum_k_e_of_section</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use this flag to compute allowed increase of <code class="docutils literal notranslate"><span class="pre">k_e</span></code> with respect to
+the maximum <code class="docutils literal notranslate"><span class="pre">k_e</span></code> of the section, instead of the <code class="docutils literal notranslate"><span class="pre">k_e</span></code> of the
+nominal cavity. This is what we used in <a href="#id2"><span class="problematic" id="id3">`[1]`_</span></a>. The default is False.</p></li>
+<li><p><strong>reference_elements</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>] </em><em>| </em><em>None</em>) – List of the nominal elements. Must be provided if
+<code class="docutils literal notranslate"><span class="pre">maximum_k_e_is_calculated_wrt_maximum_k_e_of_section</span></code> is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>tuple[float, float]</em> – Lower and upper bounds for <code class="docutils literal notranslate"><span class="pre">k_e</span></code>.</p></li>
+<li><p><strong># .. _[1]</strong> (<em>doi.org/10.18429/JACoW-LINAC2022-TUPORI04</em>)</p></li>
+<li><p><em># A. Plaçais and F. Bouly, “Cavity Failure Compensation Strategies in</em></p></li>
+<li><p><em># Superconducting Linacs,” in Proceedings of LINAC2022, 2022, pp. 552–555.</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.design_space.helper.phi_0_limits">
+<span class="sig-name descname"><span class="pre">phi_0_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.design_space.helper.phi_0_limits" title="Link to this definition"></a></dt>
+<dd><p>Return classic limits for the absolute or relative rf phase.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Always <span class="math notranslate nohighlight">\((-2\pi, 2\pi)\)</span>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.design_space.helper.phi_s_limits">
+<span class="sig-name descname"><span class="pre">phi_s_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_increase_sync_phase_in_percent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_absolute_sync_phase_in_deg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_absolute_sync_phase_in_deg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-90.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.design_space.helper.phi_s_limits" title="Link to this definition"></a></dt>
+<dd><p>Return classic limits for the synchronous phase.</p>
+<p>Minimum is <code class="docutils literal notranslate"><span class="pre">min_absolute_sync_phase_in_deg</span></code>, which is -90 degrees by
+default. Maximum is nominal synchronous phase +
+<code class="docutils literal notranslate"><span class="pre">max_increase_in_percent</span></code>, or <code class="docutils literal notranslate"><span class="pre">max_absolute_sync_phase_in_deg</span></code> which is
+0 degrees by default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference_element</strong> (<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a>) – Element in its nominal tuning.</p></li>
+<li><p><strong>max_increase_in_percent</strong> (<em>float</em>) – Maximum increase of the synchronous phase in percent.</p></li>
+<li><p><strong>max_absolute_sync_phase_in_deg</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum absolute synchronous phase in radians. The default is 0.</p></li>
+<li><p><strong>min_absolute_sync_phase_in_deg</strong> (<em>float</em><em>, </em><em>optional</em>) – Minimum absolute synchronous phase in radians. The default is
+<span class="math notranslate nohighlight">\(-\pi / 2\)</span>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Lower and upper limits for the synchronous phase.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.design_space.helper.same_value_as_nominal">
+<span class="sig-name descname"><span class="pre">same_value_as_nominal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#optimisation.design_space.helper.same_value_as_nominal" title="Link to this definition"></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">variable</span></code> value in <code class="docutils literal notranslate"><span class="pre">reference_element</span></code>.</p>
+<p>This is generally a good initial value for optimisation.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimisation.design_space.factory.html" class="btn btn-neutral float-left" title="optimisation.design_space.factory module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.design_space.variable.html" class="btn btn-neutral float-right" title="optimisation.design_space.variable module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

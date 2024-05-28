@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>optimisation.algorithms.algorithm module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation.algorithms.differential_evolution module" href="optimisation.algorithms.differential_evolution.html" />
+    <link rel="prev" title="optimisation.algorithms package" href="optimisation.algorithms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="optimisation.html">optimisation package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="optimisation.algorithms.html">optimisation.algorithms package</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">optimisation.algorithms.algorithm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.differential_evolution.html">optimisation.algorithms.differential_evolution module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.downhill_simplex.html">optimisation.algorithms.downhill_simplex module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.downhill_simplex_penalty.html">optimisation.algorithms.downhill_simplex_penalty module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.explorator.html">optimisation.algorithms.explorator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.factory.html">optimisation.algorithms.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.least_squares.html">optimisation.algorithms.least_squares module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.least_squares_penalty.html">optimisation.algorithms.least_squares_penalty module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.nsga.html">optimisation.algorithms.nsga module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.algorithms.pso.html">optimisation.algorithms.pso module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.html">optimisation.design_space package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.html">optimisation package</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.algorithms.html">optimisation.algorithms package</a></li>
+      <li class="breadcrumb-item active">optimisation.algorithms.algorithm module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/optimisation.algorithms.algorithm.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-optimisation.algorithms.algorithm">
+<span id="optimisation-algorithms-algorithm-module"></span><h1>optimisation.algorithms.algorithm module<a class="headerlink" href="#module-optimisation.algorithms.algorithm" title="Link to this heading"></a></h1>
+<p>Define the Abstract Base Class of optimisation algorithms.</p>
+<p>Abstract methods are mandatory and a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> will be raised if you try to
+create your own algorithm and omit them.</p>
+<p>When you add you own optimisation algorithm, do not forget to add it to the
+list of implemented algorithms in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">config.optimisation.algorithm</span></code>.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Check if it is necessary to pass out the whole <code class="docutils literal notranslate"><span class="pre">elts</span></code> to
+<code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code>?</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Methods and flags to keep the optimisation history or not, and also to save
+it or not. See <a class="reference internal" href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator" title="optimisation.algorithms.explorator.Explorator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Explorator</span></code></a>.</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Better handling of the attribute <code class="docutils literal notranslate"><span class="pre">folder</span></code>. In particular, a correct value
+should be set at the <code class="docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code> instanciation.</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptiInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OptiInfo</span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptiInfo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Hold information on how optimisation went.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptiInfo.hist_F">
+<span class="sig-name descname"><span class="pre">hist_F</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptiInfo.hist_F" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptiInfo.hist_G">
+<span class="sig-name descname"><span class="pre">hist_G</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptiInfo.hist_G" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptiInfo.hist_X">
+<span class="sig-name descname"><span class="pre">hist_X</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptiInfo.hist_X" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptiSol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OptiSol</span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptiSol" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Hold information on the solution.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptiSol.x">
+<span class="sig-name descname"><span class="pre">x</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptiSol.x" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OptimisationAlgorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><span class="pre">Variable</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_beam_propagation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_residuals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cavity_settings_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.field_maps.cavity_settings_factory.html#core.elements.field_maps.cavity_settings_factory.CavitySettingsFactory" title="core.elements.field_maps.cavity_settings_factory.CavitySettingsFactory"><span class="pre">CavitySettingsFactory</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint" title="optimisation.design_space.constraint.Constraint"><span class="pre">Constraint</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimisation_algorithm_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Holds the optimisation parameters, the methods to optimize.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>compensating_elements</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – Cavity objects used to compensate for the faults.</p></li>
+<li><p><strong>elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – Holds the whole compensation zone under study.</p></li>
+<li><p><strong>objectives</strong> (<em>list</em><em>[</em><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><em>Objective</em></a><em>]</em>) – Holds objectives, initial values, bounds.</p></li>
+<li><p><strong>variables</strong> (<em>list</em><em>[</em><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><em>Variable</em></a><em>]</em>) – Holds variables, their initial values, their limits.</p></li>
+<li><p><strong>constraints</strong> (<em>list</em><em>[</em><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint" title="optimisation.design_space.constraint.Constraint"><em>Constraint</em></a><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Holds constraints and their limits. The default is None.</p></li>
+<li><p><strong>solution</strong> (<em>dict</em>) – Holds information on the solution that was found.</p></li>
+<li><p><strong>supports_constraints</strong> (<em>bool</em>) – If the method handles constraints or not.</p></li>
+<li><p><strong>compute_beam_propagation</strong> (<em>ComputeBeamPropagationT</em>) – Method to compute propagation of the beam with the given settings.
+Defined by a <code class="xref py py-func docutils literal notranslate"><span class="pre">BeamCalculator.run_with_this()</span></code> method, the
+positional argument <code class="docutils literal notranslate"><span class="pre">elts</span></code> being set by a <code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code>.</p></li>
+<li><p><strong>compute_residuals</strong> (<em>ComputeResidualsT</em>) – Method to compute residuals from a <code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code>.</p></li>
+<li><p><strong>compute_constraints</strong> (<em>ComputeConstraintsT</em><em> | </em><em>None</em><em>,     </em><em>optional</em>) – Method to compute constraint violation. The default is None.</p></li>
+<li><p><strong>folder</strong> (<em>str</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Where history, phase space and other optimisation information will be
+saved if necessary. The default is None.</p></li>
+<li><p><strong>cavity_settings_factory</strong> (<em>ICavitySettingsFactory</em>) – A factory to easily create the cavity settings to try at each iteration
+of the optimisation algorithm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><span class="pre">Variable</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_beam_propagation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_residuals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cavity_settings_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.field_maps.cavity_settings_factory.html#core.elements.field_maps.cavity_settings_factory.CavitySettingsFactory" title="core.elements.field_maps.cavity_settings_factory.CavitySettingsFactory"><span class="pre">CavitySettingsFactory</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint" title="optimisation.design_space.constraint.Constraint"><span class="pre">Constraint</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimisation_algorithm_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm.__init__" title="Link to this definition"></a></dt>
+<dd><p>Instantiate the object.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._create_set_of_cavity_settings">
+<span class="sig-name descname"><span class="pre">_create_set_of_cavity_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'compensate</span> <span class="pre">(in</span> <span class="pre">progress)'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._create_set_of_cavity_settings" title="Link to this definition"></a></dt>
+<dd><p>Transform <code class="docutils literal notranslate"><span class="pre">var</span></code> into generic <a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> – An array holding the variables to try.</p></li>
+<li><p><strong>status</strong> (<em>str</em><em>, </em><em>optional</em>) – mmmh</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Object holding the settings of all the cavities.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings">SetOfCavitySettings</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._default_kwargs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_default_kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._default_kwargs" title="Link to this definition"></a></dt>
+<dd><p>Give the default optimisation algorithm kwargs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._format_constraints">
+<span class="sig-name descname"><span class="pre">_format_constraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._format_constraints" title="Link to this definition"></a></dt>
+<dd><p>Transform all :class:<a href="#id4"><span class="problematic" id="id5">`</span></a>Constraint`s for this optimisation algorithm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._format_objectives">
+<span class="sig-name descname"><span class="pre">_format_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._format_objectives" title="Link to this definition"></a></dt>
+<dd><p>Transform all :class:<a href="#id6"><span class="problematic" id="id7">`</span></a>Objective`s for this optimisation algorithm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._format_variables">
+<span class="sig-name descname"><span class="pre">_format_variables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._format_variables" title="Link to this definition"></a></dt>
+<dd><p>Transform all :class:<a href="#id8"><span class="problematic" id="id9">`</span></a>Variable`s for this optimisation algorithm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._generate_optimisation_history">
+<span class="sig-name descname"><span class="pre">_generate_optimisation_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectives_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#optimisation.algorithms.algorithm.OptiInfo" title="optimisation.algorithms.algorithm.OptiInfo"><span class="pre">OptiInfo</span></a></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._generate_optimisation_history" title="Link to this definition"></a></dt>
+<dd><p>Create optimisation history.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._get_objective_values">
+<span class="sig-name descname"><span class="pre">_get_objective_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._get_objective_values" title="Link to this definition"></a></dt>
+<dd><p>Save the full array of objective values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._norm_wrapper_residuals">
+<span class="sig-name descname"><span class="pre">_norm_wrapper_residuals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._norm_wrapper_residuals" title="Link to this definition"></a></dt>
+<dd><p>Compute norm of residues vector from an array of variable values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm._wrapper_residuals">
+<span class="sig-name descname"><span class="pre">_wrapper_residuals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm._wrapper_residuals" title="Link to this definition"></a></dt>
+<dd><p>Compute residuals from an array of variable values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm.n_constr">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_constr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm.n_constr" title="Link to this definition"></a></dt>
+<dd><p>Return number of (inequality) constraints.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm.n_obj">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_obj</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm.n_obj" title="Link to this definition"></a></dt>
+<dd><p>Give number of objectives.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm.n_var">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_var</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm.n_var" title="Link to this definition"></a></dt>
+<dd><p>Give number of variables.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm.optimise">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keep_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#optimisation.algorithms.algorithm.OptiInfo" title="optimisation.algorithms.algorithm.OptiInfo"><span class="pre">OptiInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm.optimise" title="Link to this definition"></a></dt>
+<dd><p>Set up optimisation parameters and solve the problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keep_history</strong> (<em>bool</em><em>, </em><em>optional</em>) – To keep all the variables that were tried as well as the associated
+objective and constraint violation values.</p></li>
+<li><p><strong>save_history</strong> (<em>bool</em><em>, </em><em>optional</em>) – To save the history.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>success</strong> (<em>bool</em>) – Tells if the optimisation algorithm managed to converge.</p></li>
+<li><p><strong>optimized_cavity_settings</strong> (<em>SetOfCavitySettings</em>) – Best solution found by the optimization algorithm. None if no
+satisfactory solution was found.</p></li>
+<li><p><strong>info</strong> (<em>OptiInfo</em>) – Gives list of solutions, corresponding objective, convergence
+violation if applicable, etc.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm.supports_constraints">
+<span class="sig-name descname"><span class="pre">supports_constraints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm.supports_constraints" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.algorithms.algorithm.OptimisationAlgorithm.variable_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">variable_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.algorithms.algorithm.OptimisationAlgorithm.variable_names" title="Link to this definition"></a></dt>
+<dd><p>Give name of all variables.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimisation.algorithms.html" class="btn btn-neutral float-left" title="optimisation.algorithms package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.algorithms.differential_evolution.html" class="btn btn-neutral float-right" title="optimisation.algorithms.differential_evolution module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

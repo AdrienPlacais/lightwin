@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>util.synchronous_phases module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="visualization package" href="visualization.html" />
+    <link rel="prev" title="util.setup module" href="util.setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="util.html">util package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="util.converters.html">util.converters module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.debug.html">util.debug module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.dicts_output.html">util.dicts_output module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.helper.html">util.helper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.log_manager.html">util.log_manager module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.pandas_helper.html">util.pandas_helper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.phases.html">util.phases module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.pickling.html">util.pickling module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="util.setup.html">util.setup module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">util.synchronous_phases module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="util.html">util package</a></li>
+      <li class="breadcrumb-item active">util.synchronous_phases module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/util.synchronous_phases.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-util.synchronous_phases">
+<span id="util-synchronous-phases-module"></span><h1>util.synchronous_phases module<a class="headerlink" href="#module-util.synchronous_phases" title="Link to this heading"></a></h1>
+<p>Define various functions to compute the synchronous phase.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS">
+<span class="sig-name descname"><span class="pre">SYNCHRONOUS_PHASE_FUNCTIONS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'historical':</span> <span class="pre">&lt;function</span> <span class="pre">phi_s_legacy&gt;,</span> <span class="pre">'lagniel':</span> <span class="pre">&lt;function</span> <span class="pre">phi_s_lagniel&gt;,</span> <span class="pre">'legacy':</span> <span class="pre">&lt;function</span> <span class="pre">phi_s_legacy&gt;,</span> <span class="pre">'tracewin':</span> <span class="pre">&lt;function</span> <span class="pre">phi_s_from_tracewin_file&gt;}</span></em><a class="headerlink" href="#util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="util.synchronous_phases.phi_s_from_tracewin_file">
+<span class="sig-name descname"><span class="pre">phi_s_from_tracewin_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#util.synchronous_phases.phi_s_from_tracewin_file" title="Link to this definition"></a></dt>
+<dd><p>Get the synchronous phase from a TraceWin output file.</p>
+<p>It is up to you to edit the <code class="docutils literal notranslate"><span class="pre">tracewin.ini</span></code> file in order to have the
+synchronous phase that you want.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="util.synchronous_phases.phi_s_lagniel">
+<span class="sig-name descname"><span class="pre">phi_s_lagniel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#util.synchronous_phases.phi_s_lagniel" title="Link to this definition"></a></dt>
+<dd><p>Compute cavity parameters with phi_s model proposed by JM Lagniel.</p>
+<p>See  Longitudinal beam dynamics at high accelerating fields, what changes?
+ROSCOFF 2021.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transf_mat_21</strong> (<em>float</em>) – (2, 1) component of the field map transfer matrix.</p></li>
+<li><p><strong>delta_w_kin</strong> (<em>float</em>) – Energy gained by the synchronous particle in the cavity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>phi_s</strong> – Corrected synchronous phase of the cavity.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="util.synchronous_phases.phi_s_legacy">
+<span class="sig-name descname"><span class="pre">phi_s_legacy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrated_field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#util.synchronous_phases.phi_s_legacy" title="Link to this definition"></a></dt>
+<dd><p>Compute the cavity parameters with phi_s historical definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>integrated_field</strong> (<em>complex</em><em> | </em><em>None</em>) – Complex electric field felt by the synchronous particle. It is None
+if the cavity is failed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>v_cav_mv</strong> (<em>float</em>) – Accelerating voltage in MV. It is <code class="docutils literal notranslate"><span class="pre">np.NaN</span></code> if <code class="docutils literal notranslate"><span class="pre">integrated_field</span></code> is
+None.</p></li>
+<li><p><strong>phi_s</strong> (<em>float</em>) – Synchronous phase of the cavity in rad. It is <code class="docutils literal notranslate"><span class="pre">np.NaN</span></code> if
+<code class="docutils literal notranslate"><span class="pre">integrated_field</span></code> is None.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="util.setup.html" class="btn btn-neutral float-left" title="util.setup module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="visualization.html" class="btn btn-neutral float-right" title="visualization package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

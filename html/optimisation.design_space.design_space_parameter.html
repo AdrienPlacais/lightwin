@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>optimisation.design_space.design_space_parameter module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation.design_space.factory module" href="optimisation.design_space.factory.html" />
+    <link rel="prev" title="optimisation.design_space.design_space module" href="optimisation.design_space.design_space.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="optimisation.html">optimisation package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.html">optimisation.algorithms package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="optimisation.design_space.html">optimisation.design_space package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.constraint.html">optimisation.design_space.constraint module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.design_space.html">optimisation.design_space.design_space module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">optimisation.design_space.design_space_parameter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.factory.html">optimisation.design_space.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.helper.html">optimisation.design_space.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.design_space.variable.html">optimisation.design_space.variable module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.html">optimisation package</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.design_space.html">optimisation.design_space package</a></li>
+      <li class="breadcrumb-item active">optimisation.design_space.design_space_parameter module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/optimisation.design_space.design_space_parameter.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-optimisation.design_space.design_space_parameter">
+<span id="optimisation-design-space-design-space-parameter-module"></span><h1>optimisation.design_space.design_space_parameter module<a class="headerlink" href="#module-optimisation.design_space.design_space_parameter" title="Link to this heading"></a></h1>
+<p>Create a base class for <a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and <a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint" title="optimisation.design_space.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DesignSpaceParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Hold a single variable or constraint.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.name" title="Link to this definition"></a></dt>
+<dd><p>Name of the parameter. Must be compatible with the
+<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput.get" title="beam_calculation.simulation_output.simulation_output.SimulationOutput.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SimulationOutput.get()</span></code></a> method, and be in
+<a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.IMPLEMENTED_VARIABLES" title="optimisation.design_space.variable.IMPLEMENTED_VARIABLES"><code class="xref py py-data docutils literal notranslate"><span class="pre">IMPLEMENTED_VARIABLES</span></code></a> or <a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.IMPLEMENTED_CONSTRAINTS" title="optimisation.design_space.constraint.IMPLEMENTED_CONSTRAINTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">IMPLEMENTED_CONSTRAINTS</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.element_name">
+<span class="sig-name descname"><span class="pre">element_name</span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.element_name" title="Link to this definition"></a></dt>
+<dd><p>Name of the element concerned by the parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.limits">
+<span class="sig-name descname"><span class="pre">limits</span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.limits" title="Link to this definition"></a></dt>
+<dd><p>Lower and upper bound for the variable. <code class="docutils literal notranslate"><span class="pre">np.NaN</span></code> deactivates a bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.__post_init__">
+<span class="sig-name descname"><span class="pre">__post_init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.__post_init__" title="Link to this definition"></a></dt>
+<dd><p>Convert values in deg for output if it is angle.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_fmt_x_0</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_0" title="Link to this definition"></a></dt>
+<dd><p>Initial value but with a better output.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_fmt_x_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_max" title="Link to this definition"></a></dt>
+<dd><p>Lower limit in deg if it is has <code class="docutils literal notranslate"><span class="pre">'phi'</span></code> in it’s name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_min">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_fmt_x_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter._fmt_x_min" title="Link to this definition"></a></dt>
+<dd><p>Lower limit in deg if it is has <code class="docutils literal notranslate"><span class="pre">'phi'</span></code> in it’s name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.change_limits">
+<span class="sig-name descname"><span class="pre">change_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.change_limits" title="Link to this definition"></a></dt>
+<dd><p>Change the limits after creation of the object.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">element_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.from_floats">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_floats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">nan</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.from_floats" title="Link to this definition"></a></dt>
+<dd><p>Initialize object with <code class="docutils literal notranslate"><span class="pre">x_min</span></code>, <code class="docutils literal notranslate"><span class="pre">x_max</span></code> instead of <code class="docutils literal notranslate"><span class="pre">limits</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the parameter. Must be compatible with the
+<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput.get" title="beam_calculation.simulation_output.simulation_output.SimulationOutput.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SimulationOutput.get()</span></code></a> method, and be in
+<a class="reference internal" href="optimisation.design_space.variable.html#optimisation.design_space.variable.IMPLEMENTED_VARIABLES" title="optimisation.design_space.variable.IMPLEMENTED_VARIABLES"><code class="xref py py-data docutils literal notranslate"><span class="pre">IMPLEMENTED_VARIABLES</span></code></a> or <a class="reference internal" href="optimisation.design_space.constraint.html#optimisation.design_space.constraint.IMPLEMENTED_CONSTRAINTS" title="optimisation.design_space.constraint.IMPLEMENTED_CONSTRAINTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">IMPLEMENTED_CONSTRAINTS</span></code></a>.</p></li>
+<li><p><strong>element_name</strong> (<em>str</em>) – Name of the element concerned by the parameter.</p></li>
+<li><p><strong>x_min</strong> (<em>float</em>) – Lower limit. <code class="docutils literal notranslate"><span class="pre">np.NaN</span></code> to deactivate lower bound.</p></li>
+<li><p><strong>x_max</strong> (<em>float</em>) – Upper limit. <code class="docutils literal notranslate"><span class="pre">np.NaN</span></code> to deactivate lower bound.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A DesignSpaceParameter with limits = (x_min, x_max).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.from_pd_series">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_pd_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pd_series</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.from_pd_series" title="Link to this definition"></a></dt>
+<dd><p>Init object from a pd series (file import).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.header_of__str__">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">header_of__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.header_of__str__" title="Link to this definition"></a></dt>
+<dd><p>Give information on what <code class="xref py py-func docutils literal notranslate"><span class="pre">__str__()</span></code> is about.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">limits</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">to_get</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepend_parameter_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert important data to dict to convert it later in pandas df.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.x_max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.x_max" title="Link to this definition"></a></dt>
+<dd><p>Return upper variable/constraint bound.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.design_space.design_space_parameter.DesignSpaceParameter.x_min">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#optimisation.design_space.design_space_parameter.DesignSpaceParameter.x_min" title="Link to this definition"></a></dt>
+<dd><p>Return lower variable/constraint bound.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimisation.design_space.design_space.html" class="btn btn-neutral float-left" title="optimisation.design_space.design_space module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.design_space.factory.html" class="btn btn-neutral float-right" title="optimisation.design_space.factory module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

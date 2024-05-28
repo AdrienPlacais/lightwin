@@ -1,6 +1,0 @@
-In LightWin,In TraceWin,Units,Normalized?
-``eps_x``,:math:`\epsilon_{xx'}`,:math:`\pi\mathrm{.mm.mrad}`,✅
-``eps_y``,:math:`\epsilon_{yy'}`,:math:`\pi\mathrm{.mm.mrad}`,✅
-``eps_z``,:math:`\epsilon_{zn}`,:math:`\pi\mathrm{.mm.mrad}`,✅
-``eps_zdelta``,:math:`\epsilon_{z\delta}`,:math:`\pi\mathrm{.mm.\%}`,✅
-``eps_phiw``,:math:`\epsilon_{\phi W}`,:math:`\pi\mathrm{.deg.MeV}`,✅

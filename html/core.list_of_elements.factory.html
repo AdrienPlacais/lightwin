@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.list_of_elements.factory module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="core.list_of_elements.helper module" href="core.list_of_elements.helper.html" />
+    <link rel="prev" title="core.list_of_elements package" href="core.list_of_elements.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">core package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.accelerator.html">core.accelerator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.beam_parameters.html">core.beam_parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.elements.html">core.elements package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="core.list_of_elements.html">core.list_of_elements package</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">core.list_of_elements.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.helper.html">core.list_of_elements.helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.list_of_elements.list_of_elements.html">core.list_of_elements.list_of_elements module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core.transfer_matrix.html">core.transfer_matrix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.electric_field.html">core.electric_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instruction.html">core.instruction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="core.html">core package</a></li>
+          <li class="breadcrumb-item"><a href="core.list_of_elements.html">core.list_of_elements package</a></li>
+      <li class="breadcrumb-item active">core.list_of_elements.factory module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core.list_of_elements.factory.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-core.list_of_elements.factory">
+<span id="core-list-of-elements-factory-module"></span><h1>core.list_of_elements.factory module<a class="headerlink" href="#module-core.list_of_elements.factory" title="Link to this heading"></a></h1>
+<p>Define an object to create <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>.</p>
+<p>Its main goal is to initialize <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> with the proper input
+synchronous particle and beam properties.
+<a class="reference internal" href="#core.list_of_elements.factory.ListOfElementsFactory.whole_list_run" title="core.list_of_elements.factory.ListOfElementsFactory.whole_list_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">whole_list_run()</span></code></a> is called within the <a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a> and generate
+a full <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> from scratch.</p>
+<p><a class="reference internal" href="#core.list_of_elements.factory.ListOfElementsFactory.subset_list_run" title="core.list_of_elements.factory.ListOfElementsFactory.subset_list_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subset_list_run()</span></code></a> is called within <a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> and generates a
+<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> that contains only a fraction of the linac.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Also handle <code class="docutils literal notranslate"><span class="pre">.dst</span></code> file in <a class="reference internal" href="#core.list_of_elements.factory.ListOfElementsFactory.subset_list_run" title="core.list_of_elements.factory.ListOfElementsFactory.subset_list_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subset_list_run()</span></code></a>.</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Maybe it will be necessary to handle cases where the synch particle is not
+perfectly on the axis?</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Find a smart way to sublass <a class="reference internal" href="#core.list_of_elements.factory.ListOfElementsFactory" title="core.list_of_elements.factory.ListOfElementsFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElementsFactory</span></code></a> according to
+the <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>… Loading field maps not necessary with
+<a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a> for example.</p>
+</div>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">elements_to_remove</span></code> key should be in the configuration file</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ListOfElementsFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_bunch_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_field_map_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_maps_in_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_cython_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements_to_remove</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ABCMeta</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ABCMeta</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Factory class to create list of elements from different contexts.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_multipart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_bunch_mhz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_field_map_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_maps_in_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_cython_field_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements_to_remove</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ABCMeta</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ABCMeta</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory.__init__" title="Link to this definition"></a></dt>
+<dd><p>Declare and create some mandatory factories.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For now, we have only one <code class="docutils literal notranslate"><span class="pre">input_beam</span></code> parameters, we create only
+one <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>. Hence we create in the most general
+way possible.
+We instantiate <a class="reference internal" href="core.beam_parameters.factory.html#core.beam_parameters.factory.InitialBeamParametersFactory" title="core.beam_parameters.factory.InitialBeamParametersFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">InitialBeamParametersFactory</span></code></a> with
+<code class="docutils literal notranslate"><span class="pre">is_3d=True</span></code> and <code class="docutils literal notranslate"><span class="pre">is_multipart=True</span></code> because it will work with
+all the <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> objects – some phase-spaces may
+be created but never used though.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>phi_s_definition</strong> (<em>str</em><em>, </em><em>optional</em>) – Definition for the synchronous phases that will be used. Allowed
+values are in
+<a href="#id5"><span class="problematic" id="id6">:var:`util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS`</span></a>. The
+default is <code class="docutils literal notranslate"><span class="pre">'historical'</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory._delta_phi_for_tracewin">
+<span class="sig-name descname"><span class="pre">_delta_phi_for_tracewin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi_at_entry_of_compensation_zone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory._delta_phi_for_tracewin" title="Link to this definition"></a></dt>
+<dd><p>Give new absolute phases for <a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>.</p>
+<p>In TraceWin, the absolute phase at the entrance of the compensation
+zone is 0, while it is not in the rest of the code. Hence we must
+rephase the cavities in the subset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory._filter_out_commands_and_elements_to_remove">
+<span class="sig-name descname"><span class="pre">_filter_out_commands_and_elements_to_remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instructions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory._filter_out_commands_and_elements_to_remove" title="Link to this definition"></a></dt>
+<dd><p>Create a list of elements, with only the ones implemented.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory._get_initial_element">
+<span class="sig-name descname"><span class="pre">_get_initial_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory._get_initial_element" title="Link to this definition"></a></dt>
+<dd><p>Set the element from which we should take energy, phase, etc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory._shift_entry_phase">
+<span class="sig-name descname"><span class="pre">_shift_entry_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cavities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory._shift_entry_phase" title="Link to this definition"></a></dt>
+<dd><p>Shift the entry phase in the given cavities.</p>
+<p>This is mandatory for TraceWin solver, as the absolute phase at the
+entrance of the first element is always 0.0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory._subset_files_dictionary">
+<span class="sig-name descname"><span class="pre">_subset_files_dictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files_from_full_list_of_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PosixPath('tmp')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_dat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PosixPath('tmp.dat')</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory._subset_files_dictionary" title="Link to this definition"></a></dt>
+<dd><p>Set the new <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file containing only elements of <code class="docutils literal notranslate"><span class="pre">elts</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory._subset_input_particle">
+<span class="sig-name descname"><span class="pre">_subset_input_particle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState" title="core.particle.ParticleInitialState"><span class="pre">ParticleInitialState</span></a></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory._subset_input_particle" title="Link to this definition"></a></dt>
+<dd><p>Create input particle for subset of list of elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory._whole_list_input_particle">
+<span class="sig-name descname"><span class="pre">_whole_list_input_particle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w_kin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState" title="core.particle.ParticleInitialState"><span class="pre">ParticleInitialState</span></a></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory._whole_list_input_particle" title="Link to this definition"></a></dt>
+<dd><p>Create a <a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState" title="core.particle.ParticleInitialState"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParticleInitialState</span></code></a> for full list of elts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory.subset_list_run">
+<span class="sig-name descname"><span class="pre">subset_list_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">files_from_full_list_of_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory.subset_list_run" title="Link to this definition"></a></dt>
+<dd><p>Create a <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> which is a subset of a previous one.</p>
+<p>Factory function used during the fitting process, called by a
+<a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> object. During this optimisation process, we compute
+the propagation of the beam only on the smallest possible subset of the
+linac.</p>
+<p>It creates the proper <a class="reference internal" href="core.particle.html#core.particle.ParticleInitialState" title="core.particle.ParticleInitialState"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParticleInitialState</span></code></a> and
+<a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamParameters</span></code></a> objects. In contrary to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">new_list_of_elements()</span></code>, the <a class="reference internal" href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters" title="core.beam_parameters.beam_parameters.BeamParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamParameters</span></code></a> must contain
+information on the transverse plane if beam propagation is performed
+with <a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elts</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – A plain list containing the elements objects that the object should
+contain.</p></li>
+<li><p><strong>simulation_output</strong> (<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a>) – Holds the results of the pre-existing list of elements.</p></li>
+<li><p><strong>files_from_full_list_of_elements</strong> (<em>dict</em>) – The <code class="xref py py-attr docutils literal notranslate"><span class="pre">ListOfElements.files</span></code> from the full
+<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>list_of_elements</strong> – Contains all the elements that will be recomputed during the
+optimisation, as well as the proper particle and beam properties at
+its entry.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements">ListOfElements</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.list_of_elements.factory.ListOfElementsFactory.whole_list_run">
+<span class="sig-name descname"><span class="pre">whole_list_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accelerator_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></span><a class="headerlink" href="#core.list_of_elements.factory.ListOfElementsFactory.whole_list_run" title="Link to this definition"></a></dt>
+<dd><p>Create a new <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>, encompassing a full linac.</p>
+<p>Factory function called from within the <a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dat_file</strong> (<em>Path</em>) – Absolute path to the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file.</p></li>
+<li><p><strong>accelerator_path</strong> (<em>Path</em>) – Absolute path where results for each <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> will
+be stored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>list_of_elements</strong> – Contains all the <code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code> of the linac, as well as the
+proper particle and beam properties at its entry.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements">ListOfElements</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.list_of_elements.html" class="btn btn-neutral float-left" title="core.list_of_elements package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.list_of_elements.helper.html" class="btn btn-neutral float-right" title="core.list_of_elements.helper module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

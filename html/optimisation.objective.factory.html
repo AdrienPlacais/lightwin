@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>optimisation.objective.factory module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="optimisation.objective.minimize_difference_with_ref module" href="optimisation.objective.minimize_difference_with_ref.html" />
+    <link rel="prev" title="optimisation.objective package" href="optimisation.objective.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="optimisation.html">optimisation package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="optimisation.algorithms.html">optimisation.algorithms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.design_space.html">optimisation.design_space package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="optimisation.objective.html">optimisation.objective package</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">optimisation.objective.factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.objective.minimize_difference_with_ref.html">optimisation.objective.minimize_difference_with_ref module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.objective.minimize_mismatch.html">optimisation.objective.minimize_mismatch module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.objective.objective.html">optimisation.objective.objective module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.objective.position.html">optimisation.objective.position module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optimisation.objective.quantity_is_between.html">optimisation.objective.quantity_is_between module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.html">optimisation package</a></li>
+          <li class="breadcrumb-item"><a href="optimisation.objective.html">optimisation.objective package</a></li>
+      <li class="breadcrumb-item active">optimisation.objective.factory module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/optimisation.objective.factory.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-optimisation.objective.factory">
+<span id="optimisation-objective-factory-module"></span><h1>optimisation.objective.factory module<a class="headerlink" href="#module-optimisation.objective.factory" title="Link to this heading"></a></h1>
+<p>Define a factory to create <a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><code class="xref py py-class docutils literal notranslate"><span class="pre">Objective</span></code></a> objects.</p>
+<p>When you implement a new objective preset, also add it to the list of
+implemented presets in <code class="xref py py-mod docutils literal notranslate"><span class="pre">config.optimisation.objective</span></code>.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>decorator to auto output the variables and constraints?</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Clarify that <code class="docutils literal notranslate"><span class="pre">objective_position_preset</span></code> should be understandable by
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">failures.position</span></code>.</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EnergyMismatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optimisation.objective.factory.ObjectiveFactory" title="optimisation.objective.factory.ObjectiveFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectiveFactory</span></code></a></p>
+<p>A set of two objectives: energy and mismatch.</p>
+<p>We try to match the kinetic energy and the mismatch factor at the end of
+the last altered lattice (the last lattice with a compensating or broken
+cavity).</p>
+<p>This set of objectives is adapted when you do not need to retrieve the
+absolute beam phase at the exit of the compensation zone, ie when rephasing
+all downstream cavities is not an issue.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch._elements_where_objective_are_evaluated">
+<span class="sig-name descname"><span class="pre">_elements_where_objective_are_evaluated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch._elements_where_objective_are_evaluated" title="Link to this definition"></a></dt>
+<dd><p>Give element at end of compensation zone.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch._get_mismatch">
+<span class="sig-name descname"><span class="pre">_get_mismatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch._get_mismatch" title="Link to this definition"></a></dt>
+<dd><p>Return object to keep mismatch as low as possible.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch._get_w_kin">
+<span class="sig-name descname"><span class="pre">_get_w_kin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch._get_w_kin" title="Link to this definition"></a></dt>
+<dd><p>Return object to match energy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch.compensation_zone_override_settings">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compensation_zone_override_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch.compensation_zone_override_settings" title="Link to this definition"></a></dt>
+<dd><p>Set no particular overridings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch.get_objectives">
+<span class="sig-name descname"><span class="pre">get_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch.get_objectives" title="Link to this definition"></a></dt>
+<dd><p>Give objects to match kinetic energy, phase and mismatch factor.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyMismatch.objective_position_preset">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">objective_position_preset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergyMismatch.objective_position_preset" title="Link to this definition"></a></dt>
+<dd><p>Set objective evaluation at end of last altered lattice.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EnergyPhaseMismatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optimisation.objective.factory.ObjectiveFactory" title="optimisation.objective.factory.ObjectiveFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectiveFactory</span></code></a></p>
+<p>A set of three objectives: energy, absolute phase, mismatch.</p>
+<p>We try to match the kinetic energy, the absolute phase and the mismatch
+factor at the end of the last altered lattice (the last lattice with a
+compensating or broken cavity).
+With this preset, it is recommended to set constraints on the synchrous
+phase to help the optimisation algorithm to converge.</p>
+<p>This set of objectives is robust and rapid for ADS.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch._elements_where_objective_are_evaluated">
+<span class="sig-name descname"><span class="pre">_elements_where_objective_are_evaluated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch._elements_where_objective_are_evaluated" title="Link to this definition"></a></dt>
+<dd><p>Give element at end of compensation zone.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch._get_mismatch">
+<span class="sig-name descname"><span class="pre">_get_mismatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch._get_mismatch" title="Link to this definition"></a></dt>
+<dd><p>Return object to keep mismatch as low as possible.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch._get_phi_abs">
+<span class="sig-name descname"><span class="pre">_get_phi_abs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch._get_phi_abs" title="Link to this definition"></a></dt>
+<dd><p>Return object to match phase.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch._get_w_kin">
+<span class="sig-name descname"><span class="pre">_get_w_kin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch._get_w_kin" title="Link to this definition"></a></dt>
+<dd><p>Return object to match energy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch.compensation_zone_override_settings">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compensation_zone_override_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch.compensation_zone_override_settings" title="Link to this definition"></a></dt>
+<dd><p>Set no particular overridings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch.get_objectives">
+<span class="sig-name descname"><span class="pre">get_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch.get_objectives" title="Link to this definition"></a></dt>
+<dd><p>Give objects to match kinetic energy, phase and mismatch factor.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergyPhaseMismatch.objective_position_preset">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">objective_position_preset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergyPhaseMismatch.objective_position_preset" title="Link to this definition"></a></dt>
+<dd><p>Set objective evaluation at end of last altered lattice.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EnergySeveralMismatches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optimisation.objective.factory.ObjectiveFactory" title="optimisation.objective.factory.ObjectiveFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectiveFactory</span></code></a></p>
+<p>Match energy and mismatch (the latter on several periods).</p>
+<p>Experimental.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches._elements_where_objective_are_evaluated">
+<span class="sig-name descname"><span class="pre">_elements_where_objective_are_evaluated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches._elements_where_objective_are_evaluated" title="Link to this definition"></a></dt>
+<dd><p>Give element at end of compensation zone.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches._get_mismatch">
+<span class="sig-name descname"><span class="pre">_get_mismatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches._get_mismatch" title="Link to this definition"></a></dt>
+<dd><p>Return object to keep mismatch as low as possible.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches._get_w_kin">
+<span class="sig-name descname"><span class="pre">_get_w_kin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches._get_w_kin" title="Link to this definition"></a></dt>
+<dd><p>Return object to match energy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches.compensation_zone_override_settings">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compensation_zone_override_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches.compensation_zone_override_settings" title="Link to this definition"></a></dt>
+<dd><p>Set no particular overridings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches.get_objectives">
+<span class="sig-name descname"><span class="pre">get_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches.get_objectives" title="Link to this definition"></a></dt>
+<dd><p>Give objects to match kinetic energy and mismatch factor.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySeveralMismatches.objective_position_preset">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">objective_position_preset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergySeveralMismatches.objective_position_preset" title="Link to this definition"></a></dt>
+<dd><p>Set where objective are evaluated.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EnergySyncPhaseMismatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optimisation.objective.factory.ObjectiveFactory" title="optimisation.objective.factory.ObjectiveFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectiveFactory</span></code></a></p>
+<p>Match the synchronous phase, the energy and the mismatch factor.</p>
+<p>It is very similar to <a class="reference internal" href="#optimisation.objective.factory.EnergyPhaseMismatch" title="optimisation.objective.factory.EnergyPhaseMismatch"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyPhaseMismatch</span></code></a>, except that synchronous
+phases are declared as objectives.
+Objective will be 0 when synchronous phase is within the imposed limits.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Do not set synchronous phases as constraints when using this preset.</p>
+</div>
+<p>This set of objectives is slower than <a class="reference internal" href="#optimisation.objective.factory.EnergyPhaseMismatch" title="optimisation.objective.factory.EnergyPhaseMismatch"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyPhaseMismatch</span></code></a>.
+However, it can help keeping the acceptance as high as possible.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch._elements_where_objective_are_evaluated">
+<span class="sig-name descname"><span class="pre">_elements_where_objective_are_evaluated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch._elements_where_objective_are_evaluated" title="Link to this definition"></a></dt>
+<dd><p>Give element at end of compensation zone.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch._get_mismatch">
+<span class="sig-name descname"><span class="pre">_get_mismatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch._get_mismatch" title="Link to this definition"></a></dt>
+<dd><p>Return object to keep mismatch as low as possible.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch._get_phi_abs">
+<span class="sig-name descname"><span class="pre">_get_phi_abs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch._get_phi_abs" title="Link to this definition"></a></dt>
+<dd><p>Return object to match phase.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch._get_phi_s">
+<span class="sig-name descname"><span class="pre">_get_phi_s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cavity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch._get_phi_s" title="Link to this definition"></a></dt>
+<dd><p>Objective to have sync phase within bounds.</p>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Allow <code class="docutils literal notranslate"><span class="pre">from_file</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch._get_w_kin">
+<span class="sig-name descname"><span class="pre">_get_w_kin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch._get_w_kin" title="Link to this definition"></a></dt>
+<dd><p>Return object to match energy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch.compensation_zone_override_settings">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compensation_zone_override_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch.compensation_zone_override_settings" title="Link to this definition"></a></dt>
+<dd><p>Set no particular overridings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch.get_objectives">
+<span class="sig-name descname"><span class="pre">get_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch.get_objectives" title="Link to this definition"></a></dt>
+<dd><p>Give objects to match kinetic energy, phase and mismatch factor.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.EnergySyncPhaseMismatch.objective_position_preset">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">objective_position_preset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.EnergySyncPhaseMismatch.objective_position_preset" title="Link to this definition"></a></dt>
+<dd><p>Set objective evaluation at end of last altered lattice.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ObjectiveFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>A base class to create <code class="xref py py-class docutils literal notranslate"><span class="pre">Objective</span></code>.</p>
+<p>It is intended to be sub-classed to make presets. Look at
+<a class="reference internal" href="#optimisation.objective.factory.EnergyPhaseMismatch" title="optimisation.objective.factory.EnergyPhaseMismatch"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyPhaseMismatch</span></code></a> or <a class="reference internal" href="#optimisation.objective.factory.EnergySyncPhaseMismatch" title="optimisation.objective.factory.EnergySyncPhaseMismatch"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergySyncPhaseMismatch</span></code></a> for
+examples.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.reference_elts">
+<span class="sig-name descname"><span class="pre">reference_elts</span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.reference_elts" title="Link to this definition"></a></dt>
+<dd><p>All the reference elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements">ListOfElements</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.reference_simulation_output">
+<span class="sig-name descname"><span class="pre">reference_simulation_output</span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.reference_simulation_output" title="Link to this definition"></a></dt>
+<dd><p>The reference simulation of the reference linac.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput">SimulationOutput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.broken_elts">
+<span class="sig-name descname"><span class="pre">broken_elts</span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.broken_elts" title="Link to this definition"></a></dt>
+<dd><p>List containing all the elements of the broken linac.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements">ListOfElements</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.failed_elements">
+<span class="sig-name descname"><span class="pre">failed_elements</span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.failed_elements" title="Link to this definition"></a></dt>
+<dd><p>Cavities that failed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element">Element</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.compensating_elements">
+<span class="sig-name descname"><span class="pre">compensating_elements</span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.compensating_elements" title="Link to this definition"></a></dt>
+<dd><p>Cavities that will be used for the compensation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element">Element</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.design_space_kw">
+<span class="sig-name descname"><span class="pre">design_space_kw</span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.design_space_kw" title="Link to this definition"></a></dt>
+<dd><p>Holds information on variables/constraints limits/initial values. Used
+to compute the limits that <code class="docutils literal notranslate"><span class="pre">phi_s</span></code> must respect when the synchronous
+phase is defined as an objective.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, str | bool | Path | float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.__post_init__">
+<span class="sig-name descname"><span class="pre">__post_init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.__post_init__" title="Link to this definition"></a></dt>
+<dd><p>Determine the compensation zone.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory._elements_where_objective_are_evaluated">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_elements_where_objective_are_evaluated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory._elements_where_objective_are_evaluated" title="Link to this definition"></a></dt>
+<dd><p>Determine where objectives will be evaluated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory._output_objectives">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_output_objectives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objectives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory._output_objectives" title="Link to this definition"></a></dt>
+<dd><p>Print information on the objectives that were created.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory._set_zone_to_recompute">
+<span class="sig-name descname"><span class="pre">_set_zone_to_recompute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">wtf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory._set_zone_to_recompute" title="Link to this definition"></a></dt>
+<dd><p>Determine which (sub)list of elements should be recomputed.</p>
+<p>You can override this method for your specific preset.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">broken_elts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">compensating_elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.compensation_zone_override_settings">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compensation_zone_override_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.compensation_zone_override_settings" title="Link to this definition"></a></dt>
+<dd><p>Give flags for <code class="xref py py-func docutils literal notranslate"><span class="pre">failures.position.zone_to_recompute()</span></code>.</p>
+<dl class="simple">
+<dt>The returned dictionary may have three flags:</dt><dd><ul class="simple">
+<li><p>full_lattices</p></li>
+<li><p>full_linac</p></li>
+<li><p>start_at_beginning_of_linac</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">design_space_kw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">failed_elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.get_objectives">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.get_objectives" title="Link to this definition"></a></dt>
+<dd><p>Create the <code class="xref py py-class docutils literal notranslate"><span class="pre">Objective</span></code> instances.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optimisation.objective.factory.ObjectiveFactory.objective_position_preset">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">objective_position_preset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#optimisation.objective.factory.ObjectiveFactory.objective_position_preset" title="Link to this definition"></a></dt>
+<dd><p>Give a preset for <code class="xref py py-func docutils literal notranslate"><span class="pre">failures.position.zone_to_recompute()</span></code>.</p>
+<p>The returned values must be in the <code class="docutils literal notranslate"><span class="pre">POSITION_TO_INDEX</span></code> dictionary of
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">failures.position</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">reference_elts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">reference_simulation_output</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></em><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.objective.factory._compute_residuals">
+<span class="sig-name descname"><span class="pre">_compute_residuals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#optimisation.objective.factory._compute_residuals" title="Link to this definition"></a></dt>
+<dd><p>Compute residuals on given <code class="docutils literal notranslate"><span class="pre">Objectives</span></code> for given <code class="docutils literal notranslate"><span class="pre">SimulationOutput</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optimisation.objective.factory.get_objectives_and_residuals_function">
+<span class="sig-name descname"><span class="pre">get_objectives_and_residuals_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objective_preset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">broken_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><span class="pre">Objective</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#optimisation.objective.factory.get_objectives_and_residuals_function" title="Link to this definition"></a></dt>
+<dd><p>Instantiate objective factory and create objectives.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference_elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – All the reference elements.</p></li>
+<li><p><strong>reference_simulation_output</strong> (<a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><em>SimulationOutput</em></a>) – The reference simulation of the reference linac.</p></li>
+<li><p><strong>broken_elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – The elements of the broken linac.</p></li>
+<li><p><strong>failed_elements</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – Elements that failed.</p></li>
+<li><p><strong>compensating_elements</strong> (<em>list</em><em>[</em><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><em>Element</em></a><em>]</em>) – Elements that will be used for the compensation.</p></li>
+<li><p><strong>design_space_kw</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Used when we need to determine the limits for <code class="docutils literal notranslate"><span class="pre">phi_s</span></code>. Those limits
+are defined in the <code class="docutils literal notranslate"><span class="pre">.ini</span></code> configuration file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>elts_of_compensation_zone</strong> (<em>list[Element]</em>) – Portion of the linac that will be recomputed during the optimisation
+process.</p></li>
+<li><p><strong>objectives</strong> (<em>list[Objective]</em>) – Objectives that the optimisation algorithm will try to match.</p></li>
+<li><p><strong>compute_residuals</strong> (<em>Callable[[SimulationOutput], np.ndarray]</em>) – Function that converts a <a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a> to a plain numpy
+array of residues.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimisation.objective.html" class="btn btn-neutral float-left" title="optimisation.objective package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation.objective.minimize_difference_with_ref.html" class="btn btn-neutral float-right" title="optimisation.objective.minimize_difference_with_ref module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

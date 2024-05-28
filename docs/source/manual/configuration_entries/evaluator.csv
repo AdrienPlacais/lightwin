@@ -1,2 +1,0 @@
-Entry,Type,Description,Allowed values,Mandatory?
-``beam_calc_post``,str,Name of the desired evaluators,:data:`~config.evaluators.evaluators`,❌

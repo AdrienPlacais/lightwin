@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beam_calculation.tracewin.tracewin module &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=84b76982"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beam_calculation.tracewin.transfer_matrix_factory module" href="beam_calculation.tracewin.transfer_matrix_factory.html" />
+    <link rel="prev" title="beam_calculation.tracewin.simulation_output_factory module" href="beam_calculation.tracewin.simulation_output_factory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/units.html">Units and conventions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beam_calculation.html">beam_calculation package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_1d.html">beam_calculation.envelope_1d package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_3d.html">beam_calculation.envelope_3d package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.parameters.html">beam_calculation.parameters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.simulation_output.html">beam_calculation.simulation_output package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="beam_calculation.tracewin.html">beam_calculation.tracewin package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.tracewin.beam_parameters_factory.html">beam_calculation.tracewin.beam_parameters_factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.tracewin.element_tracewin_parameters.html">beam_calculation.tracewin.element_tracewin_parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.tracewin.element_tracewin_parameters_factory.html">beam_calculation.tracewin.element_tracewin_parameters_factory module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.tracewin.simulation_output_factory.html">beam_calculation.tracewin.simulation_output_factory module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">beam_calculation.tracewin.tracewin module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.tracewin.transfer_matrix_factory.html">beam_calculation.tracewin.transfer_matrix_factory module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.beam_calculator.html">beam_calculation.beam_calculator module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.factory.html">beam_calculation.factory module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">optimisation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracewin_utils.html">tracewin_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html">visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manual/examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">source</a></li>
+          <li class="breadcrumb-item"><a href="beam_calculation.html">beam_calculation package</a></li>
+          <li class="breadcrumb-item"><a href="beam_calculation.tracewin.html">beam_calculation.tracewin package</a></li>
+      <li class="breadcrumb-item active">beam_calculation.tracewin.tracewin module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beam_calculation.tracewin.tracewin.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-beam_calculation.tracewin.tracewin">
+<span id="beam-calculation-tracewin-tracewin-module"></span><h1>beam_calculation.tracewin.tracewin module<a class="headerlink" href="#module-beam_calculation.tracewin.tracewin" title="Link to this heading"></a></h1>
+<p>Define a <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> that will call TraceWin from cmd line.</p>
+<p>It inherits from <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> base class.  It solves the motion of
+the particles in envelope or multipart, in 3D. In contrary to
+<a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a> solver, it is not a real solver but an interface with
+<code class="docutils literal notranslate"><span class="pre">TraceWin</span></code> which must be installed on your machine.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>For now, <a class="reference internal" href="#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a> behavior with relative phases is undetermined.
+You should ensure that you are working with <em>absolute</em> phases, i.e. that
+last argument of <code class="docutils literal notranslate"><span class="pre">FIELD_MAP</span></code> commands is <code class="docutils literal notranslate"><span class="pre">1</span></code>.
+You can run a simulation with <a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a> solver and
+<code class="docutils literal notranslate"><span class="pre">flag_phi_abs=</span> <span class="pre">True</span></code>. The <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file created in the <code class="docutils literal notranslate"><span class="pre">000001_ref</span></code>
+folder should be the original <code class="docutils literal notranslate"><span class="pre">.dat</span></code> but converted to absolute phases.</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TraceWin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">executable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ini_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_field_map_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag_phi_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a></p>
+<p>Hold a TraceWin beam calculator.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.executable">
+<span class="sig-name descname"><span class="pre">executable</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.executable" title="Link to this definition"></a></dt>
+<dd><p>Path to the TraceWin executable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.ini_path">
+<span class="sig-name descname"><span class="pre">ini_path</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.ini_path" title="Link to this definition"></a></dt>
+<dd><p>Path to the <code class="docutils literal notranslate"><span class="pre">.ini</span></code> TraceWin file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.base_kwargs">
+<span class="sig-name descname"><span class="pre">base_kwargs</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.base_kwargs" title="Link to this definition"></a></dt>
+<dd><p>TraceWin optional arguments. Override what is defined in <code class="docutils literal notranslate"><span class="pre">.ini</span></code>, but
+overriden by arguments from <code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, str | bool | int | None | float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin._tracewin_command">
+<span class="sig-name descname"><span class="pre">_tracewin_command</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin._tracewin_command" title="Link to this definition"></a></dt>
+<dd><p>Attribute to hold the value of the base command to call TraceWin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str] | None, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.id" title="Link to this definition"></a></dt>
+<dd><p>Complete name of the solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.out_folder">
+<span class="sig-name descname"><span class="pre">out_folder</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.out_folder" title="Link to this definition"></a></dt>
+<dd><p>Name of the results folder (not a complete path, just a folder name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.load_results">
+<span class="sig-name descname"><span class="pre">load_results</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.load_results" title="Link to this definition"></a></dt>
+<dd><p>Function to call to get the output results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.path_cal">
+<span class="sig-name descname"><span class="pre">path_cal</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.path_cal" title="Link to this definition"></a></dt>
+<dd><p>Name of the results folder. Updated at every call of the
+<a class="reference internal" href="#beam_calculation.tracewin.tracewin.TraceWin.init_solver_parameters" title="beam_calculation.tracewin.tracewin.TraceWin.init_solver_parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_solver_parameters()</span></code></a> method, using
+<code class="docutils literal notranslate"><span class="pre">Accelerator.accelerator_path</span></code> and <code class="docutils literal notranslate"><span class="pre">self.out_folder</span></code> attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.dat_file">
+<span class="sig-name descname"><span class="pre">dat_file</span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.dat_file" title="Link to this definition"></a></dt>
+<dd><p>Base name for the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file. ??</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">executable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ini_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_field_map_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag_phi_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Define some other useful methods, init variables.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin._save_cavities_entry_phases">
+<span class="sig-name descname"><span class="pre">_save_cavities_entry_phases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">set_of_cavity_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cavities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin._save_cavities_entry_phases" title="Link to this definition"></a></dt>
+<dd><p>Store the synchronous particle entry phase.</p>
+<p>This quantity is required to switch between the different definitions
+of the phase. Note that, with <a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D',</span> <span class="pre">it</span> <span class="pre">is</span> <span class="pre">done</span> <span class="pre">during</span> <span class="pre">the</span> <span class="pre">propagation</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">beam,</span> <span class="pre">in</span>
+<span class="pre">the</span> <span class="pre">``for</span> <span class="pre">elt</span> <span class="pre">in</span> <span class="pre">elts`</span></code> loop.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Maybe I should also store the synchronous phase?</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin._set_up_specific_factories">
+<span class="sig-name descname"><span class="pre">_set_up_specific_factories</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin._set_up_specific_factories" title="Link to this definition"></a></dt>
+<dd><p>Set up the factories specific to the <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>.</p>
+<p>This method is called in the <code class="xref py py-meth docutils literal notranslate"><span class="pre">super().__post_init__()</span></code>, hence it
+appears only in the base <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin._tracewin_base_command">
+<span class="sig-name descname"><span class="pre">_tracewin_base_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">accelerator_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin._tracewin_base_command" title="Link to this definition"></a></dt>
+<dd><p>Define the ‘base’ command for TraceWin.</p>
+<p>This part of the command is the same for every <code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code>
+and every <code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code>. It sets the TraceWin executable, the <code class="docutils literal notranslate"><span class="pre">.ini</span></code>
+file.  It also defines <code class="docutils literal notranslate"><span class="pre">base_kwargs</span></code>, which should be the same for
+every calculation.
+Finally, it sets <code class="docutils literal notranslate"><span class="pre">path_cal</span></code>.
+But this path is more <code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code>
+dependent…
+<code class="docutils literal notranslate"><span class="pre">Accelerator.accelerator_path</span></code> + <code class="docutils literal notranslate"><span class="pre">out_folder</span></code></p>
+<blockquote>
+<div><p>(+ <code class="docutils literal notranslate"><span class="pre">fault_optimisation_tmp_folder</span></code>)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin._tracewin_full_command">
+<span class="sig-name descname"><span class="pre">_tracewin_full_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_of_cavity_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin._tracewin_full_command" title="Link to this definition"></a></dt>
+<dd><p>Set the full TraceWin command.</p>
+<p>It contains the ‘base’ command, which includes every argument that is
+common to every calculation with this <code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code>: path to
+<code class="docutils literal notranslate"><span class="pre">.ini</span></code> file, to executable…</p>
+<p>It contains the <code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code> command: path to the <code class="docutils literal notranslate"><span class="pre">.dat</span></code>
+file, initial energy and beam properties.</p>
+<p>It can contain some <code class="xref py py-class docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code> commands: <code class="docutils literal notranslate"><span class="pre">ele</span></code>
+arguments to modify some cavities tuning.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.init_solver_parameters">
+<span class="sig-name descname"><span class="pre">init_solver_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">accelerator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><span class="pre">Accelerator</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.init_solver_parameters" title="Link to this definition"></a></dt>
+<dd><p>Set the <code class="docutils literal notranslate"><span class="pre">path_cal</span></code> variable.</p>
+<p>We also set the <code class="docutils literal notranslate"><span class="pre">_tracewin_command</span></code> attribute to None, as it must be
+updated when <code class="docutils literal notranslate"><span class="pre">path_cal</span></code> changes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In contrary to <code class="xref py py-class docutils literal notranslate"><span class="pre">Element1D</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">Element3D</span></code>, this
+routine does not set parameters for the <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>.
+As a matter of a fact, TraceWin is a standalone code and does not
+need out solver parameters.
+However, if we want to save the meshing used by TraceWin, we will
+have to use the <a class="reference internal" href="beam_calculation.tracewin.element_tracewin_parameters_factory.html#beam_calculation.tracewin.element_tracewin_parameters_factory.ElementTraceWinParametersFactory" title="beam_calculation.tracewin.element_tracewin_parameters_factory.ElementTraceWinParametersFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElementTraceWinParametersFactory</span></code></a> later.</p>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.is_a_3d_simulation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_a_3d_simulation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.is_a_3d_simulation" title="Link to this definition"></a></dt>
+<dd><p>Tell if the simulation is in 3D.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.is_a_multiparticle_simulation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_a_multiparticle_simulation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.is_a_multiparticle_simulation" title="Link to this definition"></a></dt>
+<dd><p>Tell if you should buy Bitcoins now or wait a few months.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.post_optimisation_run_with_this">
+<span class="sig-name descname"><span class="pre">post_optimisation_run_with_this</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimized_cavity_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">specific_kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.post_optimisation_run_with_this" title="Link to this definition"></a></dt>
+<dd><p>Run TraceWin with optimized cavity settings.</p>
+<p>After the optimisation, we want to re-run TraceWin with the new
+settings. However, we need to tell it that the linac is bigger than
+during the optimisation. Concretely, it means:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>rephasing the cavities in the compensation zone</p></li>
+<li><p>updating the <code class="docutils literal notranslate"><span class="pre">index</span></code> <code class="docutils literal notranslate"><span class="pre">n</span></code> of the cavities in the <code class="docutils literal notranslate"><span class="pre">ele[n][v]</span></code>
+command.</p></li>
+</ul>
+</div></blockquote>
+<p>Note that at this point, the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> has not been updated yet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>optimized_cavity_settings</strong> (<a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><em>SetOfCavitySettings</em></a>) – Optimized parameters.</p></li>
+<li><p><strong>full_elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – Contains the full linac.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>simulation_output</strong> – Necessary information on the run.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput">SimulationOutput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_reference_phase</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">specific_kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.run" title="Link to this definition"></a></dt>
+<dd><p>Run TraceWin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – List of elements in which the beam must be propagated.</p></li>
+<li><p><strong>update_reference_phase</strong> (<em>bool</em><em>, </em><em>optional</em>) – To change the reference phase of cavities when it is different from
+the one asked in the <code class="docutils literal notranslate"><span class="pre">.toml</span></code>. To use after the first calculation,
+if <code class="docutils literal notranslate"><span class="pre">BeamCalculator.flag_phi_abs</span></code> does not correspond to
+<code class="docutils literal notranslate"><span class="pre">CavitySettings.reference</span></code>. The default is False.</p></li>
+<li><p><strong>specific_kwargs</strong> (<em>dict</em>) – <code class="docutils literal notranslate"><span class="pre">TraceWin</span></code> optional arguments. Overrides what is defined in
+<code class="docutils literal notranslate"><span class="pre">base_kwargs</span></code> and <code class="docutils literal notranslate"><span class="pre">.ini</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>simulation_output</strong> – Holds energy, phase, transfer matrices (among others) packed into a
+single object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput">SimulationOutput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin.TraceWin.run_with_this">
+<span class="sig-name descname"><span class="pre">run_with_this</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">set_of_cavity_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_a_copy_for_nominal_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">specific_kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin.TraceWin.run_with_this" title="Link to this definition"></a></dt>
+<dd><p>Perform a simulation with new cavity settings.</p>
+<p>Calling it with <code class="docutils literal notranslate"><span class="pre">set_of_cavity_settings</span> <span class="pre">=</span> <span class="pre">None</span></code> is the same as
+calling the plain <a class="reference internal" href="#beam_calculation.tracewin.tracewin.TraceWin.run" title="beam_calculation.tracewin.tracewin.TraceWin.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>set_of_cavity_settings</strong> (<a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><em>SetOfCavitySettings</em></a><em> | </em><em>None</em>) – The new cavity settings to try. If it is None, then the cavity
+settings are taken from the FieldMap objects.</p></li>
+<li><p><strong>elts</strong> (<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><em>ListOfElements</em></a>) – List of elements in which the beam should be propagated.</p></li>
+<li><p><strong>use_a_copy_for_nominal_settings</strong> (<em>bool</em><em>, </em><em>optional</em>) – To copy the nominal <a class="reference internal" href="core.elements.field_maps.cavity_settings.html#core.elements.field_maps.cavity_settings.CavitySettings" title="core.elements.field_maps.cavity_settings.CavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">CavitySettings</span></code></a> and avoid altering
+their nominal counterpart. Set it to True during optimisation, to
+False when you want to keep the current settings. The default is
+True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>simulation_output</strong> – Holds energy, phase, transfer matrices (among others) packed into a
+single object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput">SimulationOutput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beam_calculation.tracewin.tracewin._run_in_bash">
+<span class="sig-name descname"><span class="pre">_run_in_bash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beam_calculation.tracewin.tracewin._run_in_bash" title="Link to this definition"></a></dt>
+<dd><p>Run given command in bash.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beam_calculation.tracewin.simulation_output_factory.html" class="btn btn-neutral float-left" title="beam_calculation.tracewin.simulation_output_factory module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beam_calculation.tracewin.transfer_matrix_factory.html" class="btn btn-neutral float-right" title="beam_calculation.tracewin.transfer_matrix_factory module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

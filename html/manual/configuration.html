@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=84b76982"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="files section (mandatory)" href="configuration.files.html" />
+    <link rel="prev" title="The get() method" href="get_method.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LightWin
+          </a>
+              <div class="version">
+                0.6.20-8-g438f7c8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cython.html">Cython</a></li>
+<li class="toctree-l1"><a class="reference internal" href="get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.files.html"><code class="docutils literal notranslate"><span class="pre">files</span></code> section (mandatory)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.beam.html"><code class="docutils literal notranslate"><span class="pre">beam</span></code> section (mandatory)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.beam_calculator.html"><code class="docutils literal notranslate"><span class="pre">beam_calculator</span></code> section (mandatory)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.plots.html"><code class="docutils literal notranslate"><span class="pre">plots</span></code> section (mandatory)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.wtf.html"><code class="docutils literal notranslate"><span class="pre">wtf</span></code> section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.optimisation.design_space.html"><code class="docutils literal notranslate"><span class="pre">optimisation.design_space</span></code> section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.evaluators.html"><code class="docutils literal notranslate"><span class="pre">evaluators</span></code> section</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Units and conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LightWin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/manual/configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>Most of the configuration of LightWin is performed through a <code class="docutils literal notranslate"><span class="pre">.toml</span></code> configuration file, which should be given as argument to several objects initialisation.
+The configuration file is treated with the help of the <a class="reference external" href="https://docs.python.org/3/library/tomllib.html">tomllib</a> module.
+It is processed by the <code class="xref py py-func docutils literal notranslate"><span class="pre">process_config()</span></code> function, which checks it’s validity and converts it to a dictionary.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Configuration was previously set up thanks to a <code class="docutils literal notranslate"><span class="pre">.ini</span></code> file. This is now deprecated.</p>
+</div>
+<p>The name of every section is not important, as long as every section is correctly passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">process_config()</span></code>.
+It is however recommended to use explicit names.</p>
+<p class="rubric">Example for the <code class="docutils literal notranslate"><span class="pre">beam</span></code> section</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[beam_proton]</span><span class="w">     </span><span class="c1"># this could be [bonjoure] or anything</span>
+<span class="n">e_rest_mev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">938.27203</span>
+<span class="n">q_adim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="n">e_mev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20.0</span>
+<span class="n">f_bunch_mhz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">350.0</span>
+<span class="n">i_milli_a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">25</span><span class="p">.</span>
+<span class="n">sigma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">8e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">8e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">8e-7</span><span class="p">],</span>
+<span class="p">]</span>
+
+<span class="k">[beam_proton_no_space_charge]</span><span class="w">   </span><span class="c1"># or [sdaflghsh] but it would be less explicit in my humble opinion</span>
+<span class="n">linac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">my</span><span class="mi">_</span><span class="n">ads</span>
+<span class="n">e_rest_mev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">938.27203</span>
+<span class="n">q_adim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="n">e_mev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20.0</span>
+<span class="n">f_bunch_mhz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">350.0</span>
+<span class="n">i_milli_a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">sigma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">8e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">8e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w">  </span><span class="mf">0.0</span><span class="p">,</span><span class="w">   </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">8e-7</span><span class="p">],</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In order to dynamically keep track of the options that are implemented, the <em>Allowed values</em> column of following tables contains a link to the variable storing the possible values, when relevant.</p>
+</div>
+<section id="files-section-mandatory">
+<h2><code class="docutils literal notranslate"><span class="pre">files</span></code> section (mandatory)<a class="headerlink" href="#files-section-mandatory" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<p>This section is mandatory to initialize an <a class="reference internal" href="../core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a> through the <code class="xref py py-func docutils literal notranslate"><span class="pre">accelerator_factory()</span></code> function.
+It must contain the key <code class="docutils literal notranslate"><span class="pre">dat_file</span></code>, which is the path to the linac structure file (same format as TraceWin).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dat_file</span></code></p></td>
+<td><p>path</p></td>
+<td><p>Path to the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+</tbody>
+</table>
+<p>See also: <a class="reference internal" href="../config.files.html#module-config.files" title="config.files"><code class="xref py py-mod docutils literal notranslate"><span class="pre">config.files</span></code></a></p>
+</section>
+<section id="beam-section-mandatory">
+<h2><code class="docutils literal notranslate"><span class="pre">beam</span></code> section (mandatory)<a class="headerlink" href="#beam-section-mandatory" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<p>Here we define the main properties of the beam at the entrance of the linac.
+Note that with <a class="reference internal" href="../beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>, most of these properties are defined within it’s own <code class="docutils literal notranslate"><span class="pre">.ini</span></code> file.
+The units must be consistent with LightWin’s system of units, see also <a class="reference internal" href="units.html#units-label"><span class="std std-ref">Units and conventions</span></a>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">e_rest_mev</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Rest energy of particle in <span class="math notranslate nohighlight">\(\mathrm{MeV}\)</span></p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">q_adim</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Adimensioned charge of particle</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">e_mev</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Energy of particle at entrance in <span class="math notranslate nohighlight">\(\mathrm{MeV}\)</span></p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">f_bunch_mev</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Beam bunch frequency in <span class="math notranslate nohighlight">\(\mathrm{MHz}\)</span></p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">i_milli_a</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Beam current in <span class="math notranslate nohighlight">\(\mathrm{mA}\)</span></p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sigma</span></code></p></td>
+<td><p>list of list of float</p></td>
+<td><p>Input <span class="math notranslate nohighlight">\(\sigma\)</span> beam matrix in <span class="math notranslate nohighlight">\(\mathrm{m}\)</span>; <span class="math notranslate nohighlight">\(\mathrm{rad}\)</span></p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+</tbody>
+</table>
+<p>Format for the <code class="docutils literal notranslate"><span class="pre">sigma</span></code> entry:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">sigma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="mf">-2e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">8e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">8e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">8e-7</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">8e-7</span><span class="p">],</span>
+<span class="w">   </span><span class="p">[</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w">  </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">0e+0</span><span class="p">,</span><span class="w"> </span><span class="mf">-2e-7</span><span class="p">,</span><span class="w"> </span><span class="mf">8e-7</span><span class="p">]</span>
+<span class="w"> </span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="beam-calculator-section-mandatory">
+<h2><code class="docutils literal notranslate"><span class="pre">beam_calculator</span></code> section (mandatory)<a class="headerlink" href="#beam-calculator-section-mandatory" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tool</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Name of the tool</p></td>
+<td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">tools</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+</tbody>
+</table>
+<p>If the desired <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> is <a class="reference internal" href="../beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a>:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">flag_phi_abs</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Simulation realized in absolute phase?</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">flag_cython</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Use Cython implementation?</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">n_steps_per_cell</span></code></p></td>
+<td><p>int</p></td>
+<td><p># of integration steps per cavity cell</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">method</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Integration method</p></td>
+<td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">methods</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that <code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code> takes the same configuration entries, except <code class="docutils literal notranslate"><span class="pre">flag_cython</span></code> (not implemented yet) and <code class="docutils literal notranslate"><span class="pre">method</span></code> that must be <code class="docutils literal notranslate"><span class="pre">'RK'</span></code> (<code class="docutils literal notranslate"><span class="pre">'leapgrog'</span></code> not implemented yet).</p>
+<p>If the desired <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a> is <a class="reference internal" href="../beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">machine_config_file</span></code></p></td>
+<td><p>str</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">.toml</span></code> file with paths to the executables</p></td>
+<td><p>✅</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">machine_name</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Name of machine</p></td>
+<td><p>must be a key in the <code class="docutils literal notranslate"><span class="pre">machine_config_file</span></code></p></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation_type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>TraceWin solver</p></td>
+<td><p>Must be an entry under your machine name in <code class="docutils literal notranslate"><span class="pre">machine_config_file</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ini_path</span></code></p></td>
+<td><p>path</p></td>
+<td><p>Path to TraceWin’s <code class="docutils literal notranslate"><span class="pre">.ini</span></code> file</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>To avoid TraceWin window</p></td>
+<td><p>None</p></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">partran</span></code></p></td>
+<td><p>int</p></td>
+<td><p>To force or not Partran tracking</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p>…</p></td>
+<td></td>
+<td><p>Every TraceWin command line option</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+<p>Check TraceWin’s documentation for the list of command line arguments.
+Note that you also need to create a configuration file that will define the path to the <code class="docutils literal notranslate"><span class="pre">TraceWin</span></code> executables.
+See <code class="docutils literal notranslate"><span class="pre">data/examples/machine_config_file.toml</span></code> for an example.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>List of allowed tracewin arguments in doc</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>There are doublons between doc in <a class="reference internal" href="../config.beam_calculator.html#module-config.beam_calculator" title="config.beam_calculator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">config.beam_calculator</span></code></a> and here. Maybe keep in module, but make the format better.</p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">[beam_calculator_post]</span></code> follows the same format.
+It is used to store a second <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>.
+This is mainly useful for defining a more precise – but more time-consuming – beam dynamics tool, for example to check your compensation settings.</p>
+</section>
+<section id="plots-section-mandatory">
+<h2><code class="docutils literal notranslate"><span class="pre">plots</span></code> section (mandatory)<a class="headerlink" href="#plots-section-mandatory" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<p>This section defines what quantities will be plotted at the end of the simulation.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">energy</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Plot evolution of kinetic energy?</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phase</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Plot evolution of absolute phase?</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cav</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Plot cavity parameters?</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">emittance</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Plot evolution of emittance?</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">twiss</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Plot Twiss parameters?</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">envelopes</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Plot envelopes?</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transfer</span> <span class="pre">matrices</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Plot transfer matrix components?</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Plot of transfer matrix currently not working.</p>
+</div>
+</section>
+<section id="wtf-section">
+<h2><code class="docutils literal notranslate"><span class="pre">wtf</span></code> section<a class="headerlink" href="#wtf-section" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">wtf</span></code> stands for <em>what to fit</em>.
+This section parametrizes the failed cavities, as well as how they are fixed.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimisation_algorithm</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Name of optimisation algorithm</p></td>
+<td><p><a class="reference internal" href="../optimisation.algorithms.factory.html#optimisation.algorithms.factory.algorithms" title="optimisation.algorithms.factory.algorithms"><code class="xref py py-data docutils literal notranslate"><span class="pre">algorithms</span></code></a></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">strategy</span></code></p></td>
+<td><p>str</p></td>
+<td><p>How compensating cavities are selected</p></td>
+<td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">strategies</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">id_nature</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Indicates if failed is element index/cavity index/name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">element</span></code> or <code class="docutils literal notranslate"><span class="pre">cavity</span></code> or <code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">failed</span></code></p></td>
+<td><p>list[list[int]] | list[list[str]]</p></td>
+<td><p>Index of failed cavities</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">objective_preset</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Objectives for the optimisation algorithm</p></td>
+<td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">objective_presets</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimisation_algorithm_kwargs</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>Keyword arguments passed to the actual optimisation method</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+<p>Each <code class="docutils literal notranslate"><span class="pre">strategy</span></code> entry requires specific additional arguments.
+As an example, with the <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">n</span></code> method, you need to give LightWin <code class="docutils literal notranslate"><span class="pre">k</span></code>, the number of compensating cavities per failed cavity.
+The specific documentation can be found in <a class="reference internal" href="../failures.strategy.html#module-failures.strategy" title="failures.strategy"><code class="xref py py-mod docutils literal notranslate"><span class="pre">failures.strategy</span></code></a>.</p>
+<p>You can type the index of failed cavities on several lines if you want to study several fault scenarios at once.</p>
+<p class="rubric">Example</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Indexes are cavity indexes</span>
+<span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">cavity</span>
+<span class="n">failed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w">       </span><span class="c1"># First simulation first cryomodule is down</span>
+<span class="w">   </span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w">          </span><span class="c1"># Second simulation only first cavity is down</span>
+<span class="w">   </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">45</span><span class="p">]</span><span class="w">       </span><span class="c1"># Third simulation second and 46th cavity are down</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="optimisation-design-space-section">
+<h2><code class="docutils literal notranslate"><span class="pre">optimisation.design_space</span></code> section<a class="headerlink" href="#optimisation-design-space-section" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<p>This section parametrizes how the design space will be set, i.e. what are the variables, their limits and initial values, and what are the constraints and their limits.
+If you have any doubt, know that all these settings are passed down to <a class="reference internal" href="../optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory.__init__" title="optimisation.design_space.factory.DesignSpaceFactory.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DesignSpaceFactory.__init__()</span></code></a> as <code class="docutils literal notranslate"><span class="pre">design_space_kw</span></code>.</p>
+<p>There are two ways to define the design space limits and initial values; the first is to let LightWin calculate it from the nominal settings of the linac.
+This approach is easier to use for the first runs.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">from_file</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>If files should be used</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">design_space_preset</span></code></p></td>
+<td><p>str</p></td>
+<td><p>What variables/constraints should be used</p></td>
+<td><p><a class="reference internal" href="../optimisation.design_space.factory.html#optimisation.design_space.factory.DESIGN_SPACE_FACTORY_PRESETS" title="optimisation.design_space.factory.DESIGN_SPACE_FACTORY_PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DESIGN_SPACE_FACTORY_PRESETS</span></code></a></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_increase_sync_phase_in_percent</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Max relative increase of <span class="math notranslate nohighlight">\(\phi_s\)</span> wrt nominal in <span class="math notranslate nohighlight">\(\mathrm{\%}\)</span></p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_absolute_sync_phase_in_deg</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Max absolute <span class="math notranslate nohighlight">\(\phi_s\)</span> in <span class="math notranslate nohighlight">\(\mathrm{deg}\)</span></p></td>
+<td><p>default <code class="docutils literal notranslate"><span class="pre">0.</span></code></p></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_absolute_sync_phase_in_deg</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Min absolute <span class="math notranslate nohighlight">\(\phi_s\)</span> in <span class="math notranslate nohighlight">\(\mathrm{deg}\)</span></p></td>
+<td><p>default <code class="docutils literal notranslate"><span class="pre">90.</span></code></p></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_decrease_k_e_in_percent</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Max decrease of <span class="math notranslate nohighlight">\(k_e\)</span> wrt nominal in <span class="math notranslate nohighlight">\(\mathrm{\%}\)</span></p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_increase_k_e_in_percent</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Max increase of <span class="math notranslate nohighlight">\(k_e\)</span> wrt nominal in <span class="math notranslate nohighlight">\(\mathrm{\%}\)</span></p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_k_e_is_calculated_wrt_maximum_k_e_of_section</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>If max <span class="math notranslate nohighlight">\(k_e\)</span> should be the same for the whole section</p></td>
+<td><p>default <code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+<p>When <code class="docutils literal notranslate"><span class="pre">from_file</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, you must provide a path to a <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file containing, for every element, every variable, its initial value and limits.
+If the problem is constrained, you must also provide a <code class="docutils literal notranslate"><span class="pre">.csv</span></code> with, for every element, the limits of every constraint.
+This approach is more useful when you want to fine-tune the optimisation, as you can manually edit the <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, for example to take into account the specific multipacting barriers of a rogue cavity.
+To generate the <code class="docutils literal notranslate"><span class="pre">.csv</span></code> files with the proper format, look at <code class="docutils literal notranslate"><span class="pre">examples/generate_design_space_files.py</span></code>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">from_file</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>If files should be used</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">design_space_preset</span></code></p></td>
+<td><p>str</p></td>
+<td><p>What variables/constraints should be used</p></td>
+<td><p><a class="reference internal" href="../optimisation.design_space.factory.html#optimisation.design_space.factory.DESIGN_SPACE_FACTORY_PRESETS" title="optimisation.design_space.factory.DESIGN_SPACE_FACTORY_PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DESIGN_SPACE_FACTORY_PRESETS</span></code></a></p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">variables_filepath</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Path to the <code class="docutils literal notranslate"><span class="pre">.csv</span></code> holding variables</p></td>
+<td></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">constraints_filepath</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Path to the <code class="docutils literal notranslate"><span class="pre">.csv</span></code> holding constraints</p></td>
+<td></td>
+<td><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+<p>Ultimately, these settings will be passed down to <a class="reference internal" href="../optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory" title="optimisation.design_space.factory.DesignSpaceFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">DesignSpaceFactory</span></code></a>.</p>
+</section>
+<section id="evaluators-section">
+<h2><code class="docutils literal notranslate"><span class="pre">evaluators</span></code> section<a class="headerlink" href="#evaluators-section" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<p>This section is used to defined <code class="xref py py-class docutils literal notranslate"><span class="pre">FaultScenarioSimulationOutputEvaluator</span></code> objects.
+They are used to evaluate the absolute or relative <em>quality</em> of compensation settings.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 5.0%" />
+<col style="width: 50.0%" />
+<col style="width: 10.0%" />
+<col style="width: 5.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Entry</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Mandatory?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">beam_calc_post</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Name of the desired evaluators</p></td>
+<td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">evaluators</span></code></p></td>
+<td><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is also a <a class="reference internal" href="../evaluator.simulation_output.simulation_output_evaluator.html#evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator" title="evaluator.simulation_output.simulation_output_evaluator.SimulationOutputEvaluator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutputEvaluator</span></code></a> object that is used internally by LightWin to determine if a <a class="reference internal" href="../failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> was correctly fixed.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="get_method.html" class="btn btn-neutral float-left" title="The get() method" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration.files.html" class="btn btn-neutral float-right" title="files section (mandatory)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, A. Plaçais, F. Bouly, B. Yee-Rendon.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
