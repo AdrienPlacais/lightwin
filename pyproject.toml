@@ -2,7 +2,9 @@
 authors = [
    { name = "Adrien Plaçais", email = "placais@lpsc.in2p3.fr" },
    { name = "Bruce Yee-Rendon", email = "byee@post.j-parc.jp" },
+   { name = "Didier Uriot", email = "didier.uriot@cea.fr" },
    { name = "Frédéric Bouly", email = "bouly@lpsc.in2p3.fr" },
+   { name = "Jean-Michel Lagniel", email = "jean-michel.lagniel@ganil.fr" },
 ]
 classifiers = [
    "License :: OSI Approved :: MIT License",
@@ -13,7 +15,7 @@ description = "Automatically compensate cavity failures in linacs"
 name = "LightWin"
 readme = "README.md"
 requires-python = ">=3.12"
-version = "0.6.16"
+version = "0.6.19"
 
 [project.urls]
 Homepage = "https://gitlab.in2p3.fr/adrien.placais/lightwin"
