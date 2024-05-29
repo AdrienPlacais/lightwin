@@ -14,7 +14,7 @@ for genetic optimisation algorithms.
 Remove related imports in `fault.py` and `fault_scenario.py` to run LightWin without it.
 
 ## Optional packages
-`cython` to speed up calculations.
+`cython` to speed up calculations; see instructions [here](https://adrienplacais.github.io/LightWin/html/manual/cython.html).
 Check :ref:`cython`.
 It can also be used to compile some `pymoo` functions to speed them up.
 Just install `cython` prior to `pymoo`, and the compilation should be done automatically when installing `pymoo`.
@@ -56,11 +56,23 @@ If you use Spyder, check this out:
 [https://www.youtube.com/watch?v=Ul79ihg41Rs](https://www.youtube.com/watch?v=Ul79ihg41Rs)
 
 ## TraceWin compatibility
-To run TraceWin, modify the paths in `source/config/beam_calculator.py` so that it matches with your installation.
+To run TraceWin, add your computer/server paths in your `machine_config.toml`.
+You can have a single `machine_config.toml` file for all your projects, or one per project.
+The path to the `machine_config.toml` is defined in the `lightwin.toml` configuration, under the `tracewin` key, `machine_config_file` subkey.
+
+An example is provided in the `data/example` folder.
+
+TODO: Clearer explanations + example; maybe dedicated page in documentation, in the same section than Cython?
 
 
 ### Test
-When everything is set up, navigate to the `lightwin` dir and run `pytest`.
+When everything is set up, navigate to the `lightwin` installation directory (where `data`, `source`, `tests` directories should be) and run `pytest`.
 If TraceWin is not installed, run `pytest -m "not tracewin"`.
 
 Note that as for now, `pytest` will raise errors if `pymoo` is not installed, and if the `cython` packages are not compiled.
+
+TODO: Clearer explanations + example; maybe dedicated page in documentation, in the same section than Cython + TraceWin?
+
+
+### FAQ
+TODO
