@@ -1,5 +1,5 @@
 Entry,Type,Description,Allowed values,Mandatory?
-``machine_config_file``,str,A ``.toml`` file with paths to the executables,✅
+``machine_config_file``,str,A ``.toml`` file with paths to the executables,existing relative (w.r.t `lightwin.toml`) or absolute paths,✅
 ``machine_name``,str,Name of machine, must be a key in the ``machine_config_file``,❌
 ``simulation_type``,str,TraceWin solver,Must be an entry under your machine name in ``machine_config_file``,✅
 ``ini_path``,path,Path to TraceWin's ``.ini`` file,,✅
