@@ -29,11 +29,11 @@ class Adjust(Command):
         super().__init__(line, dat_idx, **kwargs)
         self.number = int(line[1])
         self.vth_variable = int(line[2])
-        self.n_link = int(line[3]) if len(line) > 2 else 0
-        self.min = float(line[4]) if len(line) > 3 else None
-        self.max = float(line[5]) if len(line) > 4 else None
-        self.start_step = float(line[6]) if len(line) > 5 else None
-        self.k_n = float(line[7]) if len(line) > 6 else None
+        self.n_link = int(line[3]) if len(line) > 3 else 0
+        self.min = float(line[4]) if len(line) > 4 else None
+        self.max = float(line[5]) if len(line) > 5 else None
+        self.start_step = float(line[6]) if len(line) > 6 else None
+        self.k_n = float(line[7]) if len(line) > 7 else None
 
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float
