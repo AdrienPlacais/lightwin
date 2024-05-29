@@ -66,9 +66,13 @@ def dat_file(
                     dat_filecontent.append(sliced)
                 continue
             dat_filecontent.append(sliced)
+    if not instructions_to_insert:
+        return dat_filecontent
+    logging.info(
+        "Will insert following instructions:\n{instructions_to_insert}"
+    )
     for instruction in instructions_to_insert:
         instruction.insert(dat_filecontent=dat_filecontent)
-    return dat_filecontent
 
 
 def _strip_comments(line: str) -> str:
