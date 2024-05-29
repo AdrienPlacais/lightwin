@@ -3,12 +3,15 @@
 import itertools
 import logging
 import re
+from collections.abc import Collection
 from pathlib import Path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from typing import Literal
 
 import numpy as np
+
+from core.instruction import Instruction
 
 # Dict of data that can be imported from TW's "Data" table.
 # More info in results
@@ -27,6 +30,7 @@ def dat_file(
     dat_path: Path,
     *,
     keep: Literal["none", "comments", "empty lines", "all"] = "none",
+    instructions_to_insert: Collection[Instruction] = (),
 ) -> list[list[str]]:
     """Load the dat file and convert it into a list of lines.
 
@@ -37,6 +41,9 @@ def dat_file(
     keep : {"none", "comments", "empty lines", "all"}, optional
         To determine which un-necessary lines in the dat file should be kept.
         The default is `'none'`.
+    instructions_to_insert : Collection[Instruction], optional
+        Some elements or commands that are not present in the ``.dat`` file but
+        that you want to add. The default is an empty tuple.
 
     Returns
     -------
@@ -59,6 +66,8 @@ def dat_file(
                     dat_filecontent.append(sliced)
                 continue
             dat_filecontent.append(sliced)
+    for instruction in instructions_to_insert:
+        instruction.insert(dat_filecontent=dat_filecontent)
     return dat_filecontent
 
 
