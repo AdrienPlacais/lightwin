@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cython &mdash; LightWin 0.6.20-8-g438f7c8 documentation</title>
+  <title>Cython (mandatory) &mdash; LightWin 0.6.20-17-gf3cc682 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,15 +15,15 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=84b76982"></script>
+        <script src="../_static/documentation_options.js?v=6b70ae56"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="The get() method" href="get_method.html" />
-    <link rel="prev" title="Usage" href="usage.html" /> 
+    <link rel="next" title="TraceWin (facultative)" href="installation.tracewin.html" />
+    <link rel="prev" title="Python (mandatory)" href="installation.python.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-8-g438f7c8
+                0.6.20-17-gf3cc682
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -50,8 +50,15 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">LightWin</span></p>
 <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="installation.html">Installation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.download.html">Download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.python.html">Python (mandatory)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Cython (mandatory)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.tracewin.html">TraceWin (facultative)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.testing.html">Testing</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Cython</a></li>
 <li class="toctree-l1"><a class="reference internal" href="get_method.html">The <code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code> method</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units.html">Units and conventions</a></li>
@@ -73,9 +80,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Cython</li>
+          <li class="breadcrumb-item"><a href="installation.html">Installation</a></li>
+      <li class="breadcrumb-item active">Cython (mandatory)</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/manual/cython.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/manual/installation.cython.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -83,34 +91,38 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="cython">
-<h1>Cython<a class="headerlink" href="#cython" title="Link to this heading"></a></h1>
+  <section id="cython-mandatory">
+<h1>Cython (mandatory)<a class="headerlink" href="#cython-mandatory" title="Link to this heading"></a></h1>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Revise integration so that a missing Cython does not lead to import errors.</p>
+</div>
 <p>To speed things up, Envelope1D has a Cython version that must be compiled.
 You can do so by going to <code class="docutils literal notranslate"><span class="pre">lightwin/source</span></code> and run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>util/setup.py<span class="w"> </span>build_ext<span class="w"> </span>--inplace
 </pre></div>
 </div>
 <p>A <code class="docutils literal notranslate"><span class="pre">.so</span></code> (Linux) or <code class="docutils literal notranslate"><span class="pre">.pyd</span></code> (Windows) file will be created.
-If it is not done automatically, move the created file in <code class="docutils literal notranslate"><span class="pre">beam_calculation/envelope_1d/</span></code>:
-Unix: <code class="docutils literal notranslate"><span class="pre">build/lib.linux-XXX-cpython=3XX/beam_calculation/envelope_1d/transfer_matrices_c.cpython-3XX-XXXX-linux-gnu.so</span></code>
-Windows: <code class="docutils literal notranslate"><span class="pre">build/lib.win-XXXX-cpython-3XX/beam_calculation/envelope_1d/transfer_matrices_c.cp3XX-win_XXXX.pyd</span></code></p>
+If it is not done automatically, move the created file in <code class="docutils literal notranslate"><span class="pre">beam_calculation/envelope_1d/</span></code>:</p>
+<ul class="simple">
+<li><p>Unix: <code class="docutils literal notranslate"><span class="pre">build/lib.linux-XXX-cpython=3XX/beam_calculation/envelope_1d/transfer_matrices_c.cpython-3XX-XXXX-linux-gnu.so</span></code></p></li>
+<li><p>Windows: <code class="docutils literal notranslate"><span class="pre">build/lib.win-XXXX-cpython-3XX/beam_calculation/envelope_1d/transfer_matrices_c.cp3XX-win_XXXX.pyd</span></code></p></li>
+</ul>
 <p>Note that if you use an interpreter such as Spyder, you should restart the kernel to correctly load the file.
 If you change your Python version or use another machine, you must recompile.</p>
-<div class="admonition-todo admonition" id="id1">
+<div class="admonition-todo admonition" id="id2">
 <p class="admonition-title">Todo</p>
 <p>Cython pytests</p>
 </div>
-<section id="cython-on-windows">
-<h2>Cython on Windows<a class="headerlink" href="#cython-on-windows" title="Link to this heading"></a></h2>
+<section id="on-windows">
+<h2>On Windows<a class="headerlink" href="#on-windows" title="Link to this heading"></a></h2>
 <p>If you have a <code class="docutils literal notranslate"><span class="pre">Microsoft</span> <span class="pre">Visual</span> <span class="pre">C++</span> <span class="pre">14.0</span> <span class="pre">or</span> <span class="pre">greater</span> <span class="pre">is</span> <span class="pre">required</span></code> error,
-go to <a class="reference external" href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">https://visualstudio.microsoft.com/visual-cpp-build-tools/</a> and download Build Tools:</p>
-<blockquote>
-<div><ol class="arabic simple">
+go to <a class="reference external" href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">visual studio website</a> and download Build Tools:</p>
+<ol class="arabic simple">
 <li><p>Download and execute <code class="docutils literal notranslate"><span class="pre">vs_BuildTools.exe</span></code>.</p></li>
 <li><p>Check “C++ Development Desktop”.</p></li>
 <li><p>Install.</p></li>
 </ol>
-</div></blockquote>
 </section>
 </section>
 
@@ -118,8 +130,8 @@ go to <a class="reference external" href="https://visualstudio.microsoft.com/vis
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="get_method.html" class="btn btn-neutral float-right" title="The get() method" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="installation.python.html" class="btn btn-neutral float-left" title="Python (mandatory)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.tracewin.html" class="btn btn-neutral float-right" title="TraceWin (facultative)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
