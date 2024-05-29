@@ -73,6 +73,7 @@ def dat_file(
     )
     for instruction in instructions_to_insert:
         instruction.insert(dat_filecontent=dat_filecontent)
+    return dat_filecontent
 
 
 def _strip_comments(line: str) -> str:
