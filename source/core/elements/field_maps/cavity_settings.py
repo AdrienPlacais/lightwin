@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Store cavity settings that can change during an optimisation.
 
 .. note::
@@ -15,6 +13,7 @@ See Also
 NewRfField
 
 """
+
 import logging
 import math
 from collections.abc import Callable
