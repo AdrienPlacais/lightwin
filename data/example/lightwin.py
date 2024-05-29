@@ -128,7 +128,7 @@ def _perform_evaluations_new_implementation(
     return tests
 
 
-def main(config: dict[str, dict[str, Any]]) -> None:
+def main(config: dict[str, dict[str, Any]]) -> list[FaultScenario]:
     """Set up the various faults and fix it."""
     beam_calculators, accelerators, fault_scenarios, beam_calculator_ids = (
         set_up(config)
@@ -153,6 +153,7 @@ def main(config: dict[str, dict[str, Any]]) -> None:
         evaluator_kw=None,
     )
     del tests
+    return fault_scenarios
 
 
 if __name__ == "__main__":
@@ -166,4 +167,4 @@ if __name__ == "__main__":
         "design_space": "tiny_design_space",
     }
     config = config_manager.process_config(toml_filepath, toml_keys)
-    main(config)
+    fault_scenarios = main(config)
