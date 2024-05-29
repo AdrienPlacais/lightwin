@@ -71,8 +71,10 @@ def dat_file(
     logging.info(
         "Will insert following instructions:\n{instructions_to_insert}"
     )
-    for instruction in instructions_to_insert:
-        instruction.insert(dat_filecontent=dat_filecontent)
+    for i, instruction in enumerate(instructions_to_insert):
+        instruction.insert(
+            dat_filecontent=dat_filecontent, previously_inserted=i
+        )
     return dat_filecontent
 
 

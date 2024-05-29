@@ -106,24 +106,22 @@ class Instruction(ABC):
     def insert(
         self,
         *args,
-        index: int | None = None,
         dat_filecontent: list[Collection[str]],
+        previously_inserted: int = 0,
         **kwargs,
     ) -> None:
         """Insert the current object in the ``dat_filecontent`` object.
 
         Parameters
         ----------
-        index : int | None
-            Position at which the object should be inserted. If not provided,
-            we insert it at :attr:`idx['dat_idx']`.
-
         dat_filecontent : list[Collection[str]]
             The list of instructions, in the form of a list of lines.
+        previously_inserted : int, optional
+            Number of :class:`.Instruction` that were already inserted in the
+            given ``dat_filecontent``.
 
         """
-        if index is None:
-            index = self.idx["dat_idx"]
+        index = self.idx["dat_idx"] + previously_inserted
         dat_filecontent.insert(index, self.to_line(*args, **kwargs))
 
 
