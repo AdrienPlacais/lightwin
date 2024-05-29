@@ -137,6 +137,7 @@ class Fault:
             reference_simulation_output,
             files_from_full_list_of_elements,
         )
+        self.optimized_cavity_settings: SetOfCavitySettings
         return
 
     def fix(
@@ -161,6 +162,8 @@ class Fault:
         """
         outputs = optimisation_algorithm.optimise()
         success, optimized_cavity_settings, self.info = outputs
+        assert optimized_cavity_settings is not None
+        self.optimized_cavity_settings = optimized_cavity_settings
         return success, optimized_cavity_settings, self.info
 
     def update_elements_status(
