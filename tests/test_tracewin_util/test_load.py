@@ -88,3 +88,10 @@ class TestSlice:
         expected = []
         returned = slice_dat_line(line)
         assert expected == returned, f"{returned = } but {expected = }"
+
+    def test_windows_like_path(self) -> None:
+        """Test that the : does not mess with the code."""
+        line = "field_map_path C:\\path\\to\\field_maps\\"
+        expected = line.split()
+        returned = slice_dat_line(line)
+        assert expected == returned, f"{returned = } but {expected = }"
