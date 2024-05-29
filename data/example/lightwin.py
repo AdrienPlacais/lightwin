@@ -128,7 +128,9 @@ def _perform_evaluations_new_implementation(
     return tests
 
 
-def main(config: dict[str, dict[str, Any]]) -> list[FaultScenario]:
+def main(
+    config: dict[str, dict[str, Any]], new_evaluations: bool = False
+) -> list[FaultScenario]:
     """Set up the various faults and fix it."""
     beam_calculators, accelerators, fault_scenarios, beam_calculator_ids = (
         set_up(config)
@@ -147,12 +149,13 @@ def main(config: dict[str, dict[str, Any]]) -> list[FaultScenario]:
     kwargs = {"save_fig": True, "clean_fig": True}
     _ = plot.factory(accelerators, config["plots"], **kwargs)
 
-    tests = _perform_evaluations_new_implementation(
-        accelerators,
-        beam_calculator_ids,
-        evaluator_kw=None,
-    )
-    del tests
+    if new_evaluations:
+        tests = _perform_evaluations_new_implementation(
+            accelerators,
+            beam_calculator_ids,
+            evaluator_kw=None,
+        )
+        del tests
     return fault_scenarios
 
 
@@ -166,5 +169,6 @@ if __name__ == "__main__":
         "wtf": "generic_wtf",
         "design_space": "tiny_design_space",
     }
+    NEW_EVALUATIONS = True
     config = config_manager.process_config(toml_filepath, toml_keys)
-    fault_scenarios = main(config)
+    fault_scenarios = main(config, new_evaluations=NEW_EVALUATIONS)
