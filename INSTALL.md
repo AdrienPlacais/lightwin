@@ -1,6 +1,8 @@
 # Installation
 You will need Python 3.12 or higher.
 
+TODO : move whole file to documentation
+
 ## Mandatory packages
 - `matplotlib`
 - `numpy`
