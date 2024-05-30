@@ -68,7 +68,7 @@ def _cavity_settings_to_adjust(
 
 
 def set_of_cavity_settings_to_adjust(
-    dat_idx_settings: zip,
+    set_of_cavity_settings: SetOfCavitySettings,
     number: int,
     tol_phi_deg: float = 5,
     link_k_g: bool = False,
@@ -79,64 +79,47 @@ def set_of_cavity_settings_to_adjust(
     commands = [
         _cavity_settings_to_adjust(
             cavity_settings,
-            dat_idx,
+            elt.idx["dat_idx"],
             number,
             link_index=i if link_k_g else 0,
             tol_phi_deg=tol_phi_deg,
             tol_k_e=tol_k_e,
             phase_nature=phase_nature,
         )
-        for i, (dat_idx, cavity_settings) in enumerate(dat_idx_settings)
+        for i, (elt, cavity_settings) in enumerate(
+            set_of_cavity_settings.items(), start=1
+        )
     ]
     return [x for x in flatten(commands)]
 
 
 def elements_to_diagnostics(
-    ref_elts: ListOfElements,
     fix_elts: ListOfElements,
-    failed: Collection[Element],
+    compensating: Collection[Element],
     number: int,
     number_of_dsize: int,
 ) -> list[Diagnostic]:
     """Create the DSize3 commands that will be needed."""
     lattices = fix_elts.by_lattice
-    failed_lattices = nested_containing_desired(lattices, failed)
+    compensating_lattices = nested_containing_desired(lattices, compensating)
 
-    first_failed, last_failed = failed_lattices[0], failed_lattices[-1]
-    assert isinstance(last_failed, list)
-    post_failure = lattices[lattices.index(last_failed) :]
+    first_compensating, last_compensating = (
+        compensating_lattices[0],
+        compensating_lattices[-1],
+    )
+    assert isinstance(last_compensating, list)
+    post_compensating = lattices[lattices.index(last_compensating) + 1 :]
 
     dzise_elements = (
-        first_failed[0],
-        *[lattice[0] for lattice in post_failure[:number_of_dsize]],
+        first_compensating[0],
+        *[lattice[0] for lattice in post_compensating[:number_of_dsize]],
     )
-    dat_indexes = dat_idx_in_full_dat(dzise_elements, ref_elts)
     dsize_args = (
-        (f"DIAG_DSIZE3 {number} 0 0".split(), dat_idx)
-        for dat_idx in dat_indexes
+        (f"DIAG_DSIZE3 {number} 0 0".split(), elt.idx["dat_idx"])
+        for elt in dzise_elements
     )
     dsizes = [DiagDSize3(*args) for args in dsize_args]
     return dsizes
-
-
-def dat_idx_in_full_dat(
-    elements: Collection[Element], ref_elts: ListOfElements
-) -> list[int]:
-    """Give the ``dat_idx`` of ``element`` in the original ``.dat.``."""
-    names = [str(element) for element in elements]
-    original_elements = ref_elts.take(names, "name")
-    dat_indexes = [x.idx["dat_idx"] for x in original_elements]
-    return dat_indexes
-
-
-def dat_idx_of_cavities(
-    set_of_cavity_settings: SetOfCavitySettings, ref_elts: ListOfElements
-) -> zip:
-    """Associate cavity settings with element index in original .dat."""
-    return zip(
-        dat_idx_in_full_dat(set_of_cavity_settings.keys(), ref_elts),
-        set_of_cavity_settings.values(),
-    )
 
 
 def beauty_pass_instructions(
@@ -151,36 +134,32 @@ def beauty_pass_instructions(
             "Not sure how multiple faults would interact."
         )
     fault: Fault = fault_scenario[0]
-    ref_elts = fault_scenario.ref_acc.elts
     fix_elts = fault_scenario.fix_acc.elts
-    failed = fault.failed_elements
+    compensating = fault.compensating_elements
 
     diagnostics = elements_to_diagnostics(
-        ref_elts,
         fix_elts,
-        failed,
+        compensating,
         number=number,
         number_of_dsize=number_of_dsize,
     )
 
-    dat_idx_settings = dat_idx_of_cavities(
-        fault.optimized_cavity_settings, ref_elts
-    )
     adjusts = set_of_cavity_settings_to_adjust(
-        dat_idx_settings, number=number, link_k_g=link_k_g
+        fault.optimized_cavity_settings, number=number, link_k_g=link_k_g
     )
     if len(adjusts) < 2:
         logging.error(
-            f"Not enough DIAG_DSIZE3 in {failed = } for beauty pass."
+            f"Not enough DIAG_DSIZE3 in {compensating = } for beauty pass."
         )
         return []
-    return [*diagnostics, *adjusts]
+    out = sorted([*diagnostics, *adjusts], key=lambda x: x.idx["dat_idx"])
+    return out
 
 
 def insert_beauty_pass_instructions(
     fault_scenario: FaultScenario,
     beam_calculator: BeamCalculator,
-    number_of_dsize: int = 6,
+    number_of_dsize: int = 10,
     number: int = 666333,
     link_k_g: bool = True,
 ) -> None:
