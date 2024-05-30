@@ -20,7 +20,7 @@ from core.list_of_elements.helper import (
     is_list_of_list_of_field_maps,
 )
 from core.list_of_elements.list_of_elements import ListOfElements
-from failures.helper import gather, sort_by_position
+from failures.helper import gather, nested_containing_desired, sort_by_position
 from util.helper import flatten
 
 cavities_id = Sequence[int] | Sequence[str]
@@ -177,11 +177,9 @@ def l_neighboring_lattices[
         Contains all the altered cavities.
 
     """
-    lattices_with_a_fault = [
-        lattice
-        for lattice in elements_gathered_by_lattice
-        if not set(failed_elements).isdisjoint(lattice)
-    ]
+    lattices_with_a_fault = nested_containing_desired(
+        elements_gathered_by_lattice, failed_elements
+    )
 
     elements_gathered_by_lattice = [
         x
