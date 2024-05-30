@@ -21,6 +21,7 @@ from experimental.new_evaluator.simulation_output.factory import (
 )
 from experimental.plotter.pd_plotter import PandasPlotter
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
+from util.beauty_pass import insert_beauty_pass_instructions
 from visualization import plot
 
 
@@ -87,6 +88,14 @@ def fix(fault_scenarios: Collection[FaultScenario]) -> None:
         fault_scenario.fix_all()
 
 
+def add_beauty_instructions(
+    fault_scenarios: Collection[FaultScenario], beam_calculator: BeamCalculator
+) -> None:
+    """Edit dat file to include beauty instructions."""
+    for fault_scenario in fault_scenarios:
+        insert_beauty_pass_instructions(fault_scenario, beam_calculator)
+
+
 def recompute(
     beam_calculators: Collection[BeamCalculator],
     references: Collection[SimulationOutput],
@@ -129,13 +138,18 @@ def _perform_evaluations_new_implementation(
 
 
 def main(
-    config: dict[str, dict[str, Any]], new_evaluations: bool = False
+    config: dict[str, dict[str, Any]],
+    new_evaluations: bool = False,
+    beauty_pass: bool = False,
 ) -> list[FaultScenario]:
     """Set up the various faults and fix it."""
     beam_calculators, accelerators, fault_scenarios, beam_calculator_ids = (
         set_up(config)
     )
     fix(fault_scenarios)
+
+    if beauty_pass:
+        add_beauty_instructions(fault_scenarios, beam_calculators[-1])
 
     references = [
         accelerators[0].simulation_outputs[solver_id]
@@ -170,5 +184,8 @@ if __name__ == "__main__":
         "design_space": "tiny_design_space",
     }
     NEW_EVALUATIONS = True
+    BEAUTY_PASS = False
     config = config_manager.process_config(toml_filepath, toml_keys)
-    fault_scenarios = main(config, new_evaluations=NEW_EVALUATIONS)
+    fault_scenarios = main(
+        config, new_evaluations=NEW_EVALUATIONS, beauty_pass=BEAUTY_PASS
+    )

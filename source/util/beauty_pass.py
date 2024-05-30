@@ -14,8 +14,10 @@ for now, the implementation is kept very simple:
 
 import logging
 import math
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 
+from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.tracewin.tracewin import TraceWin
 from core.commands.adjust import Adjust
 from core.elements.diagnostic import DiagDSize3, Diagnostic
 from core.elements.element import Element
@@ -66,7 +68,7 @@ def _cavity_settings_to_adjust(
 
 
 def set_of_cavity_settings_to_adjust(
-    set_of_cavity_settings: SetOfCavitySettings,
+    dat_idx_settings: zip,
     number: int,
     tol_phi_deg: float = 5,
     link_k_g: bool = False,
@@ -77,28 +79,27 @@ def set_of_cavity_settings_to_adjust(
     commands = [
         _cavity_settings_to_adjust(
             cavity_settings,
-            cavity.idx["dat_idx"],
+            dat_idx,
             number,
             link_index=i if link_k_g else 0,
             tol_phi_deg=tol_phi_deg,
             tol_k_e=tol_k_e,
             phase_nature=phase_nature,
         )
-        for i, (cavity, cavity_settings) in enumerate(
-            set_of_cavity_settings.items()
-        )
+        for i, (dat_idx, cavity_settings) in enumerate(dat_idx_settings)
     ]
     return [x for x in flatten(commands)]
 
 
 def elements_to_diagnostics(
-    elts: ListOfElements,
+    ref_elts: ListOfElements,
+    fix_elts: ListOfElements,
     failed: Collection[Element],
     number: int,
     number_of_dsize: int,
 ) -> list[Diagnostic]:
     """Create the DSize3 commands that will be needed."""
-    lattices = elts.by_lattice
+    lattices = fix_elts.by_lattice
     failed_lattices = nested_containing_desired(lattices, failed)
 
     first_failed, last_failed = failed_lattices[0], failed_lattices[-1]
@@ -109,13 +110,33 @@ def elements_to_diagnostics(
         first_failed[0],
         *[lattice[0] for lattice in post_failure[:number_of_dsize]],
     )
-
+    dat_indexes = dat_idx_in_full_dat(dzise_elements, ref_elts)
     dsize_args = (
-        (f"DSIZE3 {number} 0 0".split(), elt.idx["dat_idx"])
-        for elt in dzise_elements
+        (f"DIAG_DSIZE3 {number} 0 0".split(), dat_idx)
+        for dat_idx in dat_indexes
     )
     dsizes = [DiagDSize3(*args) for args in dsize_args]
     return dsizes
+
+
+def dat_idx_in_full_dat(
+    elements: Collection[Element], ref_elts: ListOfElements
+) -> list[int]:
+    """Give the ``dat_idx`` of ``element`` in the original ``.dat.``."""
+    names = [str(element) for element in elements]
+    original_elements = ref_elts.take(names, "name")
+    dat_indexes = [x.idx["dat_idx"] for x in original_elements]
+    return dat_indexes
+
+
+def dat_idx_of_cavities(
+    set_of_cavity_settings: SetOfCavitySettings, ref_elts: ListOfElements
+) -> zip:
+    """Associate cavity settings with element index in original .dat."""
+    return zip(
+        dat_idx_in_full_dat(set_of_cavity_settings.keys(), ref_elts),
+        set_of_cavity_settings.values(),
+    )
 
 
 def beauty_pass_instructions(
@@ -130,16 +151,23 @@ def beauty_pass_instructions(
             "Not sure how multiple faults would interact."
         )
     fault: Fault = fault_scenario[0]
-    elts = fault_scenario.fix_acc.elts
+    ref_elts = fault_scenario.ref_acc.elts
+    fix_elts = fault_scenario.fix_acc.elts
     failed = fault.failed_elements
-    set_of_cavity_settings = fault.optimized_cavity_settings
 
     diagnostics = elements_to_diagnostics(
-        elts, failed, number=number, number_of_dsize=number_of_dsize
+        ref_elts,
+        fix_elts,
+        failed,
+        number=number,
+        number_of_dsize=number_of_dsize,
     )
 
+    dat_idx_settings = dat_idx_of_cavities(
+        fault.optimized_cavity_settings, ref_elts
+    )
     adjusts = set_of_cavity_settings_to_adjust(
-        set_of_cavity_settings, number=number, link_k_g=link_k_g
+        dat_idx_settings, number=number, link_k_g=link_k_g
     )
     if len(adjusts) < 2:
         logging.error(
@@ -147,3 +175,53 @@ def beauty_pass_instructions(
         )
         return []
     return [*diagnostics, *adjusts]
+
+
+def insert_beauty_pass_instructions(
+    fault_scenario: FaultScenario,
+    beam_calculator: BeamCalculator,
+    number_of_dsize: int = 6,
+    number: int = 666333,
+    link_k_g: bool = True,
+) -> None:
+    """Insert DIAG/ADJUST commands to make the beauty pass."""
+    assert _is_adapted_to_beauty_pass(beam_calculator)
+
+    instructions = beauty_pass_instructions(
+        fault_scenario,
+        number_of_dsize=number_of_dsize,
+        number=number,
+        link_k_g=link_k_g,
+    )
+
+    accelerator = fault_scenario.fix_acc
+    elts = beam_calculator.list_of_elements_factory.from_existing_list(
+        accelerator.elts,
+        instructions_to_insert=instructions,
+        append_stem="beauty",
+        which_phase="phi_0_rel",
+    )
+    logging.info("Overwriting a ListOfElements by its beauty counterpart.")
+    accelerator.elts = elts
+    return
+
+
+def _is_adapted_to_beauty_pass(
+    beam_calculator: BeamCalculator,
+) -> bool:
+    """Check if the provided beam calculator can perform beauty pass."""
+    if not isinstance(beam_calculator, TraceWin):
+        logging.error("Beauty pass will only work with TraceWin.")
+        return False
+
+    if beam_calculator.base_kwargs.get("cancel_matching", False):
+        logging.error("You shall specify `cancel_matching = False` in config.")
+        return False
+
+    if not beam_calculator.base_kwargs.get("cancel_matchingP", False):
+        logging.warning(
+            "Doing a Partran optimisation may take a very long time. Doing it "
+            "anyway."
+        )
+        return True
+    return True
