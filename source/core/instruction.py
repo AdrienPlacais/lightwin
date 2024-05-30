@@ -18,8 +18,22 @@ class Instruction(ABC):
         line: list[str],
         dat_idx: int,
         name: str | None = None,
+        **kwargs,
     ) -> None:
-        """Instantiate corresponding line and line number in ``.dat`` file."""
+        """Instantiate corresponding line and line number in ``.dat`` file.
+
+        Parameters
+        ----------
+        line : list[str]
+            Line containing the instructions.
+        dat_idx : int
+            Position in the ``.dat``. Note that this index will vary if some
+            instructions (empty lines, comments in particular) are removed from
+            the dat content.
+        name : str | None
+            Name of the instruction.
+
+        """
         self.line = line
         self._assert_correct_number_of_args(dat_idx)
         self.idx = {"dat_idx": dat_idx}
