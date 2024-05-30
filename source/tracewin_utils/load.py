@@ -69,7 +69,7 @@ def dat_file(
     if not instructions_to_insert:
         return dat_filecontent
     logging.info(
-        "Will insert following instructions:\n{instructions_to_insert}"
+        f"Will insert following instructions:\n{instructions_to_insert}"
     )
     for i, instruction in enumerate(instructions_to_insert):
         instruction.insert(
