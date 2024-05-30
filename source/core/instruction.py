@@ -61,11 +61,11 @@ class Instruction(ABC):
     @property
     def name(self) -> str:
         """Give personal. name of instruction if exists, default otherwise."""
-        if self._personalized_name is None:
-            if hasattr(self, "_default_name"):
-                return self._default_name
-            return str(self.line)
-        return self._personalized_name
+        if self._personalized_name:
+            return self._personalized_name
+        if hasattr(self, "_default_name"):
+            return self._default_name
+        return str(self.line)
 
     def to_line(
         self, *args, inplace: bool = False, with_name: bool = False, **kwargs
