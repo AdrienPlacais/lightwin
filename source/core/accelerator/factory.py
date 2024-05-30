@@ -41,9 +41,9 @@ class AcceleratorFactory(ABC):
 
         if isinstance(beam_calculators, BeamCalculator):
             beam_calculators = (beam_calculators,)
-        assert beam_calculators[0] is not None, (
-            "Need at least one working " "BeamCalculator."
-        )
+        assert (
+            beam_calculators[0] is not None
+        ), "Need at least one working BeamCalculator."
         self.beam_calculators = beam_calculators
 
     def run(self, *args, **kwargs) -> Accelerator:
@@ -108,17 +108,16 @@ class AcceleratorFactory(ABC):
 
         if len(beam_calculators_flags) > 1:
             logging.debug(
-                "BeamCalculator objects have different flag_phi_abs "
-                "values. Warning already raised in "
-                "BeamCalculatorsFactory"
+                "BeamCalculator objects have different flag_phi_abs values."
+                " Warning already raised in BeamCalculatorsFactory"
             )
             return
 
         cavities_references = [x.cavity_settings.reference for x in cavities]
         if len(set(cavities_references)) > 1:
             logging.warning(
-                "The cavities do not all have the same reference "
-                "phase. This may lead to inconsistencies."
+                "The cavities do not all have the same reference phase. This "
+                "may lead to inconsistencies."
             )
             return
 
