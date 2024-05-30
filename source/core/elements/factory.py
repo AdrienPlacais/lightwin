@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a class to easily create :class:`.Element` objects."""
+
 from pathlib import Path
 from typing import Any
 
