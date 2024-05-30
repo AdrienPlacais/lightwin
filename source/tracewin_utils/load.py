@@ -26,7 +26,7 @@ TRACEWIN_IMPORT_DATA_TABLE = {
 }
 
 
-def dat_file(
+def load_dat_file(
     dat_path: Path,
     *,
     keep: Literal["none", "comments", "empty lines", "all"] = "none",
