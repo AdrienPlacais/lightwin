@@ -271,10 +271,6 @@ class FaultScenario(list):
                 # Tell LW to keep the new phase of the rephased cavities
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
-                logging.critical(
-                    "Calculation in relative phase. Check if "
-                    "necessary to reperform simulation?"
-                )
 
         self.fix_acc.name = (
             f"Fixed ({str(success.count(True))}" + f" of {str(len(success))})"
