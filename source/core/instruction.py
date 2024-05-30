@@ -52,11 +52,13 @@ class Instruction(ABC):
 
     def __str__(self) -> str:
         """Give information on current command."""
-        return f"{self.__class__.__name__:15s} {self.line}"
+        return self.name
 
     def __repr__(self) -> str:
         """Say same thing as ``__str__``."""
-        return self.__str__()
+        if self.name:
+            f"{self.__class__.__name__:15s} {self.name}"
+        return f"{self.__class__.__name__:15s} {self.line}"
 
     @property
     def name(self) -> str:
