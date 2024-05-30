@@ -90,7 +90,7 @@ class ListOfElements(list):
 
         super().__init__(elts)
         self.by_section_and_lattice: list[list[list[Element]]] | None = None
-        self.by_lattice: list[list[Element]] | None = None
+        self.by_lattice: list[list[Element]]
 
         if first_init:
             self._first_init()
