@@ -142,8 +142,8 @@ class Fault:
 
     def fix(
         self, optimisation_algorithm: OptimisationAlgorithm
-    ) -> tuple[bool, SetOfCavitySettings, dict]:
-        """Fix the :class:`Fault`.
+    ) -> tuple[bool, dict]:
+        """Fix the :class:`Fault`. Set :attr:`optimized_cavity_settings`.
 
         Parameters
         ----------
@@ -154,8 +154,6 @@ class Fault:
         -------
         success : bool
             Indicates convergence of the :class:`OptimisationAlgorithm`.
-        optimized_cavity_settings : SetOfCavitySettings
-            Best cavity settings found by the :class:`OptimisationAlgorithm`.
         self.info : dict
             Useful information, such as the best solution.
 
@@ -164,7 +162,7 @@ class Fault:
         success, optimized_cavity_settings, self.info = outputs
         assert optimized_cavity_settings is not None
         self.optimized_cavity_settings = optimized_cavity_settings
-        return success, optimized_cavity_settings, self.info
+        return success, self.info
 
     def update_elements_status(
         self, optimisation: str, success: bool | None = None

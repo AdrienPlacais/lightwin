@@ -220,8 +220,7 @@ class FaultScenario(list):
         # )
 
     def fix_all(self) -> None:
-        """
-        Fix all the :class:`Fault` objects in self.
+        """Fix all the :class:`Fault` objects in self.
 
         .. todo::
             make this more readable
@@ -238,16 +237,14 @@ class FaultScenario(list):
         for fault, optimisation_algorithm in zip(
             self, optimisation_algorithms
         ):
-            _succ, optimized_cavity_settings, _info = fault.fix(
-                optimisation_algorithm
-            )
+            _succ, _info = fault.fix(optimisation_algorithm)
 
             success.append(_succ)
             info.append(_info)
 
             simulation_output = (
                 self.beam_calculator.post_optimisation_run_with_this(
-                    optimized_cavity_settings,
+                    fault.optimized_cavity_settings,
                     self.fix_acc.elts,
                 )
             )
