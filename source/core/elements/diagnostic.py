@@ -27,7 +27,7 @@ class Diagnostic(Element):
         self,
         line: list[str],
         dat_idx: int,
-        name: str | None = None,
+        name: str = "",
         **kwargs: str,
     ) -> None:
         """Force an element with null-length, with no index."""
@@ -110,7 +110,7 @@ class DiagDSize2(Diagnostic):
         self,
         line: list[str],
         dat_idx: int,
-        name: str | None = None,
+        name: str = "",
         **kwargs: str,
     ) -> None:
         """Force an element with null-length, with no index."""
@@ -132,7 +132,7 @@ class DiagDSize3(Diagnostic):
         self,
         line: list[str],
         dat_idx: int,
-        name: str | None = None,
+        name: str = "",
         **kwargs: str,
     ) -> None:
         """Force an element with null-length, with no index."""
