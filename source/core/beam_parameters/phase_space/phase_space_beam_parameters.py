@@ -211,8 +211,7 @@ class PhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
             if raise_missing_twiss_error:
                 raise IOError(
                     "Fixed linac Twiss not calculated in phase space"
-                    f" {self.phase_space_name}. Cannot compute "
-                    "mismatch."
+                    f" {self.phase_space_name}. Cannot compute mismatch."
                 )
             return None
 
@@ -221,8 +220,7 @@ class PhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
             if raise_missing_twiss_error:
                 raise IOError(
                     "Reference Twiss not calculated in phase space "
-                    f"{self.phase_space_name}. Cannot compute "
-                    "mismatch."
+                    f"{self.phase_space_name}. Cannot compute mismatch."
                 )
             return None
 
