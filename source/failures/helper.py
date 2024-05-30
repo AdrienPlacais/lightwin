@@ -213,15 +213,18 @@ def gather[
 def nested_containing_desired[
     T
 ](
-    nested: Collection[Collection[T]],
+    nested: Collection[Sequence[T]],
     desired_elements: Collection[T],
 ) -> list[
-    Collection[T]
+    Sequence[T]
 ]:
     """Return collections of ``nested`` containing some ``desired_elements``.
 
-    With ``nested = ListOfElements.by_lattice`` and
-    ``desired_elements = failed``, you will get ``lattices_with_a_failure``.
+    Example
+    -------
+    nested_containing_desired(ListOfElements.by_lattice,
+                              failed_elements
+                              ) -> lattices_with_a_failure
 
     """
     nested_with_desired_elements = [
