@@ -34,12 +34,12 @@ class Diagnostic(Element):
         line, self.weight = self._separate_weight(line)
         super().__init__(line, dat_idx, name)
 
+        self.length_m = 0.0
+        self.number = int(line[1])
+
         # patch to keep weight in `line` attribute if it is present
         if self.weight != 1.0:
             self.line.insert(1, f"({self.weight})")
-
-        self.length_m = 0.0
-        self.number = int(line[1])
 
     def _separate_weight(self, line: list[str]) -> tuple[list[str], float]:
         """Detect if a weight is present, separate if from args if so."""
