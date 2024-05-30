@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a factory to easily create :class:`.Accelerator`."""
+
+import logging
 from abc import ABC
 from dataclasses import dataclass
-import logging
 from pathlib import Path
 from typing import Sequence
 
@@ -17,11 +16,12 @@ class AcceleratorFactory(ABC):
     """A class to create accelerators."""
 
     def __init__(
-            self,
-            dat_file: Path,
-            project_folder: Path,
-            beam_calculators: BeamCalculator | Sequence[BeamCalculator | None],
-            **files_kw: str | Path) -> None:
+        self,
+        dat_file: Path,
+        project_folder: Path,
+        beam_calculators: BeamCalculator | Sequence[BeamCalculator | None],
+        **files_kw: str | Path,
+    ) -> None:
         """Create the object from the ``project_folder``.
 
         Parameters
@@ -40,9 +40,10 @@ class AcceleratorFactory(ABC):
         self.project_folder = project_folder
 
         if isinstance(beam_calculators, BeamCalculator):
-            beam_calculators = beam_calculators,
-        assert beam_calculators[0] is not None, "Need at least one working "\
-            "BeamCalculator."
+            beam_calculators = (beam_calculators,)
+        assert beam_calculators[0] is not None, (
+            "Need at least one working " "BeamCalculator."
+        )
         self.beam_calculators = beam_calculators
 
     def run(self, *args, **kwargs) -> Accelerator:
@@ -51,10 +52,11 @@ class AcceleratorFactory(ABC):
         self._check_consistency_absolute_phases(accelerator.l_cav)
         return accelerator
 
-    def _generate_folders_tree_structure(self,
-                                         out_folders: Sequence[Path],
-                                         n_simulations: int,
-                                         ) -> list[Path]:
+    def _generate_folders_tree_structure(
+        self,
+        out_folders: Sequence[Path],
+        n_simulations: int,
+    ) -> list[Path]:
         """Create the proper folders for every :class:`.Accelerator`.
 
         The default structure is:
@@ -80,8 +82,9 @@ class AcceleratorFactory(ABC):
             :class:`.BeamCalculator`.
 
         """
-        accelerator_paths = [self.project_folder / f"{i:06d}"
-                             for i in range(n_simulations)]
+        accelerator_paths = [
+            self.project_folder / f"{i:06d}" for i in range(n_simulations)
+        ]
         accelerator_paths[0] = accelerator_paths[0].with_name(
             f"{accelerator_paths[0].name}_ref"
         )
@@ -92,27 +95,37 @@ class AcceleratorFactory(ABC):
         return accelerator_paths
 
     def _check_consistency_absolute_phases(
-            self,
-            cavities: Sequence[FieldMap]) -> None:
+        self, cavities: Sequence[FieldMap]
+    ) -> None:
         """Check that solvers phases are consistent with ``.dat`` file."""
         beam_calculators = [x for x in self.beam_calculators if x is not None]
-        beam_calculators_flags = set([beam_calculator.flag_phi_abs
-                                      for beam_calculator in beam_calculators])
+        beam_calculators_flags = set(
+            [
+                beam_calculator.flag_phi_abs
+                for beam_calculator in beam_calculators
+            ]
+        )
 
         if len(beam_calculators_flags) > 1:
-            logging.debug("BeamCalculator objects have different flag_phi_abs "
-                          "values. Warning already raised in "
-                          "BeamCalculatorsFactory")
+            logging.debug(
+                "BeamCalculator objects have different flag_phi_abs "
+                "values. Warning already raised in "
+                "BeamCalculatorsFactory"
+            )
             return
 
         cavities_references = [x.cavity_settings.reference for x in cavities]
         if len(set(cavities_references)) > 1:
-            logging.warning("The cavities do not all have the same reference "
-                            "phase. This may lead to inconsistencies.")
+            logging.warning(
+                "The cavities do not all have the same reference "
+                "phase. This may lead to inconsistencies."
+            )
             return
 
-        if cavities_references[0] == 'phi_0_abs' and \
-                not beam_calculators[0].flag_phi_abs:
+        if (
+            cavities_references[0] == "phi_0_abs"
+            and not beam_calculators[0].flag_phi_abs
+        ):
             logging.warning(
                 "You asked LW a simulation in relative phase, while there "
                 "is at least one cavity in absolute phase in the .dat file "
@@ -120,11 +133,14 @@ class AcceleratorFactory(ABC):
                 "LightWin results and TraceWin results for the same input "
                 ".dat, after the first failed cavity. No difference should "
                 "appear with the output .dat, or when using TraceWin solver "
-                "within LightWin.")
+                "within LightWin."
+            )
             return
 
-        if cavities_references[0] == 'phi_0_rel' and \
-                beam_calculators[0].flag_phi_abs:
+        if (
+            cavities_references[0] == "phi_0_rel"
+            and beam_calculators[0].flag_phi_abs
+        ):
             logging.warning(
                 "You asked LW a simulation in absolute phase, while there "
                 "is at least one cavity in relative phase in the .dat file "
@@ -132,24 +148,28 @@ class AcceleratorFactory(ABC):
                 "LightWin results and TraceWin results for the same input "
                 ".dat, after the first failed cavity. No difference should "
                 "appear with the output .dat, or when using TraceWin solver "
-                "within LightWin.")
+                "within LightWin."
+            )
             return
 
 
 class NoFault(AcceleratorFactory):
     """Factory used to generate a single accelerator, no faults."""
 
-    def __init__(self,
-                 dat_file: Path,
-                 project_folder: Path,
-                 beam_calculator: BeamCalculator,
-                 **files_kw,
-                 ) -> None:
+    def __init__(
+        self,
+        dat_file: Path,
+        project_folder: Path,
+        beam_calculator: BeamCalculator,
+        **files_kw,
+    ) -> None:
         """Initialize."""
-        super().__init__(dat_file,
-                         project_folder,
-                         beam_calculators=beam_calculator,
-                         **files_kw)
+        super().__init__(
+            dat_file,
+            project_folder,
+            beam_calculators=beam_calculator,
+            **files_kw,
+        )
 
     @property
     def beam_calculator(self) -> BeamCalculator:
@@ -158,13 +178,15 @@ class NoFault(AcceleratorFactory):
 
     def run(self, *args, **kwargs) -> Accelerator:
         """Create a single accelerator."""
-        out_folders = self.beam_calculator.out_folder,
+        out_folders = (self.beam_calculator.out_folder,)
         accelerator_path = self._generate_folders_tree_structure(
-            out_folders, n_simulations=1,
+            out_folders,
+            n_simulations=1,
         )[0]
-        list_of_elements_factory = \
+        list_of_elements_factory = (
             self.beam_calculator.list_of_elements_factory
-        name = 'Working'
+        )
+        name = "Working"
 
         accelerator = super().run(
             name=name,
@@ -213,31 +235,36 @@ class WithFaults(AcceleratorFactory):
         """Return a single accelerator."""
         return super().run(*args, **kwargs)
 
-    def run_all(self,
-                **kwargs
-                ) -> list[Accelerator]:
+    def run_all(self, **kwargs) -> list[Accelerator]:
         """Create the required Accelerators as well as their output folders."""
-        out_folders = [beam_calculator.out_folder
-                       for beam_calculator in self.beam_calculators
-                       if beam_calculator is not None]
+        out_folders = [
+            beam_calculator.out_folder
+            for beam_calculator in self.beam_calculators
+            if beam_calculator is not None
+        ]
 
         accelerator_paths = self._generate_folders_tree_structure(
-            out_folders,
-            n_simulations=self.n_simulations
+            out_folders, n_simulations=self.n_simulations
         )
 
-        names = ['Working' if i == 0 else 'Broken'
-                 for i in range(self.n_simulations)]
+        names = [
+            "Working" if i == 0 else "Broken"
+            for i in range(self.n_simulations)
+        ]
 
-        list_of_elements_factory = \
-            self.beam_calculators[0].list_of_elements_factory
+        list_of_elements_factory = self.beam_calculators[
+            0
+        ].list_of_elements_factory
 
-        accelerators = [self.run(
-            name=name,
-            dat_file=self.dat_file,
-            accelerator_path=accelerator_path,
-            list_of_elements_factory=list_of_elements_factory,
-        ) for name, accelerator_path in zip(names, accelerator_paths)]
+        accelerators = [
+            self.run(
+                name=name,
+                dat_file=self.dat_file,
+                accelerator_path=accelerator_path,
+                list_of_elements_factory=list_of_elements_factory,
+            )
+            for name, accelerator_path in zip(names, accelerator_paths)
+        ]
         return accelerators
 
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a :class:`.BeamCalculator` that will call TraceWin from cmd line.
 
 It inherits from :class:`.BeamCalculator` base class.  It solves the motion of
@@ -16,6 +14,7 @@ the particles in envelope or multipart, in 3D. In contrary to
     folder should be the original ``.dat`` but converted to absolute phases.
 
 """
+
 import logging
 import shutil
 import subprocess
