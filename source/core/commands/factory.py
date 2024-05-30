@@ -1,15 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Define a class to easily create :class:`.Command` objects.
+"""Define a class to easily create :class:`.Command` objects.
 
 .. todo::
     handle personalized name of commands (marker)
 
 """
+
 from pathlib import Path
 from typing import Any
 
+from core.commands.adjust import Adjust
 from core.commands.command import Command
 from core.commands.dummy_command import DummyCommand
 from core.commands.end import End
@@ -22,7 +21,7 @@ from core.commands.steerer import Steerer
 from core.commands.superpose_map import SuperposeMap
 
 IMPLEMENTED_COMMANDS = {
-    "ADJUST": DummyCommand,
+    "ADJUST": Adjust,
     "ADJUST_STEERER": DummyCommand,
     "DUMMY_COMMAND": DummyCommand,
     "END": End,
