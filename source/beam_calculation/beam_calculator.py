@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a base class for beam propagation computing tools.
 
 The base class :class:`BeamCalculator`, allows to compute the propagation of
@@ -11,6 +9,7 @@ the beam in a :class:`.ListOfElements`, possibly with a specific
     Precise that BeamParametersFactory and TransferMatrixFactory are mandatory.
 
 """
+
 import datetime
 import logging
 import time
@@ -27,8 +26,6 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.accelerator.accelerator import Accelerator
-from core.elements.element import Element
-from core.elements.field_maps.cavity_settings import CavitySettings
 from core.elements.field_maps.cavity_settings_factory import (
     CavitySettingsFactory,
 )
