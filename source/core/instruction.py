@@ -51,11 +51,11 @@ class Instruction(ABC):
             )
 
     def __str__(self) -> str:
-        """Give information on current command."""
+        """Give name of current command. Used by LW to identify elements."""
         return self.name
 
     def __repr__(self) -> str:
-        """Say same thing as ``__str__``."""
+        """Give more information than __str__. Used for display only."""
         if self.name:
             f"{self.__class__.__name__:15s} {self.name}"
         return f"{self.__class__.__name__:15s} {self.line}"
