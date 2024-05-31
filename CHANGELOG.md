@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `evaluator` objects are more robust and can be configured from the `.toml`.
 - Plotting is now performed thanks to the `plotter` library.
 
-## [0.6.20] 2024-06-??
+## [0.6.20] 2024-05-31
 
 ### Added
+- Basic support for ADJUST commands
 - New functionality: beauty pass.
  - After a `FaultScenario` is fixed, use `insert_beauty_pass_instructions` from `util.beauty_pass` to add diagnostics and adjust and let TraceWin refine the settings.
  - Prefer providing `TraceWin` with `cancel_matchingP = true` (would be too long).
