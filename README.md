@@ -10,10 +10,28 @@ The instructions are very classic and can be resumed by:
 3. Compile the Cython packages with the `source/util/setup.py` script
 
 ## Documentation
-Documentation is available [here](https://adrienplacais.github.io/LightWin/html/index.html)
+Documentation is available [here](https://adrienplacais.github.io/LightWin/html/index.html).
 
 ## How to run
-See [here](https://adrienplacais.github.io/LightWin/html/manual/usage.html)
+See [here](https://adrienplacais.github.io/LightWin/html/manual/usage.html).
 
 ## Example
 See the `data/example` folder.
+
+## Future updates
+
+### BeamCalculator
+
+- [ ] Beam calculator developed by JM Lagniel for SPIRAL2.
+- [ ] Envelope solvers with space-charge.
+
+### Quality of life
+
+- [ ] `Plotter` object.
+- [ ] Friendlier `Evaluator`.
+- [ ] Full support for `SET_SYNC_PHASE`.
+- [ ] Better handling of TraceWin errors (currently: a single error and whole run is lost).
+
+### Optimization
+
+- [ ] Correlation matrices
