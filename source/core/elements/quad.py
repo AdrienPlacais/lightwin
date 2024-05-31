@@ -20,3 +20,4 @@ class Quad(Element):
         """Check number of attributes, set gradient."""
         super().__init__(line, dat_idx, name)
         self.grad = float(line[2])
+        self.reinsert_optional_commands_in_line()
