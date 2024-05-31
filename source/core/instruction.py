@@ -1,4 +1,11 @@
-"""Define a master class for :class:`.Element` and :class:`.Command`."""
+"""Define a master class for :class:`.Element` and :class:`.Command`.
+
+.. todo::
+    The ``line`` is edited to remove personalized name, weight and always have
+    the same arguments at the same position. But after I shall re-add them with
+    reinsert_optional_commands_in_line. This is very patchy and un-Pythonic.
+
+"""
 
 import logging
 from abc import ABC
