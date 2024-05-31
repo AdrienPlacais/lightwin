@@ -9,7 +9,6 @@ source
    config_manager
    constants
    core
-   edit_phases_in_dat_file
    evaluator
    experimental
    failures
