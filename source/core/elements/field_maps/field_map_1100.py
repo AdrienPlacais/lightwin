@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a field map with 1D rf electro-magnetic field."""
+
 from core.elements.field_maps.field_map import FieldMap
 
 
@@ -44,5 +43,8 @@ class FieldMap1100(FieldMap):
         line = super().to_line(
             which_phase=which_phase, *args, inplace=inplace, **kwargs
         )
-        line[5] = str(self.cavity_settings.k_e)
+        shift = 0
+        if self._personalized_name:
+            shift += 1
+        line[5 + shift] = str(self.cavity_settings.k_e)
         return line

@@ -74,6 +74,15 @@ class Instruction(ABC):
             f"{self.__class__.__name__:15s} {self.name}"
         return f"{self.__class__.__name__:15s} {self.line}"
 
+    def reinsert_optional_commands_in_line(self) -> None:
+        """Reput name and weight."""
+        shift = 0
+        if self._personalized_name:
+            self.line.insert(0, f"{self._personalized_name}:")
+            shift += 1
+        if (weight := getattr(self, "weight", 1.0)) != 1.0:
+            self.line.insert(1 + shift, f"({weight})")
+
     @property
     def name(self) -> str:
         """Give personal. name of instruction if exists, default otherwise."""
