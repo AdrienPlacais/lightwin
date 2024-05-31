@@ -8,7 +8,7 @@
 
 import itertools
 import math
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Collection, Sequence
 from functools import partial
 
 
@@ -208,3 +208,26 @@ def gather[
         for sublist in altered_gathered
     ]
     return failed_gathered, compensating_gathered
+
+
+def nested_containing_desired[
+    T
+](
+    nested: Collection[Sequence[T]],
+    desired_elements: Collection[T],
+) -> list[
+    Sequence[T]
+]:
+    """Return collections of ``nested`` containing some ``desired_elements``.
+
+    Example
+    -------
+    nested_containing_desired(ListOfElements.by_lattice,
+                              failed_elements
+                              ) -> lattices_with_a_failure
+
+    """
+    nested_with_desired_elements = [
+        x for x in nested if not set(desired_elements).isdisjoint(x)
+    ]
+    return nested_with_desired_elements

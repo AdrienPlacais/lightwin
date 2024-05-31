@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `evaluator` objects are more robust and can be configured from the `.toml`.
 - Plotting is now performed thanks to the `plotter` library.
 
+## [0.6.20] 2024-06-??
+
+### Added
+- New functionality: beauty pass.
+ - After a `FaultScenario` is fixed, use `insert_beauty_pass_instructions` from `util.beauty_pass` to add diagnostics and adjust and let TraceWin refine the settings.
+ - Prefer providing `TraceWin` with `cancel_matchingP = true` (would be too long).
+ - Do NOT provide `cancel_matching = true` nor `cancel_matching = false`. Just drop this argument out (FIXME).
+
+### Fixed
+- Personalized name of field maps 1100, 100 and of quadrupoles are now exported in output dat file.
+ - Note that this is a temporary patch, a more robust solution will be implemented in future updates.
+
 ## [0.6.19] 2024-05-27
 
 ### Added

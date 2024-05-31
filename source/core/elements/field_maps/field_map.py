@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Hold a ``FIELD_MAP``.
 
 .. todo::
@@ -20,6 +18,7 @@
     - the ``run_with_this`` methods
 
 """
+
 import math
 from pathlib import Path
 from typing import Any
@@ -77,6 +76,7 @@ class FieldMap(Element):
 
         self.new_rf_field: NewRfField
         self._can_be_retuned: bool = True
+        self.reinsert_optional_commands_in_line()
 
     @property
     def status(self) -> str:
@@ -254,10 +254,10 @@ class FieldMap(Element):
         """Give the position of the arguments in the ``FIELD_MAP ``command."""
         indexes = {"phase": 3, "k_e": 6, "abs_phase_flag": 10}
 
-        # if not hasattr(self, "_personalized_name"):
-        #     return indexes
-        # for key in indexes:
-        #     indexes[key] += 1
+        if not self._personalized_name:
+            return indexes
+        for key in indexes:
+            indexes[key] += 1
         return indexes
 
     def _phase_for_line(self, which_phase: str) -> tuple[float, int]:

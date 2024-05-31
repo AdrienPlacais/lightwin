@@ -6,7 +6,7 @@ It keeps it's name, bounds, initial value, etc.
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Self
+from typing import Self
 
 import numpy as np
 import pandas as pd
@@ -20,8 +20,7 @@ IMPLEMENTED_VARIABLES = ("k_e", "phi_0_abs", "phi_0_rel", "phi_s")  #:
 
 @dataclass
 class Variable(DesignSpaceParameter):
-    """
-    A single variable.
+    """A single variable.
 
     It can be a cavity amplitude, absolute phase, relative phase or synchronous
     phase with an initial value and limits.

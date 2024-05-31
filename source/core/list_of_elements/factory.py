@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define an object to create :class:`.ListOfElements`.
 
 Its main goal is to initialize :class:`.ListOfElements` with the proper input
@@ -23,18 +21,19 @@ a full :class:`.ListOfElements` from scratch.
     :class:`.TraceWin` for example.
 
 .. todo::
-    The ``elements_to_remove`` key should be in the configuration file
+    The ``elements_to_dump`` key should be in the configuration file
 
 """
+
 import logging
+import shutil
 from abc import ABCMeta
-from collections.abc import Iterable
+from collections.abc import Collection
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
-import tracewin_utils.load
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
@@ -49,6 +48,7 @@ from tracewin_utils.dat_files import (
     dat_filecontent_from_smaller_list_of_elements,
     export_dat_filecontent,
 )
+from tracewin_utils.load import load_dat_file
 
 
 class ListOfElementsFactory:
@@ -63,7 +63,7 @@ class ListOfElementsFactory:
         load_field_maps: bool = True,
         field_maps_in_3d: bool = False,
         load_cython_field_maps: bool = False,
-        elements_to_remove: ABCMeta | tuple[ABCMeta, ...] = (),
+        elements_to_dump: ABCMeta | tuple[ABCMeta, ...] = (),
     ):
         """Declare and create some mandatory factories.
 
@@ -98,13 +98,14 @@ class ListOfElementsFactory:
             load_field_maps,
             field_maps_in_3d,
             load_cython_field_maps,
+            elements_to_dump=elements_to_dump,
         )
-        self.elements_to_remove = elements_to_remove
 
     def whole_list_run(
         self,
         dat_file: Path,
         accelerator_path: Path,
+        instructions_to_insert: Collection[Instruction] = (),
         **kwargs: Any,
     ) -> ListOfElements:
         """Create a new :class:`.ListOfElements`, encompassing a full linac.
@@ -118,6 +119,11 @@ class ListOfElementsFactory:
         accelerator_path : Path
             Absolute path where results for each :class:`.BeamCalculator` will
             be stored.
+        instructions_to_insert : Collection[Instruction], optional
+            Some elements or commands that are not present in the ``.dat`` file
+            but that you want to add. The default is an empty tuple.
+        kwargs :
+            Arguments to instantiate the input particle and beam properties.
 
         Returns
         -------
@@ -127,11 +133,13 @@ class ListOfElementsFactory:
 
         """
         logging.info(
-            "First initialisation of ListOfElements, ecompassing all flinac. "
+            "First initialisation of ListOfElements, ecompassing all linac. "
             f"Created with {dat_file = }"
         )
 
-        dat_filecontent = tracewin_utils.load.complete_dat_file(dat_file)
+        dat_filecontent = load_dat_file(
+            dat_file, keep="all", instructions_to_insert=instructions_to_insert
+        )
         files = {
             "dat_file": dat_file,
             "dat_content": dat_filecontent,
@@ -140,7 +148,7 @@ class ListOfElementsFactory:
         }
 
         instructions = self.instructions_factory.run(dat_filecontent)
-        elts = self._filter_out_commands_and_elements_to_remove(instructions)
+        elts = [x for x in instructions if isinstance(x, Element)]
 
         files["elts_n_cmds"] = instructions
 
@@ -159,34 +167,6 @@ class ListOfElementsFactory:
             first_init=True,
         )
         return list_of_elements
-
-    def _filter_out_commands_and_elements_to_remove(
-        self, instructions: Iterable[Instruction]
-    ) -> list[Element]:
-        """Create a list of elements, with only the ones implemented."""
-        elts = []
-        removed_elts = []
-        for instruction in instructions:
-            if not isinstance(instruction, Element):
-                continue
-
-            if isinstance(instruction, self.elements_to_remove):
-                removed_elts.append(instruction)
-                continue
-
-            elts.append(instruction)
-
-        n_removed = len(removed_elts)
-        if n_removed > 0:
-            types = set([elt.__class__.__name__ for elt in removed_elts])
-            logging.warning(
-                f"Removed {n_removed} elements, according to the "
-                "ListOfElementsFactory.elements_to_remove key. The removed "
-                f"elements have types: {types}.\nNote that with TraceWin, "
-                "every Command and Element is kept.\nNote that this will "
-                "likely lead to problems when visualising structure."
-            )
-        return elts
 
     def _whole_list_input_particle(
         self, w_kin: float, phi_abs: float, z_in: float, **kwargs: np.ndarray
@@ -208,8 +188,7 @@ class ListOfElementsFactory:
             str, Path | str | list[list[str]]
         ],
     ) -> ListOfElements:
-        """
-        Create a :class:`.ListOfElements` which is a subset of a previous one.
+        """Create a :class:`.ListOfElements` as subset of a previous one.
 
         Factory function used during the fitting process, called by a
         :class:`.Fault` object. During this optimisation process, we compute
@@ -296,14 +275,14 @@ class ListOfElementsFactory:
         self,
         elts: list[Element],
         files_from_full_list_of_elements: dict[str, Any],
-        tmp_folder: Path | str = Path("tmp"),
-        tmp_dat: Path | str = Path("tmp.dat"),
+        folder: Path | str = Path("tmp"),
+        dat_name: Path | str = Path("tmp.dat"),
     ) -> dict[str, Path | list[list[str]]]:
         """Set the new ``.dat`` file containing only elements of ``elts``."""
         accelerator_path = files_from_full_list_of_elements["accelerator_path"]
-        out = accelerator_path / tmp_folder
+        out = accelerator_path / folder
         out.mkdir(exist_ok=True)
-        dat_file = out / tmp_dat
+        dat_file = out / dat_name
 
         original_instructions = files_from_full_list_of_elements["elts_n_cmds"]
         assert isinstance(original_instructions, list)
@@ -318,7 +297,7 @@ class ListOfElementsFactory:
             "dat_file": dat_file,
             "dat_content": dat_content,
             "elts_n_cmds": instructions,
-            "accelerator_path": accelerator_path / tmp_folder,
+            "accelerator_path": accelerator_path / folder,
         }
 
         export_dat_filecontent(dat_content, dat_file)
@@ -327,8 +306,7 @@ class ListOfElementsFactory:
     def _delta_phi_for_tracewin(
         self, phi_at_entry_of_compensation_zone: float
     ) -> float:
-        """
-        Give new absolute phases for :class:`.TraceWin`.
+        """Give new absolute phases for :class:`.TraceWin`.
 
         In TraceWin, the absolute phase at the entrance of the compensation
         zone is 0, while it is not in the rest of the code. Hence we must
@@ -369,3 +347,49 @@ class ListOfElementsFactory:
             w_kin, phi_abs, z_abs, synchronous=True
         )
         return input_particle
+
+    def from_existing_list(
+        self,
+        elts: ListOfElements,
+        *,
+        instructions_to_insert: Collection[Instruction] = (),
+        append_stem: str = "",
+        which_phase: str = "phi_0_rel",
+    ) -> ListOfElements:
+        """Create new list of elements, based on an exising one.
+
+        This method is used for beauty pass: we already have fixed the linac,
+        but we want to add DIAG/ADJUST TraceWin commands to perform a second
+        optimisation.
+
+        .. todo::
+            Maybe gather some things with the subset?
+
+        """
+        logging.info("Creating ListOfElements from pre-existing.")
+
+        original_dat = elts.files["dat_file"]
+        assert isinstance(original_dat, Path)
+        new_dat = original_dat
+        if append_stem:
+            new_dat = new_dat.with_stem(new_dat.stem + "_" + append_stem)
+        shutil.copy(original_dat, new_dat)
+
+        accelerator_path = elts.files["accelerator_path"]
+        assert isinstance(accelerator_path, Path)
+
+        kwargs = {
+            "w_kin": elts.input_particle.w_kin,
+            "phi_abs": elts.input_particle.phi_abs,
+            "z_in": elts.input_particle.z_in,
+            "sigma_in": elts.input_beam.sigma,
+        }
+
+        new_elts = self.whole_list_run(
+            dat_file=new_dat,
+            accelerator_path=accelerator_path,
+            instructions_to_insert=instructions_to_insert,
+            **kwargs,
+        )
+        export_dat_filecontent(new_elts.files["dat_content"], new_dat)
+        return new_elts

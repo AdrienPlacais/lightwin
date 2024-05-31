@@ -1,14 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define functions to load and preprocess the TraceWin files."""
+
 import itertools
 import logging
 import re
+from collections.abc import Collection
 from pathlib import Path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from typing import Literal
 
 import numpy as np
+
+from core.instruction import Instruction
 
 # Dict of data that can be imported from TW's "Data" table.
 # More info in results
@@ -23,13 +26,24 @@ TRACEWIN_IMPORT_DATA_TABLE = {
 }
 
 
-def dat_file(dat_path: Path) -> list[list[str]]:
+def load_dat_file(
+    dat_path: Path,
+    *,
+    keep: Literal["none", "comments", "empty lines", "all"] = "none",
+    instructions_to_insert: Collection[Instruction] = (),
+) -> list[list[str]]:
     """Load the dat file and convert it into a list of lines.
 
     Parameters
     ----------
     dat_path : Path
         Filepath to the ``.dat`` file, as understood by TraceWin.
+    keep : {"none", "comments", "empty lines", "all"}, optional
+        To determine which un-necessary lines in the dat file should be kept.
+        The default is `'none'`.
+    instructions_to_insert : Collection[Instruction], optional
+        Some elements or commands that are not present in the ``.dat`` file but
+        that you want to add. The default is an empty tuple.
 
     Returns
     -------
@@ -41,52 +55,76 @@ def dat_file(dat_path: Path) -> list[list[str]]:
 
     with open(dat_path, "r", encoding="utf-8") as file:
         for line in file:
-            line = line.strip()
+            sliced = slice_dat_line(line)
 
-            if len(line) == 0 or line[0] == ";":
+            if len(sliced) == 0:
+                if keep in ("empty lines", "all"):
+                    dat_filecontent.append(sliced)
                 continue
-
-            line = line.split(";")[0]
-            # line = line.split(':')[-1]
-            # Remove everything between parenthesis
-            # https://stackoverflow.com/questions/14596884/remove-text-between-and
-            line = re.sub(r"([\(\[]).*?([\)\]])", "", line)
-
-            dat_filecontent.append(line.split())
+            if line[0] == ";":
+                if keep in ("comments", "all"):
+                    dat_filecontent.append(sliced)
+                continue
+            dat_filecontent.append(sliced)
+    if not instructions_to_insert:
+        return dat_filecontent
+    logging.info(
+        f"Will insert following instructions:\n{instructions_to_insert}"
+    )
+    for i, instruction in enumerate(instructions_to_insert):
+        instruction.insert(
+            dat_filecontent=dat_filecontent, previously_inserted=i
+        )
     return dat_filecontent
 
 
-def complete_dat_file(dat_path: Path) -> list[list[str]]:
-    """Load the dat file and convert it into a list of lines.
+def _strip_comments(line: str) -> str:
+    """Remove comments from a line."""
+    return line.split(";", 1)[0].strip()
 
-    Parameters
-    ----------
-    dat_path : Path
-        Filepath to the ``.dat`` file, as understood by TraceWin.
 
-    Returns
-    -------
-    dat_filecontent : list[list[str]]
-        List containing all the lines of ``dat_path``.
+def _split_named_elements(line: str) -> list[str]:
+    """Split named elements from a line."""
+    pattern = re.compile(r"(\w+)\s*:\s*(.*)")
+    match = pattern.match(line)
+    if match:
+        return [match.group(1)] + match.group(2).split()
+    return []
 
-    """
-    dat_filecontent = []
 
-    with open(dat_path, "r", encoding="utf-8") as file:
-        for line in file:
-            line = line.strip()
+def _split_weighted_elements(line: str) -> list[str]:
+    """Split weighted elements from a line."""
+    pattern = re.compile(r"(\w+)\s*(\(\d+\.?\d*e?-?\d*\))?")
+    matches = pattern.findall(line)
+    result = []
+    for match in matches:
+        result.append(match[0])
+        if match[1]:
+            result.append(match[1].strip())
+    return result
 
-            if len(line) == 0 or line[0] == ";":
-                dat_filecontent.append([line])
-                continue
 
-            line = line.split(";")[0]
-            # Remove everything between parenthesis
-            # https://stackoverflow.com/questions/14596884/remove-text-between-and
-            line = re.sub(r"([\(\[]).*?([\)\]])", "", line)
+def slice_dat_line(line: str) -> list[str]:
+    """Slices a .dat line into its components."""
+    line = line.strip()
+    if not line:
+        return []
 
-            dat_filecontent.append(line.split())
-    return dat_filecontent
+    if line.startswith(";"):
+        return [";", line[1:].strip()]
+
+    line = _strip_comments(line)
+
+    named_elements = _split_named_elements(line)
+    if named_elements:
+        return named_elements
+
+    if "(" in line:
+        weighted_elements = _split_weighted_elements(line)
+        if weighted_elements:
+            return weighted_elements
+
+    return line.split()
 
 
 def table_structure_file(

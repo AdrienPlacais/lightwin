@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Diagnostic`.
 
 As for now, diagnostics are not used by LightWin. However, LightWin can add
@@ -9,6 +7,9 @@ diagnostics (as well as ADJUST) to the final ``.dat`` in order to perform a
 .. note::
     Functionalities still under implementation. In particular, the number of
     attributes were not checked.
+
+.. note::
+    This is TraceWin's equivalent of :class:`.Objective`.
 
 """
 
@@ -26,13 +27,27 @@ class Diagnostic(Element):
         self,
         line: list[str],
         dat_idx: int,
-        name: str | None = None,
+        name: str = "",
         **kwargs: str,
     ) -> None:
         """Force an element with null-length, with no index."""
+        line, self.weight = self._separate_weight(line)
         super().__init__(line, dat_idx, name)
+
         self.length_m = 0.0
         self.number = int(line[1])
+
+        # patch to keep weight in `line` attribute if it is present
+        # if self.weight != 1.0:
+        #     self.line.insert(1, f"({self.weight})")
+        self.reinsert_optional_commands_in_line()
+
+    def _separate_weight(self, line: list[str]) -> tuple[list[str], float]:
+        """Detect if a weight is present, separate if from args if so."""
+        weight = 1.0
+        if "(" in line[1]:
+            weight = float(line.pop(1).replace("(", "").replace(")", ""))
+        return line, weight
 
 
 class DiagCurrent(Diagnostic):
@@ -96,7 +111,7 @@ class DiagDSize2(Diagnostic):
         self,
         line: list[str],
         dat_idx: int,
-        name: str | None = None,
+        name: str = "",
         **kwargs: str,
     ) -> None:
         """Force an element with null-length, with no index."""
@@ -118,7 +133,7 @@ class DiagDSize3(Diagnostic):
         self,
         line: list[str],
         dat_idx: int,
-        name: str | None = None,
+        name: str = "",
         **kwargs: str,
     ) -> None:
         """Force an element with null-length, with no index."""

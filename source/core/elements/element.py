@@ -90,14 +90,6 @@ class Element(Instruction):
         self.idx = self.idx | new_idx
         self.beam_calc_param: dict[str, ElementBeamCalculatorParameters] = {}
 
-    def __str__(self) -> str:
-        """Give the same name as TraceWin would."""
-        return self.name
-
-    def __repr__(self) -> str:
-        """Give the same name as TraceWin would."""
-        return str(self)
-
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))

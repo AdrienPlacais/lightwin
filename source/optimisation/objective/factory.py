@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a factory to create :class:`.Objective` objects.
 
 When you implement a new objective preset, also add it to the list of
@@ -13,8 +11,10 @@ implemented presets in :mod:`config.optimisation.objective`.
     :mod:`failures.position`.
 
 """
+
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Collection
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -46,8 +46,7 @@ from util.dicts_output import markdown
 # =============================================================================
 @dataclass
 class ObjectiveFactory(ABC):
-    """
-    A base class to create :class:`Objective`.
+    """A base class to create :class:`Objective`.
 
     It is intended to be sub-classed to make presets. Look at
     :class:`EnergyPhaseMismatch` or :class:`EnergySyncPhaseMismatch` for
@@ -121,8 +120,7 @@ class ObjectiveFactory(ABC):
         pass
 
     def _set_zone_to_recompute(self, **wtf: Any) -> Sequence[Element]:
-        """
-        Determine which (sub)list of elements should be recomputed.
+        """Determine which (sub)list of elements should be recomputed.
 
         You can override this method for your specific preset.
 
@@ -136,9 +134,8 @@ class ObjectiveFactory(ABC):
 
         if "position" in wtf:
             logging.warning(
-                "position key should not be present in the .ini "
-                "file anymore. Its role is now fulfilled by the "
-                "objective preset."
+                "position key should not be present in the .toml config file "
+                "anymore. Its role is now fulfilled by the objective preset."
             )
 
         elts_of_compensation_zone = zone_to_recompute(
@@ -621,7 +618,7 @@ def get_objectives_and_residuals_function(
 
 
 def _compute_residuals(
-    simulation_output: SimulationOutput, objectives: list[Objective]
+    simulation_output: SimulationOutput, objectives: Collection[Objective]
 ) -> np.ndarray:
     """Compute residuals on given `Objectives` for given `SimulationOutput`."""
     residuals = [

@@ -131,7 +131,7 @@ class ElementEnvelope3DParametersFactory(
             "dict linking every Element class to its specific parameters"
             "(transfer matrix in particular). Neither was found its "
             f"{super_class = }. "
-            "Note that you can use the elements_to_remove key in the "
+            "Note that you can use the elements_to_dump key in the "
             "Envelope3D.ListOfElementFactory class."
         )
         return default

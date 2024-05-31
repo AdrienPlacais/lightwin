@@ -490,6 +490,9 @@ def mismatch_from_arrays(
         ref = ref.transpose()
         fix = fix.transpose()
 
+    if ref.shape != fix.shape:
+        return fix[0] * np.NaN
+
     # R in TW doc
     __r = ref[1] * fix[2] + ref[2] * fix[1]
     __r -= 2.0 * ref[0] * fix[0]
@@ -510,5 +513,11 @@ def resample_twiss_on_fix(
     out = np.empty((n_points, 3))
 
     for axis in range(out.shape[1]):
-        out[:, axis] = np.interp(z_fix, z_ref, twiss_ref[:, axis])
+        try:
+            out[:, axis] = np.interp(z_fix, z_ref, twiss_ref[:, axis])
+        except ValueError:
+            logging.critical(
+                "Interpolation error, setting twiss ref == fix (FIXME)"
+            )
+            out[:, axis] = np.NaN
     return out
