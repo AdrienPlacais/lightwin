@@ -12,6 +12,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   util.beauty_pass
    util.converters
    util.debug
    util.dicts_output

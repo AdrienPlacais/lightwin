@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to LightWin’s documentation! &mdash; LightWin 0.6.20-17-gf3cc682 documentation</title>
+  <title>Welcome to LightWin’s documentation! &mdash; LightWin 0.6.20 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=6b70ae56"></script>
+        <script src="_static/documentation_options.js?v=6bf81aba"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -39,7 +39,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-17-gf3cc682
+                0.6.20
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -172,6 +172,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.html">core.commands package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.adjust.html">core.commands.adjust module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.command.html">core.commands.command module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.dummy_command.html">core.commands.dummy_command module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.end.html">core.commands.end module</a></li>
@@ -220,7 +221,6 @@
 <li class="toctree-l3"><a class="reference internal" href="core.particle.html">core.particle module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="evaluator.simulation_output.html">evaluator.simulation_output package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="evaluator.simulation_output.factory.html">evaluator.simulation_output.factory module</a></li>
@@ -300,6 +300,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="util.html">util package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="util.beauty_pass.html">util.beauty_pass module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="util.converters.html">util.converters module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="util.debug.html">util.debug module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="util.dicts_output.html">util.dicts_output module</a></li>
@@ -590,6 +591,11 @@ consistency with rest of the code…</p>
 <p class="todo-source">(The <a class="reference internal" href="core.commands.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/commands/__init__.py:docstring of core.commands, line 3.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
+<p>How should I save the min/max variables?? For now, use None.</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="core.commands.adjust.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/commands/adjust.py:docstring of core.commands.adjust, line 8.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
 <p>handle personalized name of commands (marker)</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="core.commands.factory.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/commands/factory.py:docstring of core.commands.factory, line 3.)</p>
@@ -701,9 +707,11 @@ selector in:
 <p class="todo-source">(The <a class="reference internal" href="core.elements.superposed_field_map.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/elements/superposed_field_map.py:docstring of core.elements.superposed_field_map, line 7.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>Clarify nature of <code class="docutils literal notranslate"><span class="pre">dat_idx</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">line</span></code> is edited to remove personalized name, weight and always have
+the same arguments at the same position. But after I shall re-add them with
+reinsert_optional_commands_in_line. This is very patchy and un-Pythonic.</p>
 </div>
-<p class="todo-source">(The <a class="reference internal" href="core.instruction.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/instruction.py:docstring of core.instruction, line 5.)</p>
+<p class="todo-source">(The <a class="reference internal" href="core.instruction.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/instruction.py:docstring of core.instruction, line 3.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
 <p>Instantiate this in <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>. It could be initialized with
@@ -726,7 +734,7 @@ Or from another class, but they do have a lot in common</p>
 <p class="admonition-title">Todo</p>
 <p>Check if the return value from <code class="docutils literal notranslate"><span class="pre">apply_commands</span></code> is necessary.</p>
 </div>
-<p class="todo-source">(The <a class="reference internal" href="core.instructions_factory.html#id6"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/instructions_factory.py:docstring of core.instructions_factory.InstructionsFactory.run, line 3.)</p>
+<p class="todo-source">(The <a class="reference internal" href="core.instructions_factory.html#id4"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/instructions_factory.py:docstring of core.instructions_factory.InstructionsFactory.run, line 3.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
 <p>Also handle <code class="docutils literal notranslate"><span class="pre">.dst</span></code> file in <a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory.subset_list_run" title="core.list_of_elements.factory.ListOfElementsFactory.subset_list_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subset_list_run()</span></code></a>.</p>
@@ -747,9 +755,14 @@ the <a class="reference internal" href="beam_calculation.beam_calculator.html#be
 <p class="todo-source">(The <a class="reference internal" href="core.list_of_elements.factory.html#id3"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/list_of_elements/factory.py:docstring of core.list_of_elements.factory, line 18.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">elements_to_remove</span></code> key should be in the configuration file</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">elements_to_dump</span></code> key should be in the configuration file</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="core.list_of_elements.factory.html#id4"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/list_of_elements/factory.py:docstring of core.list_of_elements.factory, line 23.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
+<p>Maybe gather some things with the subset?</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="core.list_of_elements.factory.html#id7"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/list_of_elements/factory.py:docstring of core.list_of_elements.factory.ListOfElementsFactory.from_existing_list, line 7.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
 <p>Filtering consistency.</p>
@@ -997,6 +1010,12 @@ variables/constraints.</p>
 <p>end_section, elt.name</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="optimisation.objective.position.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/optimisation/objective/position.py:docstring of optimisation.objective.position, line 11.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
+<p><code class="docutils literal notranslate"><span class="pre">full_linac</span></code> seems useless. Could be a strategy instead of an override
+setting. Would need to edit the <a class="reference internal" href="optimisation.objective.factory.html#optimisation.objective.factory.ObjectiveFactory" title="optimisation.objective.factory.ObjectiveFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectiveFactory</span></code></a> too.</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="optimisation.objective.position.html#id2"><em>original entry</em></a> is located in /home/placais/LightWin/source/optimisation/objective/position.py:docstring of optimisation.objective.position, line 14.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
 <p>Implement loss functions.</p>

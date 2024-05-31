@@ -12,6 +12,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   core.commands.adjust
    core.commands.command
    core.commands.dummy_command
    core.commands.end

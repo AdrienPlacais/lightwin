@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tracewin_utils.load module &mdash; LightWin 0.6.20-17-gf3cc682 documentation</title>
+  <title>tracewin_utils.load module &mdash; LightWin 0.6.20 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=6b70ae56"></script>
+        <script src="_static/documentation_options.js?v=6bf81aba"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-17-gf3cc682
+                0.6.20
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -61,7 +61,6 @@
 <li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
@@ -122,43 +121,27 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.load._split_named_elements">
+<span class="sig-name descname"><span class="pre">_split_named_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.load._split_named_elements" title="Link to this definition"></a></dt>
+<dd><p>Split named elements from a line.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.load._split_weighted_elements">
+<span class="sig-name descname"><span class="pre">_split_weighted_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.load._split_weighted_elements" title="Link to this definition"></a></dt>
+<dd><p>Split weighted elements from a line.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.load._strip_comments">
+<span class="sig-name descname"><span class="pre">_strip_comments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#tracewin_utils.load._strip_comments" title="Link to this definition"></a></dt>
+<dd><p>Remove comments from a line.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tracewin_utils.load._transfer_matrix">
 <span class="sig-name descname"><span class="pre">_transfer_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#tracewin_utils.load._transfer_matrix" title="Link to this definition"></a></dt>
 <dd><p>Load a single element transfer matrix.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tracewin_utils.load.complete_dat_file">
-<span class="sig-name descname"><span class="pre">complete_dat_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.load.complete_dat_file" title="Link to this definition"></a></dt>
-<dd><p>Load the dat file and convert it into a list of lines.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dat_path</strong> (<em>Path</em>) – Filepath to the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file, as understood by TraceWin.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>dat_filecontent</strong> – List containing all the lines of <code class="docutils literal notranslate"><span class="pre">dat_path</span></code>.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list[list[str]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tracewin_utils.load.dat_file">
-<span class="sig-name descname"><span class="pre">dat_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.load.dat_file" title="Link to this definition"></a></dt>
-<dd><p>Load the dat file and convert it into a list of lines.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dat_path</strong> (<em>Path</em>) – Filepath to the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file, as understood by TraceWin.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>dat_filecontent</strong> – List containing all the lines of dat_path.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list[list[str]]</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -185,6 +168,29 @@ k_e/norm, hence norm should be unity by default.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.load.load_dat_file">
+<span class="sig-name descname"><span class="pre">load_dat_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'none'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'comments'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'empty</span> <span class="pre">lines'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'all'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instructions_to_insert</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.load.load_dat_file" title="Link to this definition"></a></dt>
+<dd><p>Load the dat file and convert it into a list of lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dat_path</strong> (<em>Path</em>) – Filepath to the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file, as understood by TraceWin.</p></li>
+<li><p><strong>keep</strong> (<em>{&quot;none&quot;</em><em>, </em><em>&quot;comments&quot;</em><em>, </em><em>&quot;empty lines&quot;</em><em>, </em><em>&quot;all&quot;}</em><em>, </em><em>optional</em>) – To determine which un-necessary lines in the dat file should be kept.
+The default is <code class="docutils literal notranslate"><span class="pre">'none'</span></code>.</p></li>
+<li><p><strong>instructions_to_insert</strong> (<em>Collection</em><em>[</em><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><em>Instruction</em></a><em>]</em><em>, </em><em>optional</em>) – Some elements or commands that are not present in the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file but
+that you want to add. The default is an empty tuple.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dat_filecontent</strong> – List containing all the lines of dat_path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[list[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tracewin_utils.load.results">
 <span class="sig-name descname"><span class="pre">results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#tracewin_utils.load.results" title="Link to this definition"></a></dt>
 <dd><p>Load a property from TraceWin’s “Data” table.</p>
@@ -203,6 +209,12 @@ k_e/norm, hence norm should be unity by default.</p></li>
 <dd class="field-odd"><p>numpy array</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracewin_utils.load.slice_dat_line">
+<span class="sig-name descname"><span class="pre">slice_dat_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tracewin_utils.load.slice_dat_line" title="Link to this definition"></a></dt>
+<dd><p>Slices a .dat line into its components.</p>
 </dd></dl>
 
 <dl class="py function">

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>failures.fault module &mdash; LightWin 0.6.20-17-gf3cc682 documentation</title>
+  <title>failures.fault module &mdash; LightWin 0.6.20 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=6b70ae56"></script>
+        <script src="_static/documentation_options.js?v=6bf81aba"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-17-gf3cc682
+                0.6.20
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -61,7 +61,6 @@
 <li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="failures.html">failures package</a><ul class="current">
@@ -223,8 +222,8 @@ objectives will be evaluated.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="failures.fault.Fault.fix">
-<span class="sig-name descname"><span class="pre">fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimisation_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><span class="pre">OptimisationAlgorithm</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><span class="pre">SetOfCavitySettings</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.fault.Fault.fix" title="Link to this definition"></a></dt>
-<dd><p>Fix the <a class="reference internal" href="#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a>.</p>
+<span class="sig-name descname"><span class="pre">fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimisation_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><span class="pre">OptimisationAlgorithm</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.fault.Fault.fix" title="Link to this definition"></a></dt>
+<dd><p>Fix the <a class="reference internal" href="#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a>. Set <code class="xref py py-attr docutils literal notranslate"><span class="pre">optimized_cavity_settings</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>optimisation_algorithm</strong> (<a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><em>OptimisationAlgorithm</em></a>) – The optimisation algorithm to be used, already initialized.</p>
@@ -232,7 +231,6 @@ objectives will be evaluated.</p></li>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>success</strong> (<em>bool</em>) – Indicates convergence of the <code class="xref py py-class docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code>.</p></li>
-<li><p><strong>optimized_cavity_settings</strong> (<em>SetOfCavitySettings</em>) – Best cavity settings found by the <code class="xref py py-class docutils literal notranslate"><span class="pre">OptimisationAlgorithm</span></code>.</p></li>
 <li><p><strong>self.info</strong> (<em>dict</em>) – Useful information, such as the best solution.</p></li>
 </ul>
 </p>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>source &mdash; LightWin 0.6.20-17-gf3cc682 documentation</title>
+  <title>source &mdash; LightWin 0.6.20 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=6b70ae56"></script>
+        <script src="_static/documentation_options.js?v=6bf81aba"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -40,7 +40,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-17-gf3cc682
+                0.6.20
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -63,7 +63,6 @@
 <li class="toctree-l2"><a class="reference internal" href="config_manager.html">config_manager module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="constants.html">constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html">core package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evaluator.html">evaluator package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="experimental.html">experimental package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="failures.html">failures package</a></li>
@@ -266,6 +265,7 @@
 <li class="toctree-l4"><a class="reference internal" href="core.instruction.html#core.instruction.Comment"><code class="docutils literal notranslate"><span class="pre">Comment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.instruction.html#core.instruction.Dummy"><code class="docutils literal notranslate"><span class="pre">Dummy</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.instruction.html#core.instruction.Instruction"><code class="docutils literal notranslate"><span class="pre">Instruction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.instruction.html#core.instruction.LineJump"><code class="docutils literal notranslate"><span class="pre">LineJump</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="core.instructions_factory.html">core.instructions_factory module</a><ul>
@@ -281,7 +281,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="edit_phases_in_dat_file.html">edit_phases_in_dat_file module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluator.html">evaluator package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="evaluator.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="evaluator.simulation_output.html">evaluator.simulation_output package</a><ul>
@@ -362,6 +361,7 @@
 <li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper._distance_to_ref"><code class="docutils literal notranslate"><span class="pre">_distance_to_ref()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper._penalty"><code class="docutils literal notranslate"><span class="pre">_penalty()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper.gather"><code class="docutils literal notranslate"><span class="pre">gather()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper.nested_containing_desired"><code class="docutils literal notranslate"><span class="pre">nested_containing_desired()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper.remove_lists_with_less_than_n_elements"><code class="docutils literal notranslate"><span class="pre">remove_lists_with_less_than_n_elements()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="failures.helper.html#failures.helper.sort_by_position"><code class="docutils literal notranslate"><span class="pre">sort_by_position()</span></code></a></li>
 </ul>
@@ -445,11 +445,14 @@
 <li class="toctree-l3"><a class="reference internal" href="tracewin_utils.load.html">tracewin_utils.load module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.FIELD_MAP_LOADERS"><code class="docutils literal notranslate"><span class="pre">FIELD_MAP_LOADERS</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load._get_number_of_cells"><code class="docutils literal notranslate"><span class="pre">_get_number_of_cells()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load._split_named_elements"><code class="docutils literal notranslate"><span class="pre">_split_named_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load._split_weighted_elements"><code class="docutils literal notranslate"><span class="pre">_split_weighted_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load._strip_comments"><code class="docutils literal notranslate"><span class="pre">_strip_comments()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load._transfer_matrix"><code class="docutils literal notranslate"><span class="pre">_transfer_matrix()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.complete_dat_file"><code class="docutils literal notranslate"><span class="pre">complete_dat_file()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.dat_file"><code class="docutils literal notranslate"><span class="pre">dat_file()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.electric_field_1d"><code class="docutils literal notranslate"><span class="pre">electric_field_1d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.load_dat_file"><code class="docutils literal notranslate"><span class="pre">load_dat_file()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.results"><code class="docutils literal notranslate"><span class="pre">results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.slice_dat_line"><code class="docutils literal notranslate"><span class="pre">slice_dat_line()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.table_structure_file"><code class="docutils literal notranslate"><span class="pre">table_structure_file()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tracewin_utils.load.html#tracewin_utils.load.transfer_matrices"><code class="docutils literal notranslate"><span class="pre">transfer_matrices()</span></code></a></li>
 </ul>
@@ -460,6 +463,15 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="util.html">util package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="util.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="util.beauty_pass.html">util.beauty_pass module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="util.beauty_pass.html#util.beauty_pass._cavity_settings_to_adjust"><code class="docutils literal notranslate"><span class="pre">_cavity_settings_to_adjust()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.beauty_pass.html#util.beauty_pass._is_adapted_to_beauty_pass"><code class="docutils literal notranslate"><span class="pre">_is_adapted_to_beauty_pass()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.beauty_pass.html#util.beauty_pass.beauty_pass_instructions"><code class="docutils literal notranslate"><span class="pre">beauty_pass_instructions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.beauty_pass.html#util.beauty_pass.elements_to_diagnostics"><code class="docutils literal notranslate"><span class="pre">elements_to_diagnostics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.beauty_pass.html#util.beauty_pass.insert_beauty_pass_instructions"><code class="docutils literal notranslate"><span class="pre">insert_beauty_pass_instructions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="util.beauty_pass.html#util.beauty_pass.set_of_cavity_settings_to_adjust"><code class="docutils literal notranslate"><span class="pre">set_of_cavity_settings_to_adjust()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="util.converters.html">util.converters module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="util.converters.html#util.converters.emittance"><code class="docutils literal notranslate"><span class="pre">emittance()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="util.converters.html#util.converters.energy"><code class="docutils literal notranslate"><span class="pre">energy()</span></code></a></li>
