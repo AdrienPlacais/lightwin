@@ -122,7 +122,7 @@ def elements_to_diagnostics(
     return dsizes
 
 
-def pass_beauty_instructions(
+def _pass_beauty_instructions(
     fault_scenario: FaultScenario,
     number_of_dsize: int,
     number: int = 666333,
@@ -149,7 +149,7 @@ def pass_beauty_instructions(
     )
     if len(adjusts) < 2:
         logging.error(
-            f"Not enough DIAG_DSIZE3 in {compensating = } for beauty pass."
+            f"Not enough DIAG_DSIZE3 in {compensating = } for pass beauty."
         )
         return []
     out = sorted([*diagnostics, *adjusts], key=lambda x: x.idx["dat_idx"])
@@ -179,10 +179,11 @@ def insert_pass_beauty_instructions(
                 number=number,
                 link_k_g=link_k_g,
             )
+        return
 
     assert _is_adapted_to_pass_beauty(beam_calculator)
     assert isinstance(fault_scenario, FaultScenario)
-    instructions = pass_beauty_instructions(
+    instructions = _pass_beauty_instructions(
         fault_scenario,
         number_of_dsize=number_of_dsize,
         number=number,
