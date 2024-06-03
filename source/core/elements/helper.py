@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define helper functions applying on elements."""
+
 import logging
 from collections.abc import Sequence
+from pprint import pformat
 
 from core.elements.element import Element
 
@@ -12,8 +12,9 @@ def give_name_to_elements(
 ) -> None:
     """Give to every :class:`.Element the name TraceWin would give it."""
     civil_register: dict[str, int] = {}
+    elements_with_a_default_name = []
     for elt in elts:
-        if (name := elt._personalized_name) is not None:
+        if name := elt._personalized_name:
             assert name not in civil_register, (
                 f"You are trying to give to {elt = } the personalized name "
                 f"{name}, which is already taken."
@@ -24,6 +25,8 @@ def give_name_to_elements(
         nth = civil_register.get(name := elt.base_name, 0) + 1
         elt._default_name = f"{name}{nth}"
         civil_register[name] = nth
+        if name == "ELT":
+            elements_with_a_default_name.append(elt)
 
     if not warn_default_element_names:
         return
@@ -33,7 +36,8 @@ def give_name_to_elements(
     logging.warning(
         f"Used a fallback name for {civil_register[fallback_name]} elements. "
         "Check that every subclass of Element that you use overrides the "
-        "default Element.base_name = {fallback_name}."
+        f"default Element.base_name = {fallback_name}. Faulty elements:\n"
+        f"{pformat(elements_with_a_default_name, width=120)}"
     )
 
 
