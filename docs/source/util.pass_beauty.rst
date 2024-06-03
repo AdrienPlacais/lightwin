@@ -1,7 +1,7 @@
-util.beauty\_pass module
+util.pass\_beauty module
 ========================
 
-.. automodule:: util.beauty_pass
+.. automodule:: util.pass_beauty
    :members:
    :undoc-members:
    :show-inheritance:

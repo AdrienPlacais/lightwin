@@ -1,20 +1,20 @@
-"""Define utility functions to perform a "beauty pass".
+"""Define utility functions to perform a "pass beauty".
 
 After a LightWin optimisation, perform a second optimisation with TraceWin. As
 for now, the implementation is kept very simple:
 
     - The phase of compensating cavities can be retuned at +/- ``tol_phi_deg``
-    around their compensated value.
+      around their compensated value.
     - The amplitude of compensating cavities can be retuned at +/- ``tol_k_e``
-    around their compensated value.
+      around their compensated value.
     - We try to keep the phase dispersion between start of compensation zone,
-    and ``number_of_dsize`` lattices after.
+      and ``number_of_dsize`` lattices after.
 
 """
 
 import logging
 import math
-from collections.abc import Collection, Sequence
+from collections.abc import Collection
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.tracewin.tracewin import TraceWin
@@ -122,7 +122,7 @@ def elements_to_diagnostics(
     return dsizes
 
 
-def beauty_pass_instructions(
+def pass_beauty_instructions(
     fault_scenario: FaultScenario,
     number_of_dsize: int,
     number: int = 666333,
@@ -156,17 +156,33 @@ def beauty_pass_instructions(
     return out
 
 
-def insert_beauty_pass_instructions(
-    fault_scenario: FaultScenario,
+def insert_pass_beauty_instructions(
+    fault_scenario: FaultScenario | Collection[FaultScenario],
     beam_calculator: BeamCalculator,
     number_of_dsize: int = 10,
     number: int = 666333,
     link_k_g: bool = True,
 ) -> None:
-    """Insert DIAG/ADJUST commands to make the beauty pass."""
-    assert _is_adapted_to_beauty_pass(beam_calculator)
+    """
+    Overwrite :class:`.ListOfElements` to include pass beauty instructions.
 
-    instructions = beauty_pass_instructions(
+    The :attr:`.FaultScenario.fix_acc.elts` (a :class:`.ListOfElements`) will
+    be overwritten.
+
+    """
+    if not isinstance(fault_scenarios := fault_scenario, FaultScenario):
+        for fault_scenario in fault_scenarios:
+            insert_pass_beauty_instructions(
+                fault_scenario,
+                beam_calculator,
+                number_of_dsize=number_of_dsize,
+                number=number,
+                link_k_g=link_k_g,
+            )
+
+    assert _is_adapted_to_pass_beauty(beam_calculator)
+    assert isinstance(fault_scenario, FaultScenario)
+    instructions = pass_beauty_instructions(
         fault_scenario,
         number_of_dsize=number_of_dsize,
         number=number,
@@ -185,7 +201,7 @@ def insert_beauty_pass_instructions(
     return
 
 
-def _is_adapted_to_beauty_pass(
+def _is_adapted_to_pass_beauty(
     beam_calculator: BeamCalculator,
 ) -> bool:
     """Check if the provided beam calculator can perform beauty pass."""
