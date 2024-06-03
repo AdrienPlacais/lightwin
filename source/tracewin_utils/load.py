@@ -5,6 +5,7 @@ import logging
 import re
 from collections.abc import Collection
 from pathlib import Path
+from pprint import pformat
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from typing import Literal
@@ -69,7 +70,8 @@ def load_dat_file(
     if not instructions_to_insert:
         return dat_filecontent
     logging.info(
-        f"Will insert following instructions:\n{instructions_to_insert}"
+        "Will insert following instructions:\n"
+        f"{pformat(instructions_to_insert, width=120)}"
     )
     for i, instruction in enumerate(instructions_to_insert):
         instruction.insert(
