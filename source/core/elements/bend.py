@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define an horizontal :class:`Bend`.
 
 The transfer matrix parameters, and ``k_x`` in particular, are defined only for
@@ -10,6 +8,7 @@ cases where ``n > 1``, see `this topic`_.
 it=BEND#p1633
 
 """
+
 import math
 
 from core.elements.element import Element
@@ -23,6 +22,7 @@ class Bend(Element):
 
     """
 
+    base_name = "DIP"
     n_attributes = 5
 
     def __init__(
@@ -42,6 +42,7 @@ class Bend(Element):
 
         self._h_squared: float
         self._k_x: float
+        self.reinsert_optional_commands_in_line()
 
     @property
     def h_parameter(self) -> float:
