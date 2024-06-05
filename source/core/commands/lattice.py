@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define ``LATTICE`` and ``LATTICE_END`` instructions."""
+
 import logging
 
 from core.commands.command import Command
