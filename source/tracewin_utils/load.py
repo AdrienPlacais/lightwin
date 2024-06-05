@@ -74,7 +74,7 @@ def load_dat_file(
         f"{pformat(instructions_to_insert, width=120)}"
     )
     for i, instruction in enumerate(instructions_to_insert):
-        instruction.insert(
+        instruction.insert_line(
             dat_filecontent=dat_filecontent, previously_inserted=i
         )
     return dat_filecontent

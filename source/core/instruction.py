@@ -9,7 +9,8 @@
 
 import logging
 from abc import ABC
-from collections.abc import Collection
+from collections.abc import Collection, MutableSequence
+from typing import Self
 
 
 class Instruction(ABC):
@@ -135,7 +136,11 @@ class Instruction(ABC):
                 )
         return line
 
-    def insert(
+    def increment_dat_position(self, increment: int = 1) -> None:
+        """Increment dat index for when another instruction is inserted."""
+        self.idx["dat_idx"] += increment
+
+    def insert_line(
         self,
         *args,
         dat_filecontent: list[Collection[str]],
@@ -155,6 +160,12 @@ class Instruction(ABC):
         """
         index = self.idx["dat_idx"] + previously_inserted
         dat_filecontent.insert(index, self.to_line(*args, **kwargs))
+
+    def insert_object(self, instructions: MutableSequence[Self]) -> None:
+        """Insert current instruction in a list full of other instructions."""
+        instructions.insert(self.idx["dat_idx"], self)
+        for instruction in instructions[self.idx["dat_idx"] + 1 :]:
+            instruction.increment_dat_position()
 
 
 class Dummy(Instruction):

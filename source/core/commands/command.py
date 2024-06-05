@@ -2,6 +2,7 @@
 
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
+from typing import override
 
 from core.instruction import Instruction
 
@@ -103,3 +104,11 @@ class Command(Instruction):
                 break
         influenced = slice(start, start + i)
         return influenced
+
+    @override
+    def increment_dat_position(self, increment: int = 1) -> None:
+        """Increment dat_index and indexes of elements concerned by command."""
+        self.influenced = slice(
+            self.influenced.start + increment, self.influenced.stop + increment
+        )
+        return super().increment_dat_position(increment)
