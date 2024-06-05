@@ -34,4 +34,5 @@ See the `data/example` folder.
 
 ### Optimization
 
-- [ ] Correlation matrices
+- [ ] Correlation matrices.
+- [ ] Add [SNS compensation method](doi.org://10.18429/JACoW-LINAC2022-FR1AA06)
