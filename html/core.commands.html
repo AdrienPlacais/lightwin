@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>core.commands package &mdash; LightWin 0.6.20-14-g61b03f70 documentation</title>
+  <title>core.commands package &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=43eea223"></script>
+        <script src="_static/documentation_options.js?v=812cb809"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-14-g61b03f70
+                0.6.20-31-ga5e97323
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -75,6 +75,7 @@
 <li class="toctree-l4"><a class="reference internal" href="core.commands.helper.html">core.commands.helper module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.lattice.html">core.commands.lattice module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.marker.html">core.commands.marker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.repeat_ele.html">core.commands.repeat_ele module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.set_adv.html">core.commands.set_adv module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.set_sync_phase.html">core.commands.set_sync_phase module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.shift.html">core.commands.shift module</a></li>
@@ -159,6 +160,7 @@
 <li class="toctree-l3"><a class="reference internal" href="core.commands.command.html#core.commands.command.Command._indexes_between_this_command_and"><code class="docutils literal notranslate"><span class="pre">Command._indexes_between_this_command_and()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.command.html#core.commands.command.Command.apply"><code class="docutils literal notranslate"><span class="pre">Command.apply()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.command.html#core.commands.command.Command.concerns_one_of"><code class="docutils literal notranslate"><span class="pre">Command.concerns_one_of()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.command.html#core.commands.command.Command.increment_dat_position"><code class="docutils literal notranslate"><span class="pre">Command.increment_dat_position()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.command.html#core.commands.command.Command.set_influenced_elements"><code class="docutils literal notranslate"><span class="pre">Command.set_influenced_elements()</span></code></a></li>
 </ul>
 </li>
@@ -341,6 +343,18 @@
 <li class="toctree-l3"><a class="reference internal" href="core.commands.marker.html#core.commands.marker.Marker.concerns_one_of"><code class="docutils literal notranslate"><span class="pre">Marker.concerns_one_of()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.marker.html#core.commands.marker.Marker.is_implemented"><code class="docutils literal notranslate"><span class="pre">Marker.is_implemented</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.marker.html#core.commands.marker.Marker.set_influenced_elements"><code class="docutils literal notranslate"><span class="pre">Marker.set_influenced_elements()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.commands.repeat_ele.html">core.commands.repeat_ele module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle"><code class="docutils literal notranslate"><span class="pre">RepeatEle</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.__init__"><code class="docutils literal notranslate"><span class="pre">RepeatEle.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle._abc_impl"><code class="docutils literal notranslate"><span class="pre">RepeatEle._abc_impl</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.apply"><code class="docutils literal notranslate"><span class="pre">RepeatEle.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.is_implemented"><code class="docutils literal notranslate"><span class="pre">RepeatEle.is_implemented</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.n_attributes"><code class="docutils literal notranslate"><span class="pre">RepeatEle.n_attributes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.set_influenced_elements"><code class="docutils literal notranslate"><span class="pre">RepeatEle.set_influenced_elements()</span></code></a></li>
 </ul>
 </li>
 </ul>

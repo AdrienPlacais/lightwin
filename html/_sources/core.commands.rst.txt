@@ -23,6 +23,7 @@ Submodules
    core.commands.helper
    core.commands.lattice
    core.commands.marker
+   core.commands.repeat_ele
    core.commands.set_adv
    core.commands.set_sync_phase
    core.commands.shift

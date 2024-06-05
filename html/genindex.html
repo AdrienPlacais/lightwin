@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; LightWin 0.6.20-14-g61b03f70 documentation</title>
+  <title>Index &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=43eea223"></script>
+        <script src="_static/documentation_options.js?v=812cb809"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -35,7 +35,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-14-g61b03f70
+                0.6.20-31-ga5e97323
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -323,6 +323,8 @@
         <li><a href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitude.__init__">(RelPhaseAmplitude method)</a>
 </li>
         <li><a href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitudeWithConstrainedSyncPhase.__init__">(RelPhaseAmplitudeWithConstrainedSyncPhase method)</a>
+</li>
+        <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.__init__">(RepeatEle method)</a>
 </li>
         <li><a href="core.electric_field.html#core.electric_field.RfField.__init__">(RfField method)</a>
 </li>
@@ -722,6 +724,8 @@
 </li>
         <li><a href="optimisation.design_space.factory.html#optimisation.design_space.factory.RelPhaseAmplitudeWithConstrainedSyncPhase._abc_impl">(RelPhaseAmplitudeWithConstrainedSyncPhase attribute)</a>
 </li>
+        <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle._abc_impl">(RepeatEle attribute)</a>
+</li>
         <li><a href="core.commands.set_adv.html#core.commands.set_adv.SetAdv._abc_impl">(SetAdv attribute)</a>
 </li>
         <li><a href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase._abc_impl">(SetSyncPhase attribute)</a>
@@ -861,10 +865,10 @@
 </li>
       <li><a href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory._call_proper_factory">_call_proper_factory() (InstructionsFactory method)</a>
 </li>
-      <li><a href="beam_calculation.tracewin.simulation_output_factory.html#beam_calculation.tracewin.simulation_output_factory._cavity_parameters_uniform_with_envelope1d">_cavity_parameters_uniform_with_envelope1d() (in module beam_calculation.tracewin.simulation_output_factory)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="beam_calculation.tracewin.simulation_output_factory.html#beam_calculation.tracewin.simulation_output_factory._cavity_parameters_uniform_with_envelope1d">_cavity_parameters_uniform_with_envelope1d() (in module beam_calculation.tracewin.simulation_output_factory)</a>
+</li>
       <li><a href="util.pass_beauty.html#util.pass_beauty._cavity_settings_to_adjust">_cavity_settings_to_adjust() (in module util.pass_beauty)</a>
 </li>
       <li><a href="tracewin_utils.interface.html#tracewin_utils.interface._cavity_settings_to_command">_cavity_settings_to_command() (in module tracewin_utils.interface)</a>
@@ -1717,8 +1721,6 @@
 </li>
       <li><a href="core.elements.aperture.html#core.elements.aperture.Aperture">Aperture (class in core.elements.aperture)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.commands.adjust.html#core.commands.adjust.Adjust.apply">apply() (Adjust method)</a>
 
       <ul>
@@ -1738,6 +1740,8 @@
 </li>
         <li><a href="core.commands.marker.html#core.commands.marker.Marker.apply">(Marker method)</a>
 </li>
+        <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.apply">(RepeatEle method)</a>
+</li>
         <li><a href="core.commands.shift.html#core.commands.shift.Shift.apply">(Shift method)</a>
 </li>
         <li><a href="core.commands.steerer.html#core.commands.steerer.Steerer.apply">(Steerer method)</a>
@@ -1745,6 +1749,8 @@
         <li><a href="core.commands.superpose_map.html#core.commands.superpose_map.SuperposeMap.apply">(SuperposeMap method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.commands.helper.html#core.commands.helper.apply_commands">apply_commands() (in module core.commands.helper)</a>
 </li>
       <li><a href="tracewin_utils.interface.html#tracewin_utils.interface.ARGS_POSITIONS">ARGS_POSITIONS (in module tracewin_utils.interface)</a>
@@ -2424,6 +2430,13 @@
 
       <ul>
         <li><a href="core.commands.marker.html#module-core.commands.marker">module</a>
+</li>
+      </ul></li>
+      <li>
+    core.commands.repeat_ele
+
+      <ul>
+        <li><a href="core.commands.repeat_ele.html#module-core.commands.repeat_ele">module</a>
 </li>
       </ul></li>
       <li>
@@ -3616,6 +3629,12 @@
 </li>
       <li><a href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput.in_tw_fashion">in_tw_fashion (SimulationOutput attribute)</a>, <a href="beam_calculation.simulation_output.simulation_output.html#id7">[1]</a>
 </li>
+      <li><a href="core.commands.command.html#core.commands.command.Command.increment_dat_position">increment_dat_position() (Command method)</a>
+
+      <ul>
+        <li><a href="core.instruction.html#core.instruction.Instruction.increment_dat_position">(Instruction method)</a>
+</li>
+      </ul></li>
       <li><a href="core.elements.element.html#core.elements.element.Element.increment_elt_idx">increment_elt_idx (Element attribute)</a>, <a href="core.elements.element.html#id2">[1]</a>
 </li>
       <li><a href="core.elements.aperture.html#core.elements.aperture.Aperture.increment_lattice_idx">increment_lattice_idx (Aperture attribute)</a>
@@ -3656,14 +3675,16 @@
 </li>
       <li><a href="core.beam_parameters.phase_space.initial_phase_space_beam_parameters.html#core.beam_parameters.phase_space.initial_phase_space_beam_parameters.InitialPhaseSpaceBeamParameters">InitialPhaseSpaceBeamParameters (class in core.beam_parameters.phase_space.initial_phase_space_beam_parameters)</a>
 </li>
-      <li><a href="core.instruction.html#core.instruction.Instruction.insert">insert() (Instruction method)</a>
+      <li><a href="core.instruction.html#core.instruction.Instruction.insert_line">insert_line() (Instruction method)</a>
+</li>
+      <li><a href="core.instruction.html#core.instruction.Instruction.insert_object">insert_object() (Instruction method)</a>
 </li>
       <li><a href="util.pass_beauty.html#util.pass_beauty.insert_pass_beauty_instructions">insert_pass_beauty_instructions() (in module util.pass_beauty)</a>
 </li>
-      <li><a href="core.instruction.html#core.instruction.Instruction">Instruction (class in core.instruction)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="core.instruction.html#core.instruction.Instruction">Instruction (class in core.instruction)</a>
+</li>
       <li><a href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory">InstructionsFactory (class in core.instructions_factory)</a>
 </li>
       <li><a href="core.beam_parameters.phase_space.i_phase_space_beam_parameters.html#core.beam_parameters.phase_space.i_phase_space_beam_parameters.IPhaseSpaceBeamParameters">IPhaseSpaceBeamParameters (class in core.beam_parameters.phase_space.i_phase_space_beam_parameters)</a>
@@ -3734,6 +3755,8 @@
         <li><a href="core.commands.lattice.html#core.commands.lattice.LatticeEnd.is_implemented">(LatticeEnd attribute)</a>
 </li>
         <li><a href="core.commands.marker.html#core.commands.marker.Marker.is_implemented">(Marker attribute)</a>
+</li>
+        <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.is_implemented">(RepeatEle attribute)</a>
 </li>
         <li><a href="core.commands.shift.html#core.commands.shift.Shift.is_implemented">(Shift attribute)</a>
 </li>
@@ -4027,6 +4050,8 @@
         <li><a href="core.commands.lattice.html#module-core.commands.lattice">core.commands.lattice</a>
 </li>
         <li><a href="core.commands.marker.html#module-core.commands.marker">core.commands.marker</a>
+</li>
+        <li><a href="core.commands.repeat_ele.html#module-core.commands.repeat_ele">core.commands.repeat_ele</a>
 </li>
         <li><a href="core.commands.set_adv.html#module-core.commands.set_adv">core.commands.set_adv</a>
 </li>
@@ -4329,6 +4354,8 @@
         <li><a href="core.commands.lattice.html#core.commands.lattice.LatticeEnd.n_attributes">(LatticeEnd attribute)</a>
 </li>
         <li><a href="core.elements.quad.html#core.elements.quad.Quad.n_attributes">(Quad attribute)</a>
+</li>
+        <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.n_attributes">(RepeatEle attribute)</a>
 </li>
         <li><a href="core.elements.solenoid.html#core.elements.solenoid.Solenoid.n_attributes">(Solenoid attribute)</a>
 </li>
@@ -4884,6 +4911,8 @@
 </li>
       <li><a href="failures.helper.html#failures.helper.remove_lists_with_less_than_n_elements">remove_lists_with_less_than_n_elements() (in module failures.helper)</a>
 </li>
+      <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle">RepeatEle (class in core.commands.repeat_ele)</a>
+</li>
       <li><a href="util.helper.html#util.helper.resample">resample() (in module util.helper)</a>
 </li>
       <li><a href="core.beam_parameters.helper.html#core.beam_parameters.helper.resample_twiss_on_fix">resample_twiss_on_fix() (in module core.beam_parameters.helper)</a>
@@ -5046,6 +5075,8 @@
         <li><a href="core.commands.lattice.html#core.commands.lattice.LatticeEnd.set_influenced_elements">(LatticeEnd method)</a>
 </li>
         <li><a href="core.commands.marker.html#core.commands.marker.Marker.set_influenced_elements">(Marker method)</a>
+</li>
+        <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.set_influenced_elements">(RepeatEle method)</a>
 </li>
         <li><a href="core.commands.shift.html#core.commands.shift.Shift.set_influenced_elements">(Shift method)</a>
 </li>
