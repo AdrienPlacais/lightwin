@@ -168,6 +168,7 @@ data/example/*.py
 data/example/example_new.ini
 data/example/results/
 data/example/results_tests/
+data/test_instructions/results/*
 
 docs/source/manual/notebooks/*.py
 images/
@@ -177,6 +178,7 @@ source/untitled*.py
 *.cal
 *.json
 *.old
+*.old.ini
 *.pdf
 *.pkl
 *.swp
