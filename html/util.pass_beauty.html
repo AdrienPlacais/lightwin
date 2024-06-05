@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>util.pass_beauty module &mdash; LightWin 0.6.20-1-gf00c56d5 documentation</title>
+  <title>util.pass_beauty module &mdash; LightWin 0.6.20-12-ga9d68f24 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=f7accaba"></script>
+        <script src="_static/documentation_options.js?v=2bca880b"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-1-gf00c56d5
+                0.6.20-12-ga9d68f24
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -140,6 +140,12 @@ and <code class="docutils literal notranslate"><span class="pre">number_of_dsize
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="util.pass_beauty._pass_beauty_instructions">
+<span class="sig-name descname"><span class="pre">_pass_beauty_instructions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault_scenario</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.fault_scenario.html#failures.fault_scenario.FaultScenario" title="failures.fault_scenario.FaultScenario"><span class="pre">FaultScenario</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_dsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">666333</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_k_g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#util.pass_beauty._pass_beauty_instructions" title="Link to this definition"></a></dt>
+<dd><p>Perform a beauty pass.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="util.pass_beauty.elements_to_diagnostics">
 <span class="sig-name descname"><span class="pre">elements_to_diagnostics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fix_elts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><span class="pre">ListOfElements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensating</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_dsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.diagnostic.html#core.elements.diagnostic.Diagnostic" title="core.elements.diagnostic.Diagnostic"><span class="pre">Diagnostic</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#util.pass_beauty.elements_to_diagnostics" title="Link to this definition"></a></dt>
 <dd><p>Create the DSize3 commands that will be needed.</p>
@@ -151,12 +157,6 @@ and <code class="docutils literal notranslate"><span class="pre">number_of_dsize
 <dd><p>Overwrite <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a> to include pass beauty instructions.</p>
 <p>The <code class="xref py py-attr docutils literal notranslate"><span class="pre">FaultScenario.fix_acc.elts</span></code> (a <a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>) will
 be overwritten.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="util.pass_beauty.pass_beauty_instructions">
-<span class="sig-name descname"><span class="pre">pass_beauty_instructions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault_scenario</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.fault_scenario.html#failures.fault_scenario.FaultScenario" title="failures.fault_scenario.FaultScenario"><span class="pre">FaultScenario</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_dsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">666333</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_k_g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#util.pass_beauty.pass_beauty_instructions" title="Link to this definition"></a></dt>
-<dd><p>Perform a beauty pass.</p>
 </dd></dl>
 
 <dl class="py function">

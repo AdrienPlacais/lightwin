@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; LightWin 0.6.20-1-gf00c56d5 documentation</title>
+  <title>Usage &mdash; LightWin 0.6.20-12-ga9d68f24 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=f7accaba"></script>
+        <script src="../_static/documentation_options.js?v=2bca880b"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-1-gf00c56d5
+                0.6.20-12-ga9d68f24
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -91,19 +91,15 @@
 </div>
 <div class="admonition-todo admonition" id="id1">
 <p class="admonition-title">Todo</p>
-<p>Ease re-usage of old simulations. Very easy, just use the <code class="docutils literal notranslate"><span class="pre">recompute</span></code> flag, override the <code class="docutils literal notranslate"><span class="pre">run_with_this</span></code> method, and user must provide a <code class="docutils literal notranslate"><span class="pre">results</span></code> dir.</p>
-</div>
-<div class="admonition-todo admonition" id="id2">
-<p class="admonition-title">Todo</p>
-<p>Create a real transfer matrix object.</p>
+<p>Ease re-usage of old simulations. Very easy to implement, just use the <code class="docutils literal notranslate"><span class="pre">recompute</span></code> flag, override the <code class="docutils literal notranslate"><span class="pre">run_with_this</span></code> method, and user must provide a <code class="docutils literal notranslate"><span class="pre">results</span></code> directory.</p>
 </div>
 <section id="general-structure-of-the-code">
 <h2>General structure of the code<a class="headerlink" href="#general-structure-of-the-code" title="Link to this heading"></a></h2>
 <p>The highest-level object is an <a class="reference internal" href="../core.accelerator.accelerator.html#core.accelerator.accelerator.Accelerator" title="core.accelerator.accelerator.Accelerator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accelerator</span></code></a>.
 It is initialized thanks to a <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file (the same format as TraceWin).
-It’s main purpose is to store a <a class="reference internal" href="../core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>, which is a <code class="docutils literal notranslate"><span class="pre">list</span></code> containing all the <a class="reference internal" href="../core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>s of the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file.</p>
+Its main purpose is to store a <a class="reference internal" href="../core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements" title="core.list_of_elements.list_of_elements.ListOfElements"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElements</span></code></a>, which is a <code class="docutils literal notranslate"><span class="pre">list</span></code> containing all the <a class="reference internal" href="../core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>s of the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> file.</p>
 <p>The propagation of the beam through the accelerator is performed thanks to a <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>.
-As for now, two different <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>s are implemented:</p>
+As for now, three different <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>s are implemented:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><a class="reference internal" href="../beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a>, which computes the propagation of the beam in envelope and in 1D (longitudinal).</p></li>
@@ -123,10 +119,31 @@ A <a class="reference internal" href="../failures.fault_scenario.html#failures.f
 It will try to find the <em>best</em> <a class="reference internal" href="../optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>s that match the <a class="reference internal" href="../optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><code class="xref py py-class docutils literal notranslate"><span class="pre">Objective</span></code></a>s while respecting the <a class="reference internal" href="../optimisation.design_space.constraint.html#optimisation.design_space.constraint.Constraint" title="optimisation.design_space.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a>s.
 Under the hood, it converts at each iteration the list of <a class="reference internal" href="../optimisation.design_space.variable.html#optimisation.design_space.variable.Variable" title="optimisation.design_space.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>s into a <a class="reference internal" href="../failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code></a>.
 The latter is given as argument to the <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator.run_with_this" title="beam_calculation.beam_calculator.BeamCalculator.run_with_this"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BeamCalculator.run_with_this()</span></code></a> which gives a <a class="reference internal" href="../beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationOutput</span></code></a> from which the <a class="reference internal" href="../optimisation.objective.objective.html#optimisation.objective.objective.Objective" title="optimisation.objective.objective.Objective"><code class="xref py py-class docutils literal notranslate"><span class="pre">Objective</span></code></a>s are evaluated.</p>
+</section>
+<section id="compatibility-with-tracewin-dat-files">
+<span id="tracewin-compatibility-note"></span><h2>Compatibility with TraceWin <code class="docutils literal notranslate"><span class="pre">.dat</span></code> files<a class="headerlink" href="#compatibility-with-tracewin-dat-files" title="Link to this heading"></a></h2>
+<p>LightWin uses the same format as TraceWin for the linac structure.
+As TraceWin developers implemented a significant number of elements and commands, those will be progressively implemented in LightWin too.</p>
+<section id="useless-commands-and-elements">
+<h3>“Useless” commands and elements<a class="headerlink" href="#useless-commands-and-elements" title="Link to this heading"></a></h3>
+<p>Some instructions will raise a warning, even if they will not influence the results.
+As an example, if you use <a class="reference internal" href="../beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a>, transverse dynamics are not considered and the fact that transverse field maps are not implemented should not be a problem.</p>
+</section>
+<section id="useful-commands-and-elements">
+<h3>“Useful” commands and elements<a class="headerlink" href="#useful-commands-and-elements" title="Link to this heading"></a></h3>
+<p>You should clean the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> to remove any command that influences the design of the linac.
+In particular: <code class="docutils literal notranslate"><span class="pre">SET_ADV</span></code>, <code class="docutils literal notranslate"><span class="pre">SET_SYNC_PHASE</span></code>, <code class="docutils literal notranslate"><span class="pre">ADJUST</span></code> commands.
+Warnings may not always appear, so be careful that <a class="reference internal" href="../beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a> or <a class="reference internal" href="../beam_calculation.envelope_3d.envelope_3d.html#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a> match with TraceWin.
+If you choose <a class="reference internal" href="../beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a> solver for the optimization, both LightWin and TraceWin could modify the design of the linac at the same time, so unexpected side effects may appear.</p>
+</section>
+<section id="how-to-implement-commands-or-elements">
+<h3>How to implement commands or elements<a class="headerlink" href="#how-to-implement-commands-or-elements" title="Link to this heading"></a></h3>
+<p>You can implement the desired elements and <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code> them, file an issue on GitHub or send me an <a class="reference external" href="mailto:placais&#37;&#52;&#48;lpsc&#46;in2p3&#46;fr">email</a> and I will try to add the desired element(s) as soon as possible.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>See example.</p>
 </div>
+</section>
 </section>
 </section>
 

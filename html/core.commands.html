@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>core.commands package &mdash; LightWin 0.6.20-1-gf00c56d5 documentation</title>
+  <title>core.commands package &mdash; LightWin 0.6.20-12-ga9d68f24 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=f7accaba"></script>
+        <script src="_static/documentation_options.js?v=2bca880b"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-1-gf00c56d5
+                0.6.20-12-ga9d68f24
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -68,12 +68,15 @@
 <li class="toctree-l4"><a class="reference internal" href="core.commands.command.html">core.commands.command module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.dummy_command.html">core.commands.dummy_command module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.end.html">core.commands.end module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.error.html">core.commands.error module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.factory.html">core.commands.factory module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.field_map_path.html">core.commands.field_map_path module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.freq.html">core.commands.freq module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.helper.html">core.commands.helper module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.lattice.html">core.commands.lattice module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.marker.html">core.commands.marker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.set_adv.html">core.commands.set_adv module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.set_sync_phase.html">core.commands.set_sync_phase module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.shift.html">core.commands.shift module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.steerer.html">core.commands.steerer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.superpose_map.html">core.commands.superpose_map module</a></li>
@@ -185,6 +188,90 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="core.commands.error.html">core.commands.error module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.Error"><code class="docutils literal notranslate"><span class="pre">Error</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.Error.__init__"><code class="docutils literal notranslate"><span class="pre">Error.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.Error._abc_impl"><code class="docutils literal notranslate"><span class="pre">Error._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBeamDyn"><code class="docutils literal notranslate"><span class="pre">ErrorBeamDyn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBeamDyn._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorBeamDyn._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBeamStat"><code class="docutils literal notranslate"><span class="pre">ErrorBeamStat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBeamStat._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorBeamStat._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendCPLDyn"><code class="docutils literal notranslate"><span class="pre">ErrorBendCPLDyn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendCPLDyn._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorBendCPLDyn._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendCPLStat"><code class="docutils literal notranslate"><span class="pre">ErrorBendCPLStat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendCPLStat._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorBendCPLStat._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendNCPLDyn"><code class="docutils literal notranslate"><span class="pre">ErrorBendNCPLDyn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendNCPLDyn._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorBendNCPLDyn._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendNCPLStat"><code class="docutils literal notranslate"><span class="pre">ErrorBendNCPLStat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorBendNCPLStat._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorBendNCPLStat._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavCPLDyn"><code class="docutils literal notranslate"><span class="pre">ErrorCavCPLDyn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavCPLDyn._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorCavCPLDyn._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavCPLStat"><code class="docutils literal notranslate"><span class="pre">ErrorCavCPLStat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavCPLStat._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorCavCPLStat._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavNCPLDyn"><code class="docutils literal notranslate"><span class="pre">ErrorCavNCPLDyn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavNCPLDyn._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorCavNCPLDyn._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavNCPLStat"><code class="docutils literal notranslate"><span class="pre">ErrorCavNCPLStat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavNCPLStat._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorCavNCPLStat._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavNCPLStatFile"><code class="docutils literal notranslate"><span class="pre">ErrorCavNCPLStatFile</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorCavNCPLStatFile._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorCavNCPLStatFile._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorDynFile"><code class="docutils literal notranslate"><span class="pre">ErrorDynFile</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorDynFile._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorDynFile._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorGaussianCutOff"><code class="docutils literal notranslate"><span class="pre">ErrorGaussianCutOff</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorGaussianCutOff._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorGaussianCutOff._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorQuadNCPLDyn"><code class="docutils literal notranslate"><span class="pre">ErrorQuadNCPLDyn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorQuadNCPLDyn._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorQuadNCPLDyn._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorQuadNCPLStat"><code class="docutils literal notranslate"><span class="pre">ErrorQuadNCPLStat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorQuadNCPLStat._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorQuadNCPLStat._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorRFQCelNCPLDyn"><code class="docutils literal notranslate"><span class="pre">ErrorRFQCelNCPLDyn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorRFQCelNCPLDyn._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorRFQCelNCPLDyn._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorRFQCelNCPLStat"><code class="docutils literal notranslate"><span class="pre">ErrorRFQCelNCPLStat</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorRFQCelNCPLStat._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorRFQCelNCPLStat._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorSetRatio"><code class="docutils literal notranslate"><span class="pre">ErrorSetRatio</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorSetRatio._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorSetRatio._abc_impl</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorStatFile"><code class="docutils literal notranslate"><span class="pre">ErrorStatFile</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.error.html#core.commands.error.ErrorStatFile._abc_impl"><code class="docutils literal notranslate"><span class="pre">ErrorStatFile._abc_impl</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="core.commands.factory.html">core.commands.factory module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="core.commands.factory.html#core.commands.factory.CommandFactory"><code class="docutils literal notranslate"><span class="pre">CommandFactory</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.factory.html#core.commands.factory.CommandFactory.__init__"><code class="docutils literal notranslate"><span class="pre">CommandFactory.__init__()</span></code></a></li>
@@ -254,6 +341,22 @@
 <li class="toctree-l3"><a class="reference internal" href="core.commands.marker.html#core.commands.marker.Marker.concerns_one_of"><code class="docutils literal notranslate"><span class="pre">Marker.concerns_one_of()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.marker.html#core.commands.marker.Marker.is_implemented"><code class="docutils literal notranslate"><span class="pre">Marker.is_implemented</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.commands.marker.html#core.commands.marker.Marker.set_influenced_elements"><code class="docutils literal notranslate"><span class="pre">Marker.set_influenced_elements()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.commands.set_adv.html">core.commands.set_adv module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.set_adv.html#core.commands.set_adv.SetAdv"><code class="docutils literal notranslate"><span class="pre">SetAdv</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.set_adv.html#core.commands.set_adv.SetAdv.__init__"><code class="docutils literal notranslate"><span class="pre">SetAdv.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.set_adv.html#core.commands.set_adv.SetAdv._abc_impl"><code class="docutils literal notranslate"><span class="pre">SetAdv._abc_impl</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.commands.set_sync_phase.html">core.commands.set_sync_phase module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase"><code class="docutils literal notranslate"><span class="pre">SetSyncPhase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase.__init__"><code class="docutils literal notranslate"><span class="pre">SetSyncPhase.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase._abc_impl"><code class="docutils literal notranslate"><span class="pre">SetSyncPhase._abc_impl</span></code></a></li>
 </ul>
 </li>
 </ul>

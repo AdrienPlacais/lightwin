@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to LightWin’s documentation! &mdash; LightWin 0.6.20-1-gf00c56d5 documentation</title>
+  <title>Welcome to LightWin’s documentation! &mdash; LightWin 0.6.20-12-ga9d68f24 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=f7accaba"></script>
+        <script src="_static/documentation_options.js?v=2bca880b"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -39,7 +39,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-1-gf00c56d5
+                0.6.20-12-ga9d68f24
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -176,12 +176,15 @@
 <li class="toctree-l4"><a class="reference internal" href="core.commands.command.html">core.commands.command module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.dummy_command.html">core.commands.dummy_command module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.end.html">core.commands.end module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.error.html">core.commands.error module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.factory.html">core.commands.factory module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.field_map_path.html">core.commands.field_map_path module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.freq.html">core.commands.freq module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.helper.html">core.commands.helper module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.lattice.html">core.commands.lattice module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.marker.html">core.commands.marker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.set_adv.html">core.commands.set_adv module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.commands.set_sync_phase.html">core.commands.set_sync_phase module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.shift.html">core.commands.shift module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.steerer.html">core.commands.steerer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="core.commands.superpose_map.html">core.commands.superpose_map module</a></li>
@@ -861,16 +864,6 @@ given the fact that OptimisationAlgorithm has its ListOfElements.</p>
 <p class="admonition-title">Todo</p>
 <p>List of allowed tracewin arguments in doc</p>
 </div>
-<p class="todo-source">(The <a class="reference internal" href="manual/configuration.html#id1"><em>original entry</em></a> is located in source/manual/configuration.beam_calculator.rst, line 32.)</p>
-<div class="admonition-todo admonition">
-<p class="admonition-title">Todo</p>
-<p>There are doublons between doc in <a class="reference internal" href="config.beam_calculator.html#module-config.beam_calculator" title="config.beam_calculator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">config.beam_calculator</span></code></a> and here. Maybe keep in module, but make the format better.</p>
-</div>
-<p class="todo-source">(The <a class="reference internal" href="manual/configuration.html#id2"><em>original entry</em></a> is located in source/manual/configuration.beam_calculator.rst, line 35.)</p>
-<div class="admonition-todo admonition">
-<p class="admonition-title">Todo</p>
-<p>List of allowed tracewin arguments in doc</p>
-</div>
 <p class="todo-source">(The <a class="reference internal" href="manual/configuration.beam_calculator.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/docs/source/manual/configuration.beam_calculator.rst, line 32.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
@@ -932,16 +925,6 @@ given the fact that OptimisationAlgorithm has its ListOfElements.</p>
 <p>General units: MeV etc</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="manual/units.html#id2"><em>original entry</em></a> is located in /home/placais/LightWin/docs/source/manual/units.rst, line 11.)</p>
-<div class="admonition-todo admonition">
-<p class="admonition-title">Todo</p>
-<p>Ease re-usage of old simulations. Very easy, just use the <code class="docutils literal notranslate"><span class="pre">recompute</span></code> flag, override the <code class="docutils literal notranslate"><span class="pre">run_with_this</span></code> method, and user must provide a <code class="docutils literal notranslate"><span class="pre">results</span></code> dir.</p>
-</div>
-<p class="todo-source">(The <a class="reference internal" href="manual/usage.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/docs/source/manual/usage.rst, line 7.)</p>
-<div class="admonition-todo admonition">
-<p class="admonition-title">Todo</p>
-<p>Create a real transfer matrix object.</p>
-</div>
-<p class="todo-source">(The <a class="reference internal" href="manual/usage.html#id2"><em>original entry</em></a> is located in /home/placais/LightWin/docs/source/manual/usage.rst, line 10.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
 <p>Check if it is necessary to pass out the whole <code class="docutils literal notranslate"><span class="pre">elts</span></code> to
@@ -1091,6 +1074,21 @@ update: just use .is_a_multiparticle_simulation</p>
 accelerates or not (ex when quadrupole defined by a field map)</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="visualization.plot.html#id3"><em>original entry</em></a> is located in /home/placais/LightWin/source/visualization/plot.py:docstring of visualization.plot, line 15.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
+<p>List of allowed tracewin arguments in doc</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="manual/configuration.html#id1"><em>original entry</em></a> is located in source/manual/configuration.beam_calculator.rst, line 32.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
+<p>There are doublons between doc in <a class="reference internal" href="config.beam_calculator.html#module-config.beam_calculator" title="config.beam_calculator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">config.beam_calculator</span></code></a> and here. Maybe keep in module, but make the format better.</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="manual/configuration.html#id2"><em>original entry</em></a> is located in source/manual/configuration.beam_calculator.rst, line 35.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
+<p>Ease re-usage of old simulations. Very easy to implement, just use the <code class="docutils literal notranslate"><span class="pre">recompute</span></code> flag, override the <code class="docutils literal notranslate"><span class="pre">run_with_this</span></code> method, and user must provide a <code class="docutils literal notranslate"><span class="pre">results</span></code> directory.</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="manual/usage.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/docs/source/manual/usage.rst, line 7.)</p>
 </section>
 <section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
