@@ -105,6 +105,7 @@ def simulation_output(
     return my_simulation_output
 
 
+@pytest.mark.implementation
 @pytest.mark.parametrize(
     "dat_file, beam_calculator_key",
     [
