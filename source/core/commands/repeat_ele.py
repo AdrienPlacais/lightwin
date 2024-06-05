@@ -65,7 +65,7 @@ class RepeatEle(Command):
     def apply(
         self, instructions: list[Instruction], **kwargs: float
     ) -> list[Instruction]:
-        """Set lattice section number of elements in current lattice."""
+        """Copy the ``n`` elements ``k`` times."""
         repeated_instructions = instructions[self.influenced]
         period_length = len(repeated_instructions)
         for _ in range(self.k_times - 1):
