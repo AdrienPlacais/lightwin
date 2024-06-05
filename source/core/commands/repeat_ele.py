@@ -63,7 +63,7 @@ class RepeatEle(Command):
     ) -> list[Instruction]:
         """Set lattice section number of elements in current lattice."""
         repeated_instructions = instructions[self.influenced]
-        for _ in range(self.k_times):
+        for _ in range(self.k_times - 1):
             for instruction in repeated_instructions:
                 deepcopy(instruction).insert_object(instructions)
         return instructions

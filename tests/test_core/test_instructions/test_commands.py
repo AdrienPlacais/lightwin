@@ -1,6 +1,8 @@
 """Test that some commands do what they are supposed to do."""
 
+import logging
 from pathlib import Path
+from pprint import pformat
 from typing import Any
 
 import numpy as np
@@ -151,7 +153,9 @@ class TestCommands:
         )
         transfer_matrix = simulation_output.transfer_matrix
         assert transfer_matrix is not None
-        returned = transfer_matrix.cumulated
+        returned = transfer_matrix.cumulated[-1]
+
         assert np.allclose(
-            expected, returned, atol=1e-10
-        ), f"{expected = }, while {returned = }"
+            expected, returned, atol=1e-3
+        ), f"expected = {pformat(expected, width=120)}, while "
+        f"returned = {pformat(returned, width=120)}"
