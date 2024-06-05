@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a useless command to serve as place holder."""
+
 import logging
 from collections.abc import Sequence
 

@@ -12,10 +12,31 @@ from core.commands.adjust import Adjust
 from core.commands.command import Command
 from core.commands.dummy_command import DummyCommand
 from core.commands.end import End
+from core.commands.error import (
+    ErrorBeamDyn,
+    ErrorBeamStat,
+    ErrorBendCPLDyn,
+    ErrorBendCPLStat,
+    ErrorBendNCPLDyn,
+    ErrorBendNCPLStat,
+    ErrorCavCPLDyn,
+    ErrorCavCPLStat,
+    ErrorCavNCPLDyn,
+    ErrorCavNCPLStat,
+    ErrorCavNCPLStatFile,
+    ErrorGaussianCutOff,
+    ErrorQuadNCPLDyn,
+    ErrorQuadNCPLStat,
+    ErrorRFQCelNCPLDyn,
+    ErrorRFQCelNCPLStat,
+    ErrorSetRatio,
+    ErrorStatFile,
+)
 from core.commands.field_map_path import FieldMapPath
 from core.commands.freq import Freq
 from core.commands.lattice import Lattice, LatticeEnd
 from core.commands.marker import Marker
+from core.commands.set_adv import SetAdv
 from core.commands.shift import Shift
 from core.commands.steerer import Steerer
 from core.commands.superpose_map import SuperposeMap
@@ -25,17 +46,31 @@ IMPLEMENTED_COMMANDS = {
     "ADJUST_STEERER": DummyCommand,
     "DUMMY_COMMAND": DummyCommand,
     "END": End,
-    "ERROR_BEAM_STAT": DummyCommand,
-    "ERROR_CAV_NCPL_DYN": DummyCommand,
-    "ERROR_CAV_NCPL_STAT": DummyCommand,
-    "ERROR_GAUSSIAN_CUT_OFF": DummyCommand,
-    "ERROR_QUAD_NCPL_STAT": DummyCommand,
+    "ERROR_BEAM_DYN": ErrorBeamDyn,
+    "ERROR_BEAM_STAT": ErrorBeamStat,
+    "ERROR_BEND_CPL_DYN": ErrorBendCPLDyn,
+    "ERROR_BEND_CPL_STAT": ErrorBendCPLStat,
+    "ERROR_BEND_NCPL_DYN": ErrorBendNCPLDyn,
+    "ERROR_BEND_NCPL_STAT": ErrorBendNCPLStat,
+    "ERROR_CAV_CPL_DYN": ErrorCavCPLDyn,
+    "ERROR_CAV_CPL_STAT": ErrorCavCPLStat,
+    "ERROR_CAV_NCPL_DYN": ErrorCavNCPLDyn,
+    "ERROR_CAV_NCPL_STAT": ErrorCavNCPLStat,
+    "ERROR_CAV_NCPL_STAT_FILE": ErrorCavNCPLStatFile,
+    "ERROR_GAUSSIAN_CUT_OFF": ErrorGaussianCutOff,
+    "ERROR_QUAD_NCPL_DYN": ErrorQuadNCPLDyn,
+    "ERROR_QUAD_NCPL_STAT": ErrorQuadNCPLStat,
+    "ERROR_RFQ_CEL_NCPL_DYN": ErrorRFQCelNCPLDyn,
+    "ERROR_RFQ_CEL_NCPL_STAT": ErrorRFQCelNCPLStat,
+    "ERROR_STAT_FILE": ErrorStatFile,
+    "ERROR_SET_RATIO": ErrorSetRatio,
     "FIELD_MAP_PATH": FieldMapPath,
     "FREQ": Freq,
     "LATTICE": Lattice,
     "LATTICE_END": LatticeEnd,
     "MARKER": Marker,
     "PLOT_DST": DummyCommand,
+    "SET_ADV": SetAdv,
     "SHIFT": Shift,
     "STEERER": Steerer,
     "SUPERPOSE_MAP": SuperposeMap,
