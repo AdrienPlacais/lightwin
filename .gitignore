@@ -169,6 +169,7 @@ data/example/example_new.ini
 data/example/results/
 data/example/results_tests/
 data/test_instructions/results/*
+data/test_instructions/results_tests/*
 
 docs/source/manual/notebooks/*.py
 images/
