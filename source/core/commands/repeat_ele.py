@@ -44,11 +44,15 @@ class RepeatEle(Command):
             if isinstance(instruction, RepeatEle):
                 raise IOError("I think nested REPEAT_ELE are not allowed.")
 
-            if isinstance(instruction, (Lattice, LatticeEnd, SetAdv)):
+            if isinstance(instruction, (Lattice, LatticeEnd)):
+                logging.info(
+                    "Lattice indexes should be OK, but section number may bug."
+                )
+
+            if isinstance(instruction, SetAdv):
                 logging.error(
-                    "According to doc, LATTICE, LATTICE_END and SET_ADV "
-                    "commands should not be duplicated. Still unsure about how"
-                    " I will treat that."
+                    "According to doc, SET_ADV commands should not be "
+                    "duplicated. Still unsure about how I will treat that."
                 )
                 continue
 
