@@ -37,6 +37,7 @@ from core.commands.freq import Freq
 from core.commands.lattice import Lattice, LatticeEnd
 from core.commands.marker import Marker
 from core.commands.set_adv import SetAdv
+from core.commands.set_sync_phase import SetSyncPhase
 from core.commands.shift import Shift
 from core.commands.steerer import Steerer
 from core.commands.superpose_map import SuperposeMap
@@ -71,6 +72,7 @@ IMPLEMENTED_COMMANDS = {
     "MARKER": Marker,
     "PLOT_DST": DummyCommand,
     "SET_ADV": SetAdv,
+    "SET_SYNC_PHASE": SetSyncPhase,
     "SHIFT": Shift,
     "STEERER": Steerer,
     "SUPERPOSE_MAP": SuperposeMap,
