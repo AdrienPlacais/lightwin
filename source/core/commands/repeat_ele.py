@@ -63,7 +63,12 @@ class RepeatEle(Command):
     ) -> list[Instruction]:
         """Set lattice section number of elements in current lattice."""
         repeated_instructions = instructions[self.influenced]
+        period_length = len(repeated_instructions)
         for _ in range(self.k_times - 1):
             for instruction in repeated_instructions:
-                deepcopy(instruction).insert_object(instructions)
+                copied_instruction = deepcopy(instruction)
+                copied_instruction.increment_dat_position(
+                    increment=period_length
+                )
+                copied_instruction.insert_object(instructions)
         return instructions

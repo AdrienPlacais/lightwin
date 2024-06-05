@@ -1,8 +1,4 @@
-"""Test that some commands do what they are supposed to do."""
-
-import logging
 from pathlib import Path
-from pprint import pformat
 from typing import Any
 
 import numpy as np
@@ -17,26 +13,49 @@ from beam_calculation.simulation_output.simulation_output import (
 from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import NoFault
 
-params = [
-    pytest.param(
-        ("repeat_ele.dat", "generic_envelope3d"),
-        marks=pytest.mark.implementation,
-        id="test REPEAT_ELE command",
+all_expected = {
+    ("repeat_ele.dat", "generic_envelope3d"): np.array(
+        # fmt: off
+        [
+            [4.810796e-01, 8.860652e-02, 0.000000e00, 0.000000e00, 0.000000e00, 0.000000e00],
+            [-8.673880e00, 4.810796e-01, 0.000000e00, 0.000000e00, 0.000000e00, 0.000000e00],
+            [0.000000e00, 0.000000e00, 1.626705e00, 1.341772e-01, 0.000000e00, 0.000000e00],
+            [0.000000e00, 0.000000e00, 1.226863e01, 1.626705e00, 0.000000e00, 0.000000e00],
+            [0.000000e00, 0.000000e00, 0.000000e00, 0.000000e00, 1.000000e00, 1.097659e-01],
+            [0.000000e00, 0.000000e00, 0.000000e00, 0.000000e00, 0.000000e00, 1.000000e00],
+        ]
     ),
-]
+    ("bigger_repeat_ele.dat", "generic_envelope3d"): np.array(
+        # fmt: off
+        [
+            [+1.112536e+00, +9.003670e-04, +0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00],
+            [+6.502189e-01, +8.993739e-01, +0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00],
+            [+0.000000e+00, +0.000000e+00, +9.643958e-01, +1.571434e-02, +0.000000e+00, +0.000000e+00],
+            [+0.000000e+00, +0.000000e+00, +6.502189e-01, +1.047514e+00, +0.000000e+00, +0.000000e+00],
+            [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, +1.000000e+00, +3.993483e+01],
+            [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, +1.000000e+00],
+        ]
+    ),
+}
 
 DATA_DIR = Path("data", "test_instructions")
-TEST_DIR = Path("tests")
 
 
-@pytest.fixture(scope="class", params=params)
+@pytest.fixture
+def expected(request):
+    dat_file = request.node.funcargs["dat_file"]
+    beam_calculator_key = request.node.funcargs["beam_calculator_key"]
+    return all_expected.get((dat_file, beam_calculator_key), None)
+
+
+@pytest.fixture
 def config(
-    request: pytest.FixtureRequest,
-    tmp_path_factory: pytest.TempPathFactory,
+    request, tmp_path_factory: pytest.TempPathFactory
 ) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
+    dat_file = request.node.funcargs["dat_file"]
+    beam_calculator_key = request.node.funcargs["beam_calculator_key"]
     out_folder = tmp_path_factory.mktemp("tmp")
-    dat_file, beam_calculator_key = request.param
 
     config_path = DATA_DIR / "test_instructions.toml"
     config_keys = {
@@ -69,8 +88,7 @@ def solver(config: dict[str, dict[str, Any]]) -> BeamCalculator:
 
 @pytest.fixture
 def accelerator(
-    solver: BeamCalculator,
-    config: dict[str, dict[str, Any]],
+    solver: BeamCalculator, config: dict[str, dict[str, Any]]
 ) -> Accelerator:
     """Create an example linac."""
     accelerator_factory = NoFault(beam_calculator=solver, **config["files"])
@@ -80,82 +98,31 @@ def accelerator(
 
 @pytest.fixture
 def simulation_output(
-    solver: BeamCalculator,
-    accelerator: Accelerator,
+    solver: BeamCalculator, accelerator: Accelerator
 ) -> SimulationOutput:
     """Init and use a solver to propagate beam in an example accelerator."""
     my_simulation_output = solver.compute(accelerator)
     return my_simulation_output
 
 
-class TestCommands:
-    """Just test that REPEAT_ELE leads to proper transfer matrix.
+@pytest.mark.parametrize(
+    "dat_file, beam_calculator_key",
+    [
+        ("repeat_ele.dat", "generic_envelope3d"),
+        ("bigger_repeat_ele.dat", "generic_envelope3d"),
+    ],
+)
+def test_transfer_matrix(
+    dat_file: str | Path,
+    beam_calculator_key: str,
+    expected: np.ndarray,
+    simulation_output: SimulationOutput,
+) -> None:
+    """Verify that the final transfer matrix is correct."""
+    transfer_matrix = simulation_output.transfer_matrix
+    assert transfer_matrix is not None
+    returned = transfer_matrix.cumulated[-1]
 
-    .. todo::
-        A whole class for a single test? There are better options... Should
-        only have as arguments: params and expected transfer matrix
-
-    """
-
-    def test_repeat_element(self, simulation_output: SimulationOutput) -> None:
-        """Verify that final transfer matrix is correct."""
-        expected = np.array(
-            [
-                [
-                    +4.810796e-01,
-                    +8.860652e-02,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                ],
-                [
-                    -8.673880e00,
-                    +4.810796e-01,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                ],
-                [
-                    +0.000000e00,
-                    +0.000000e00,
-                    +1.626705e00,
-                    +1.341772e-01,
-                    +0.000000e00,
-                    +0.000000e00,
-                ],
-                [
-                    +0.000000e00,
-                    +0.000000e00,
-                    +1.226863e01,
-                    +1.626705e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                ],
-                [
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +1.000000e00,
-                    +1.097659e-01,
-                ],
-                [
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +0.000000e00,
-                    +1.000000e00,
-                ],
-            ]
-        )
-        transfer_matrix = simulation_output.transfer_matrix
-        assert transfer_matrix is not None
-        returned = transfer_matrix.cumulated[-1]
-
-        assert np.allclose(
-            expected, returned, atol=1e-3
-        ), f"expected = {pformat(expected, width=120)}, while "
-        f"returned = {pformat(returned, width=120)}"
+    assert np.allclose(
+        expected, returned, atol=1e-3
+    ), f"{expected = }, but {returned = }"
