@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Solenoid`."""
 
 from core.elements.element import Element
@@ -20,3 +18,4 @@ class Solenoid(Element):
     ) -> None:
         """Check number of attributes."""
         super().__init__(line, dat_idx, name)
+        self.reinsert_optional_commands_in_line()

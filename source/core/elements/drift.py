@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Drift`."""
 
 from core.elements.element import Element
@@ -20,3 +18,4 @@ class Drift(Element):
     ) -> None:
         """Check that number of attributes is valid."""
         super().__init__(line, dat_idx, name)
+        self.reinsert_optional_commands_in_line()

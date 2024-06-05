@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a :class:`SuperposedFieldMap`.
 
 .. note::
@@ -10,6 +8,7 @@
     Maybe move this to the field_map package once it is implemented
 
 """
+
 from core.elements.element import Element
 
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`DummyElement`. It does nothing."""
 
 from core.elements.element import Element
@@ -20,3 +18,4 @@ class DummyElement(Element):
         """Force an element with null-length, with no index."""
         super().__init__(line, dat_idx, name)
         self.length_m = 0.0
+        self.reinsert_optional_commands_in_line()

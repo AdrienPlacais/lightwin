@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Edge`. It does nothing.
 
 .. todo::
@@ -34,3 +32,4 @@ class Edge(Element):
             "ignored by LATTICE. So why did I set increment_lattice_idx to "
             "False?"
         )
+        self.reinsert_optional_commands_in_line()
