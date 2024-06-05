@@ -14,7 +14,7 @@ from failures.strategy import k_out_of_n, l_neighboring_lattices
 from util.helper import chunks
 
 
-@pytest.mark.implementation
+@pytest.mark.smoke
 class TestStrategy:
     """Test the different strategies."""
 
