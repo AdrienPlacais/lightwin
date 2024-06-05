@@ -13,5 +13,5 @@ It must contain the key ``dat_file``, which is the path to the linac structure f
 
 See also: :mod:`config.files` and the `TraceWin compatibility note`_.
 
-.. `TraceWin compatibility note`: https://adrienplacais.github.io/LightWin/html/manual/usage.html#tracewin-compatibility-note
+.. `TraceWin compatibility note`: https://adrienplacais.github.io/LightWin/html/manual/usage.html#compatibility-with-tracewin-dat-files
 
