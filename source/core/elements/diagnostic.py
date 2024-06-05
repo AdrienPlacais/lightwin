@@ -2,7 +2,7 @@
 
 As for now, diagnostics are not used by LightWin. However, LightWin can add
 diagnostics (as well as ADJUST) to the final ``.dat`` in order to perform a
-"beauty pass".
+"pass beauty".
 
 .. note::
     Functionalities still under implementation. In particular, the number of
