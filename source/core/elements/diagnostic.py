@@ -145,6 +145,10 @@ class DiagDSize3(Diagnostic):
             self.low_pass_filter_frequency = float(line[4])
 
 
+class DiagDSize4(Diagnostic):
+    """Measure something?"""
+
+
 class DiagDPSize2(Diagnostic):
     """Measure delta divergence between two positions."""
 
