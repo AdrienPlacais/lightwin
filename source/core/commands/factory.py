@@ -36,6 +36,7 @@ from core.commands.field_map_path import FieldMapPath
 from core.commands.freq import Freq
 from core.commands.lattice import Lattice, LatticeEnd
 from core.commands.marker import Marker
+from core.commands.repeat_ele import RepeatEle
 from core.commands.set_adv import SetAdv
 from core.commands.set_sync_phase import SetSyncPhase
 from core.commands.shift import Shift
@@ -71,6 +72,7 @@ IMPLEMENTED_COMMANDS = {
     "LATTICE_END": LatticeEnd,
     "MARKER": Marker,
     "PLOT_DST": DummyCommand,
+    "REPEAT_ELE": RepeatEle,
     "SET_ADV": SetAdv,
     "SET_SYNC_PHASE": SetSyncPhase,
     "SHIFT": Shift,
