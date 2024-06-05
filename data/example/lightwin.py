@@ -21,7 +21,7 @@ from experimental.new_evaluator.simulation_output.factory import (
 )
 from experimental.plotter.pd_plotter import PandasPlotter
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
-from util.beauty_pass import insert_beauty_pass_instructions
+from util.pass_beauty import insert_pass_beauty_instructions
 from visualization import plot
 
 
@@ -93,7 +93,7 @@ def add_beauty_instructions(
 ) -> None:
     """Edit dat file to include beauty instructions."""
     for fault_scenario in fault_scenarios:
-        insert_beauty_pass_instructions(fault_scenario, beam_calculator)
+        insert_pass_beauty_instructions(fault_scenario, beam_calculator)
 
 
 def recompute(
