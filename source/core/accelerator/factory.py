@@ -98,6 +98,8 @@ class AcceleratorFactory(ABC):
         self, cavities: Sequence[FieldMap]
     ) -> None:
         """Check that solvers phases are consistent with ``.dat`` file."""
+        if len(cavities) == 0:
+            return
         beam_calculators = [x for x in self.beam_calculators if x is not None]
         beam_calculators_flags = set(
             [
