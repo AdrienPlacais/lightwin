@@ -93,10 +93,10 @@ class CavitySettings:
         phi : float
             Input phase. Must be absolute or relative entry phase, or
             synchronous phase.
-        reference : {'phi_0_abs', 'phi_0_rel', 'phi_s'}
+        reference : REFERENCE_T
             Name of the phase used for reference. When a particle enters the
             cavity, this is the phase that is not recomputed.
-        status : str
+        status : STATUS_T
             A value in :var:`ALLOWED_STATUS`.
         freq_bunch_mhz : float
             Bunch frequency in MHz.
@@ -129,6 +129,7 @@ class CavitySettings:
         self._phi_rf: float
         self._phi_bunch: float
 
+        self._status: STATUS_T
         self.status = status
 
         self.transf_mat_func_wrappers: dict[str, Callable] = {}
@@ -333,7 +334,7 @@ class CavitySettings:
     # Reference
     # =============================================================================
     @property
-    def reference(self) -> str:
+    def reference(self) -> REFERENCE_T:
         """Say what is the reference phase.
 
         .. list-table:: Equivalents of ``reference`` in TraceWin's \
@@ -449,6 +450,11 @@ class CavitySettings:
         logging.error("The phase was not initialized. Returning None...")
         return None
 
+    @phi_0_abs.deleter
+    def phi_0_abs(self) -> None:
+        """Delete attribute."""
+        self._phi_0_abs = None
+
     # =============================================================================
     # Relative phi_0
     # =============================================================================
@@ -495,6 +501,11 @@ class CavitySettings:
 
         self.phi_0_rel = phi_s_to_phi_0_rel(self._phi_s)
         return self._phi_0_rel
+
+    @phi_0_rel.deleter
+    def phi_0_rel(self) -> None:
+        """Delete attribute."""
+        self._phi_0_rel = None
 
     # =============================================================================
     # Synchronous phase, accelerating voltage
@@ -552,6 +563,11 @@ class CavitySettings:
 
         self._phi_s = phi_s_calc(self.phi_0_rel)
         return self._phi_s
+
+    @phi_s.deleter
+    def phi_s(self) -> None:
+        """Delete attribute."""
+        self._phi_s = np.NaN
 
     def set_cavity_parameters_methods(
         self,
@@ -828,7 +844,7 @@ def _get_valid_func(obj: object, func_name: str, solver_id: str) -> Callable:
     )
     func = all_funcs.get(solver_id, None)
     assert isinstance(func, Callable), (
-        f"No Callable {func_name} was found in {object} for {solverbase_name = }"
+        f"No Callable {func_name} was found in {object} for {solver_id = }"
         "Check CavitySettings.set_cavity_parameters_methods and"
         "CavitySettings.set_cavity_parameters_arguments"
     )
