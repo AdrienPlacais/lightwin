@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define the functions to test the :class:`.BeamCalculator` arguments.
 
 .. todo::
     Handling of arguments for TW could be cleaner
 
 """
+
 import logging
 import socket
 import tomllib
@@ -14,8 +13,8 @@ from pathlib import Path
 from config.helper import check_type
 
 IMPLEMENTED_BEAM_CALCULATORS = ("Envelope1D", "TraceWin", "Envelope3D")  #:
-IMPLEMENTED_ENVELOPE1D_METHODS = ("leapfrog", "RK")  #:
-IMPLEMENTED_ENVELOPE3D_METHODS = ("RK",)  #:
+IMPLEMENTED_ENVELOPE1D_METHODS = ("leapfrog", "RK4")  #:
+IMPLEMENTED_ENVELOPE3D_METHODS = ("RK4",)  #:
 
 IMPLEMENTED_TRACEWIN_ARGUMENTS = (
     "hide",
@@ -119,6 +118,12 @@ def _test_envelope1d(
     **beam_calculator_kw: bool | str | int,
 ) -> None:
     """Test the consistency for the basic :class:`.Envelope1D` beam calculator."""
+    if method == "RK":
+        logging.warning(
+            f"{method = } is deprecated. Prefer 'RK4' (same thing but more "
+            "explicit)."
+        )
+        method = "RK4"
     assert method in IMPLEMENTED_ENVELOPE1D_METHODS
     check_type(bool, "beam_calculator", flag_cython, flag_phi_abs)
     check_type(int, "beam_calculator", n_steps_per_cell)
@@ -279,11 +284,17 @@ def _find_file(config_folder: Path, file: str) -> Path:
 def _test_envelope3d(
     flag_phi_abs: bool,
     n_steps_per_cell: int,
-    method: str = "RK",
+    method: str = "RK4",
     flag_cython: bool | None = None,
     **beam_calculator_kw: bool | str | int,
 ) -> None:
     """Check validity of arguments for :class:`.Envelope3D`."""
+    if method == "RK":
+        logging.warning(
+            f"{method = } is deprecated. Prefer 'RK4' (same thing but more "
+            "explicit)."
+        )
+        method = "RK4"
     assert method in IMPLEMENTED_ENVELOPE3D_METHODS
     check_type(bool, "beam_calculator", flag_phi_abs)
     check_type(int, "beam_calculator", n_steps_per_cell)

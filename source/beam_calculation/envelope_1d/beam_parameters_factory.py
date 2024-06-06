@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a function to generate a :class:`.BeamParameters` for Envelope1D."""
+
 from typing import Callable
 
 import numpy as np

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a class to hold solver parameters for :class:`.Envelope1D`.
 
 This module holds :class:`ElementEnvelope1DParameters`, that inherits
@@ -9,6 +7,7 @@ It holds the transfer matrix function that is used, according to the solver
 meshing in accelerating elements.
 
 """
+
 import math
 from abc import abstractmethod
 from types import ModuleType
@@ -26,7 +25,6 @@ from core.elements.field_maps.field_map import FieldMap
 from util.synchronous_phases import SYNCHRONOUS_PHASE_FUNCTIONS
 
 FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
-    "RK": lambda module: module.z_field_map_rk4,
     "RK4": lambda module: module.z_field_map_rk4,
     "leapfrog": lambda module: module.z_field_map_leapfrog,
 }

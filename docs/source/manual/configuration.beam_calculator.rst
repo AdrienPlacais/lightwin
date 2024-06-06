@@ -16,7 +16,7 @@ If the desired :class:`.BeamCalculator` is :class:`.Envelope1D`:
    :widths: 30, 5, 50, 10, 5
    :header-rows: 1
 
-Note that :class:`Envelope3D` takes the same configuration entries, except ``flag_cython`` (not implemented yet) and ``method`` that must be ``'RK'`` (``'leapgrog'`` not implemented yet).
+Note that :class:`Envelope3D` takes the same configuration entries, except ``flag_cython`` (not implemented yet) and ``method`` that must be ``'RK4'`` (``'leapgrog'`` not implemented yet).
 
 If the desired :class:`.BeamCalculator` is :class:`.TraceWin`:
 

@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create the solver parameters for :class:`.TraceWin`."""
+
 from typing import Any
 
 import numpy as np

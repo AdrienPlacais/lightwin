@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a class to easily generate the :class:`.SimulationOutput`."""
+
 from abc import ABCMeta
 from dataclasses import dataclass
 from pathlib import Path

@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Envelope3D`, an envelope solver."""
+
 import logging
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_3d.beam_parameters_factory import (
@@ -34,13 +34,14 @@ class Envelope3D(BeamCalculator):
 
     def __init__(
         self,
+        *,
         flag_phi_abs: bool,
         n_steps_per_cell: int,
         out_folder: Path | str,
         default_field_map_folder: Path | str,
         flag_cython: bool = False,
-        method: str = "RK",
-        phi_s_definition: str = "historical",
+        method: Literal["RK4"] = "RK4",
+        phi_s_definition: Literal["historical"] = "historical",
     ) -> None:
         """Set the proper motion integration function, according to inputs."""
         self.flag_cython = flag_cython
@@ -115,8 +116,7 @@ class Envelope3D(BeamCalculator):
         elts: ListOfElements,
         use_a_copy_for_nominal_settings: bool = True,
     ) -> SimulationOutput:
-        """
-        Envelope 3D calculation of beam in ``elts``, with non-nominal settings.
+        """Compute beam propagation with non-nominal settings.
 
         Parameters
         ----------
@@ -139,7 +139,6 @@ class Envelope3D(BeamCalculator):
 
         """
         single_elts_results = []
-
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
 
@@ -156,9 +155,13 @@ class Envelope3D(BeamCalculator):
                 rf_field_kwargs = self._adapt_cavity_settings(
                     elt, cavity_settings, phi_abs, w_kin
                 )
+            # Technically: if we made a phi_s fit, following lines are useless
+            # elt_results already calculated
+            # v_cav, phi_s already calculated
 
             func = elt.beam_calc_param[self.id].transf_mat_function_wrapper
             elt_results = func(w_kin, **rf_field_kwargs)
+
             if cavity_settings is not None:
                 v_cav_mv, phi_s = self._compute_cavity_parameters(elt_results)
                 cavity_settings.v_cav_mv = v_cav_mv
@@ -188,7 +191,10 @@ class Envelope3D(BeamCalculator):
 
         """
         simulation_output = self.run_with_this(
-            optimized_cavity_settings, full_elts, **specific_kwargs
+            optimized_cavity_settings,
+            full_elts,
+            use_a_copy_for_nominal_settings=False,
+            **specific_kwargs,
         )
         return simulation_output
 
@@ -209,9 +215,8 @@ class Envelope3D(BeamCalculator):
         for elt in elts:
             if self.id in elt.beam_calc_param:
                 logging.debug(
-                    f"Solver already initialized for {elt = }."
-                    "I will skip solver param initialisation for"
-                    f" {elts[0]} to {elts[-1]}"
+                    f"Solver already initialized for {elt = }. I will skip "
+                    f"solver param initialisation {elts[0]} to {elts[-1]}"
                 )
                 return
             solver_param = self.beam_calc_parameters_factory.run(elt)
@@ -257,10 +262,22 @@ class Envelope3D(BeamCalculator):
             "section_idx": field_map.idx["section"],
             "n_cell": field_map.new_rf_field.n_cell,
             "bunch_to_rf": field_map.cavity_settings.bunch_phase_to_rf_phase,
-            "phi_0_rel": cavity_settings.phi_0_rel,
-            "phi_0_abs": cavity_settings.phi_0_abs,
+            # NOTE we prepend a _ to the phi_0 to avoid computing them if not
+            # necessary
+            # "phi_0_rel": cavity_settings.phi_0_rel,
+            # "phi_0_abs": cavity_settings.phi_0_abs,
             "k_e": cavity_settings.k_e,
         }
+        if cavity_settings.reference == "phi_s":
+            cavity_settings.set_cavity_parameters_arguments(
+                self.id, w_kin_in, **rf_parameters_as_dict
+            )
+            rf_parameters_as_dict["phi_0_rel"] = cavity_settings.phi_0_rel
+            rf_parameters_as_dict["phi_0_abs"] = cavity_settings.phi_0_abs
+            return rf_parameters_as_dict
+
+        rf_parameters_as_dict["phi_0_rel"] = cavity_settings.phi_0_rel
+        rf_parameters_as_dict["phi_0_abs"] = cavity_settings.phi_0_abs
         cavity_settings.set_cavity_parameters_arguments(
             self.id, w_kin_in, **rf_parameters_as_dict
         )

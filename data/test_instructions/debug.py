@@ -40,8 +40,6 @@ def set_up(
     """Set up everything."""
     beam_calculator, beam_calculator_ids = _set_up_solvers(config)
     accelerator = _set_up_accelerators(config, beam_calculator)
-
-
     return beam_calculator, accelerator
 
 
@@ -59,12 +57,12 @@ if __name__ == "__main__":
     toml_keys = {
         "files": "files",
         # "plots": "plots_minimal",
-        "beam_calculator": "generic_envelope3d",
+        "beam_calculator": "generic_envelope1d",
         "beam": "beam",
     }
     override = {
         "files": {
-            "dat_file": "bigger_repeat_ele.dat",
+            "dat_file": "set_sync_phase.dat",
         },
     }
     config = config_manager.process_config(

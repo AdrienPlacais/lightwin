@@ -5,7 +5,7 @@ project_folder = "results_tests/"
 [generic_envelope1d]
 flag_cython = false
 flag_phi_abs = true
-method = "RK"
+method = "RK4"
 n_steps_per_cell = 40
 tool = "Envelope1D"
 

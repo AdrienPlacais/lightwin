@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Provide an easy way to generate :class:`.TransferMatrix`."""
 
-
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Any
 
 import numpy as np
 
@@ -18,9 +15,10 @@ class TransferMatrixFactory(ABC):
 
     """
 
-    def __init__(self,
-                 is_3d: bool,
-                 ) -> None:
+    def __init__(
+        self,
+        is_3d: bool,
+    ) -> None:
         """Store if simulation is in 3D or not.
 
         Parameters
@@ -31,9 +29,11 @@ class TransferMatrixFactory(ABC):
         """
         self.is_3d = is_3d
 
-    def _preprocess(self, *args, **kwargs) -> None:
+    def _preprocess(
+        self, single_elt_results: list[dict[str, Any]]
+    ) -> np.ndarray:
         """Preprocess the data given by the :class:`.BeamCalculator`."""
-        return
+        raise NotImplementedError("Method not overriden.")
 
     @abstractmethod
     def run(self, *args, **kwargs) -> TransferMatrix:
