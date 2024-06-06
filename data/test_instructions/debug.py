@@ -57,13 +57,14 @@ if __name__ == "__main__":
     toml_keys = {
         "files": "files",
         # "plots": "plots_minimal",
-        "beam_calculator": "generic_envelope1d",
+        "beam_calculator": "generic_envelope3d",
         "beam": "beam",
     }
     override = {
         "files": {
             "dat_file": "set_sync_phase.dat",
         },
+        "beam_calculator": {"n_steps_per_cell": 40},
     }
     config = config_manager.process_config(
         toml_filepath, toml_keys, override=override
