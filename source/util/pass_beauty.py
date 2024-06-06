@@ -10,6 +10,9 @@ for now, the implementation is kept very simple:
     - We try to keep the phase dispersion between start of compensation zone,
       and ``number_of_dsize`` lattices after.
 
+.. todo::
+    fix colors in plots after pass beauty
+
 """
 
 import logging
@@ -198,6 +201,9 @@ def insert_pass_beauty_instructions(
         which_phase="phi_0_rel",
     )
     logging.info("Overwriting a ListOfElements by its beauty counterpart.")
+    logging.warning(
+        "Expected bug: all cavities will be shown as green in plots."
+    )
     accelerator.elts = elts
     return
 
