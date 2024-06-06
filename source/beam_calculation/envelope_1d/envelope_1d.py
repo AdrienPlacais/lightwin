@@ -152,6 +152,7 @@ class Envelope1D(BeamCalculator):
             if cavity_settings is not None:
                 v_cav_mv, phi_s = self._compute_cavity_parameters(elt_results)
                 cavity_settings.v_cav_mv = v_cav_mv
+                # not useful if sync phase is already set (reference phi_s)
                 cavity_settings.phi_s = phi_s
 
             single_elts_results.append(elt_results)

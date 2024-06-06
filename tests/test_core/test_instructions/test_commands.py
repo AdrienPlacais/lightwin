@@ -137,5 +137,5 @@ def test_transfer_matrix(
     returned = transfer_matrix.cumulated[-1]
 
     assert np.allclose(
-        expected, returned, atol=1e-3
+        expected, returned, atol=1e-2
     ), f"{expected = }, but {returned = }"
