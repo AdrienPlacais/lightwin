@@ -20,13 +20,15 @@ from beam_calculation.tracewin.tracewin import TraceWin
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import REFERENCE_T
+
+# from failures.set_of_cavity_settings import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
 from evaluator.list_of_simulation_output_evaluators import (
     FaultScenarioSimulationOutputEvaluators,
 )
 from failures import strategy
 from failures.fault import Fault
-from failures.set_of_cavity_settings import FieldMap
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from optimisation.algorithms.factory import optimisation_algorithm_factory
 from optimisation.design_space.factory import (
@@ -296,47 +298,44 @@ class FaultScenario(list):
         )
 
         if self._reference_phase == "phi_0_rel":
-            # Tell LW to keep the new phase of the rephased cavities
-            # between the two compensation zones
-            self._reupdate_status_of_rephased_cavities(fault)
+            self._update_rephased_cavities_status(fault)
 
         return success, info
 
-    def _reupdate_status_of_rephased_cavities(self, fault: Fault) -> None:
+    def _update_rephased_cavities_status(self, fault: Fault) -> None:
         """Modify the status of the cavities that were already rephased.
 
         Change the cavities with status "rephased (in progress)" to
-        "rephased (ok)" between the fault in argument and the next one.
+        "rephased (ok)" between ``fault`` and the next one.
 
         """
         elts = self.fix_acc.elts
-
-        idx1 = fault.elts[-1].idx["elt_idx"]
-        idx2 = len(elts)
-        if fault is not self[-1]:
-            next_fault = self[self.index(fault) + 1]
-            idx2 = next_fault.elts[0].idx["elt_idx"] + 1
-
-        rephased_cavities_between_two_faults = [
-            elt
-            for elt in elts[idx1:idx2]
-            if elt.get("nature") == "FIELD_MAP"
-            and elt.get("status") == "rephased (in progress)"
-        ]
-
-        for cav in rephased_cavities_between_two_faults:
-            cav.update_status("rephased (ok)")
-        return
-        # New implementation to test
         idx_start = elts.index(fault.elts[-1])
         for elt in elts[idx_start:]:
-            if elt.nature != "FIELD_MAP":
+            if not isinstance(elt, FieldMap):
                 continue
             if elt.status == "rephased (in progress)":
                 elt.update_status("rephased (ok)")
                 continue
             if "compensate" in elt.status or "failed" in elt.status:
                 return
+        # Old implementation, kept au cas où
+        # idx1 = fault.elts[-1].idx["elt_idx"]
+        # idx2 = len(elts)
+        # if fault is not self[-1]:
+        #     next_fault = self[self.index(fault) + 1]
+        #     idx2 = next_fault.elts[0].idx["elt_idx"] + 1
+        #
+        # rephased_cavities_between_two_faults = [
+        #     elt
+        #     for elt in elts[idx1:idx2]
+        #     if elt.get("nature") == "FIELD_MAP"
+        #     and elt.get("status") == "rephased (in progress)"
+        # ]
+        #
+        # for cav in rephased_cavities_between_two_faults:
+        #     cav.update_status("rephased (ok)")
+        # return
 
     def _transfer_phi0_from_ref_to_broken(self) -> None:
         """Transfer the entry phases from reference linac to broken.
