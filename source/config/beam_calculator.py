@@ -133,7 +133,8 @@ def _edit_configuration_dict_in_place_envelope1d(
     beam_calculator_kw: dict, config_folder: Path
 ) -> None:
     """Modify the kw dict inplace."""
-    pass
+    if beam_calculator_kw["method"] == "RK":
+        beam_calculator_kw["method"] = "RK4"
 
 
 def _test_tracewin(
@@ -307,4 +308,5 @@ def _edit_configuration_dict_in_place_envelope3d(
     beam_calculator_kw: dict, config_folder: Path
 ) -> None:
     """Modify the kw dict inplace."""
-    pass
+    if beam_calculator_kw["method"] == "RK":
+        beam_calculator_kw["method"] = "RK4"
