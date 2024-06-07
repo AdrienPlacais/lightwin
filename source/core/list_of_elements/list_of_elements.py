@@ -266,19 +266,28 @@ class ListOfElements(list):
             Where the output ``.dat`` should be saved.
         which_phase : {'phi_0_abs', 'phi_0_rel', 'phi_s', 'as_in_settings',
                 \ 'as_in_original_dat'}
-            Which phase should be putted in the output ``.dat``.
+            Which phase should be put in the output ``.dat``.
         save : bool, optional
             If the output file should be created. The default is True.
 
-        Important notice
-        ----------------
-        The phases of the cavities are rephased if the first :class:`.Element`
-        in self is not the first of the linac. This way, the beam enters each
-        cavity with the intended phase in :class:`.TraceWin`.
+        Note
+        ----
+        LightWin rephases cavities if the first :class:`.Element`
+        in ``self`` is not the first of the linac. This way, the beam enters
+        each cavity with the intended phase in :class:`.TraceWin` (no effect
+        if the phases are exported as relative phase).
+
+        Raises
+        ------
+        NotImplementedError:
+            If ``which_phase`` is different from ``"phi_0_abs"`` or
+            ``"phi_0_rel"``.
 
         """
         if which_phase == "phi_s":
-            raise IOError("Output with SET_SYNC_PHASE not implemented yet.")
+            raise NotImplementedError(
+                "Output with SET_SYNC_PHASE not implemented yet."
+            )
         if which_phase in ("as_in_settings", "as_in_original_dat"):
             raise NotImplementedError
         self.files["dat_file"] = dat_file
