@@ -252,7 +252,7 @@ class ListOfElements(list):
     def store_settings_in_dat(
         self,
         dat_file: Path,
-        which_phase: str = "phi_0_abs",
+        which_phase: Literal["phi_0_abs", "phi_0_rel", "phi_s"] = "phi_0_abs",
         save: bool = True,
     ) -> None:
         r"""Update the ``dat`` file, save it if asked.
@@ -274,10 +274,14 @@ class ListOfElements(list):
         cavity with the intended phase in :class:`.TraceWin`.
 
         """
+        if which_phase == "phi_s":
+            raise IOError("Output with SET_SYNC_PHASE not implemented yet.")
+        if which_phase in ("as_in_settings", "as_in_original_dat"):
+            raise NotImplementedError
         self.files["dat_file"] = dat_file
         dat_content = [
-            elt_or_cmd.to_line(which_phase=which_phase, inplace=False)
-            for elt_or_cmd in self.files["elts_n_cmds"]
+            instruction.to_line(which_phase=which_phase, inplace=False)
+            for instruction in self.files["elts_n_cmds"]
         ]
         if save:
             export_dat_filecontent(dat_content, dat_file)

@@ -7,7 +7,7 @@
 
 import logging
 from collections.abc import Sequence
-from typing import Self
+from typing import Literal
 
 from core.commands.command import Command
 from core.elements.field_maps.field_map import FieldMap
@@ -22,7 +22,9 @@ class SetSyncPhase(Command):
 
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Instantiate command."""
-        logging.warning("The SET_SYNC_PHASE command is still under test.")
+        logging.warning(
+            "The SET_SYNC_PHASE command is still under testing, be cautious."
+        )
         return super().__init__(line, dat_idx)
 
     def set_influenced_elements(
@@ -55,3 +57,22 @@ class SetSyncPhase(Command):
             settings.reference = "phi_s"
             settings.phi_ref = phi_s
         return instructions
+
+    def to_line(
+        self,
+        *args,
+        which_phase: Literal["phi_0_abs", "phi_0_rel", "phi_s"],
+        **kwargs,
+    ) -> list[str]:
+        """Return the command, commented if output phase should not be phi_s.
+
+        .. note::
+            ``which_phase == 'phi_s'`` should never happen for now, the
+            :meth:`.ListOfElements.store_settings_in_dat` should not allow it.
+
+        """
+        line = super().to_line(*args, **kwargs)
+        if which_phase == "phi_s":
+            return line
+        line.insert(0, ";")
+        return line
