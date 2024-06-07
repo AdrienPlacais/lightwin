@@ -21,6 +21,7 @@ import numpy as np
 
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.elements.element import Element
+from core.elements.field_maps.cavity_settings import REFERENCE_T
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.helper import (
     first,
@@ -252,7 +253,9 @@ class ListOfElements(list):
     def store_settings_in_dat(
         self,
         dat_file: Path,
-        which_phase: Literal["phi_0_abs", "phi_0_rel", "phi_s"] = "phi_0_abs",
+        which_phase: (
+            REFERENCE_T | Literal["as_in_settings", "as_in_original_dat"]
+        ) = "phi_0_abs",
         save: bool = True,
     ) -> None:
         r"""Update the ``dat`` file, save it if asked.

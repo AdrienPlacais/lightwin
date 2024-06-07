@@ -26,6 +26,7 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.accelerator.accelerator import Accelerator
+from core.elements.field_maps.cavity_settings import REFERENCE_T
 from core.elements.field_maps.cavity_settings_factory import (
     CavitySettingsFactory,
 )
@@ -207,7 +208,7 @@ class BeamCalculator(ABC):
         return self.simulation_output_factory.run(*args, **kwargs)
 
     @property
-    def reference_phase(self) -> str:
+    def reference_phase(self) -> REFERENCE_T:
         """Give the reference phase.
 
         .. todo::

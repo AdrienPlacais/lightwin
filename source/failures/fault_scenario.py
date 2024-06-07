@@ -19,6 +19,7 @@ from beam_calculation.simulation_output.simulation_output import (
 from beam_calculation.tracewin.tracewin import TraceWin
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
+from core.elements.field_maps.cavity_settings import REFERENCE_T
 from core.list_of_elements.factory import ListOfElementsFactory
 from evaluator.list_of_simulation_output_evaluators import (
     FaultScenarioSimulationOutputEvaluators,
@@ -237,40 +238,11 @@ class FaultScenario(list):
         for fault, optimisation_algorithm in zip(
             self, optimisation_algorithms
         ):
-            _succ, _info = fault.fix(optimisation_algorithm)
-
-            success.append(_succ)
-            info.append(_info)
-
-            simulation_output = (
-                self.beam_calculator.post_optimisation_run_with_this(
-                    fault.optimized_cavity_settings,
-                    self.fix_acc.elts,
-                )
+            args = self._wrap_single_fix(
+                fault, optimisation_algorithm, ref_simulation_output
             )
-            simulation_output.compute_complementary_data(
-                self.fix_acc.elts, ref_simulation_output=ref_simulation_output
-            )
-
-            self.fix_acc.keep_settings(
-                simulation_output, output_phase=self._reference_phase
-            )
-            self.fix_acc.keep_simulation_output(
-                simulation_output, self.beam_calculator.id
-            )
-
-            fault.update_elements_status(optimisation="finished", success=True)
-            logging.warning("Manually set which_phase")
-            fault.elts.store_settings_in_dat(
-                fault.elts.files["dat_file"],
-                which_phase=self._reference_phase,
-                save=True,
-            )
-
-            if not self.beam_calculator.flag_phi_abs:
-                # Tell LW to keep the new phase of the rephased cavities
-                # between the two compensation zones
-                self._reupdate_status_of_rephased_cavities(fault)
+            success.append(args[0])
+            success.append(args[1])
 
         self.fix_acc.name = (
             f"Fixed ({str(success.count(True))}" + f" of {str(len(success))})"
@@ -291,6 +263,45 @@ class FaultScenario(list):
         # Legacy, does not work anymore with the new implementation
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
 
+    def _wrap_single_fix(
+        self,
+        fault: Fault,
+        optimisation_algorithm: OptimisationAlgorithm,
+        ref_simulation_output: SimulationOutput,
+    ) -> tuple[bool, dict]:
+        """Fix a fault and recompute propagation with new settings."""
+        success, info = fault.fix(optimisation_algorithm)
+
+        simulation_output = (
+            self.beam_calculator.post_optimisation_run_with_this(
+                fault.optimized_cavity_settings, self.fix_acc.elts
+            )
+        )
+        simulation_output.compute_complementary_data(
+            self.fix_acc.elts, ref_simulation_output=ref_simulation_output
+        )
+
+        self.fix_acc.keep_settings(
+            simulation_output, output_phase=self._reference_phase
+        )
+        self.fix_acc.keep_simulation_output(
+            simulation_output, self.beam_calculator.id
+        )
+
+        fault.update_elements_status(optimisation="finished", success=True)
+        fault.elts.store_settings_in_dat(
+            fault.elts.files["dat_file"],
+            which_phase=self._reference_phase,
+            save=True,
+        )
+
+        if self._reference_phase == "phi_0_rel":
+            # Tell LW to keep the new phase of the rephased cavities
+            # between the two compensation zones
+            self._reupdate_status_of_rephased_cavities(fault)
+
+        return success, info
+
     def _reupdate_status_of_rephased_cavities(self, fault: Fault) -> None:
         """Modify the status of the cavities that were already rephased.
 
@@ -298,7 +309,6 @@ class FaultScenario(list):
         "rephased (ok)" between the fault in argument and the next one.
 
         """
-        logging.warning("Changed the way of defining idx1 and idx2.")
         elts = self.fix_acc.elts
 
         idx1 = fault.elts[-1].idx["elt_idx"]
@@ -345,7 +355,7 @@ class FaultScenario(list):
             fix.phi_ref = phi_0_ref
 
     @property
-    def _reference_phase(self) -> str:
+    def _reference_phase(self) -> REFERENCE_T:
         """Give the reference phase: `phi_0_rel` or 'phi_0_abs'."""
         return self.beam_calculator.reference_phase
 
