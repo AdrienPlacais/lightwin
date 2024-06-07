@@ -46,7 +46,6 @@ class ElementEnvelope3DParametersFactory(
         phi_s_definition: Literal["historical"] = "historical",
     ) -> None:
         """Prepare import of proper functions."""
-        assert method in ("RK4",)
         self.method = method
         self.n_steps_per_cell = n_steps_per_cell
         self.solver_id = solver_id

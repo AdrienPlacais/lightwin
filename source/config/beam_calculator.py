@@ -308,5 +308,5 @@ def _edit_configuration_dict_in_place_envelope3d(
     beam_calculator_kw: dict, config_folder: Path
 ) -> None:
     """Modify the kw dict inplace."""
-    if beam_calculator_kw["method"] == "RK":
+    if beam_calculator_kw.get("method", None) == "RK":
         beam_calculator_kw["method"] = "RK4"
