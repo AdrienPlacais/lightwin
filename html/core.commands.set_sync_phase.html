@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>core.commands.set_sync_phase module &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>core.commands.set_sync_phase module &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -133,22 +133,59 @@
              
   <section id="module-core.commands.set_sync_phase">
 <span id="core-commands-set-sync-phase-module"></span><h1>core.commands.set_sync_phase module<a class="headerlink" href="#module-core.commands.set_sync_phase" title="Link to this heading"></a></h1>
-<p>Set a dummy class that raises an error message.</p>
+<p>Define the SET_SYNC_PHASE command.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Should also modify RFQ_CEL, CAVSIN, NCELLS according to doc.</p>
+</div>
 <dl class="py class">
 <dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SetSyncPhase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="core.commands.dummy_command.html#core.commands.dummy_command.DummyCommand" title="core.commands.dummy_command.DummyCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">DummyCommand</span></code></a></p>
-<p>A class that does nothing but raise an error.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SetSyncPhase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dat_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="core.commands.command.html#core.commands.command.Command" title="core.commands.command.Command"><code class="xref py py-class docutils literal notranslate"><span class="pre">Command</span></code></a></p>
+<p>A class that modifies reference phase of next cavity.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase.__init__" title="Link to this definition"></a></dt>
-<dd><p>Raise an error.</p>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dat_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase.__init__" title="Link to this definition"></a></dt>
+<dd><p>Instantiate command.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase._abc_impl">
 <span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instructions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase.apply" title="Link to this definition"></a></dt>
+<dd><p>Modify reference of cavity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase.is_implemented">
+<span class="sig-name descname"><span class="pre">is_implemented</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase.is_implemented" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase.n_attributes">
+<span class="sig-name descname"><span class="pre">n_attributes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">range</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Collection</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase.n_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase.set_influenced_elements">
+<span class="sig-name descname"><span class="pre">set_influenced_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instructions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.instruction.html#core.instruction.Instruction" title="core.instruction.Instruction"><span class="pre">Instruction</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase.set_influenced_elements" title="Link to this definition"></a></dt>
+<dd><p>Capture first cavity after this command.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.commands.set_sync_phase.SetSyncPhase.to_line">
+<span class="sig-name descname"><span class="pre">to_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_phase</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'phi_0_abs'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'phi_0_rel'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'phi_s'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#core.commands.set_sync_phase.SetSyncPhase.to_line" title="Link to this definition"></a></dt>
+<dd><p>Return the command, commented if output phase should not be phi_s.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">which_phase</span> <span class="pre">==</span> <span class="pre">'phi_s'</span></code> should never happen for now, the
+<a class="reference internal" href="core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements.store_settings_in_dat" title="core.list_of_elements.list_of_elements.ListOfElements.store_settings_in_dat"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ListOfElements.store_settings_in_dat()</span></code></a> should not allow it.</p>
+</div>
+</dd></dl>
 
 </dd></dl>
 

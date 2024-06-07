@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>beam_calculation package &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>beam_calculation package &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -40,7 +40,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -61,6 +61,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">beam_calculation package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_1d.html">beam_calculation.envelope_1d package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_3d.html">beam_calculation.envelope_3d package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.integrators.html">beam_calculation.integrators package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.parameters.html">beam_calculation.parameters package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.simulation_output.html">beam_calculation.simulation_output package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.tracewin.html">beam_calculation.tracewin package</a></li>
@@ -160,7 +161,6 @@ to hold the meshing, etc.</p>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html">beam_calculation.envelope_1d.transfer_matrices_p module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#beam_calculation.envelope_1d.transfer_matrices_p.e_func"><code class="docutils literal notranslate"><span class="pre">e_func()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#beam_calculation.envelope_1d.transfer_matrices_p.rk4"><code class="docutils literal notranslate"><span class="pre">rk4()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#beam_calculation.envelope_1d.transfer_matrices_p.z_bend"><code class="docutils literal notranslate"><span class="pre">z_bend()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#beam_calculation.envelope_1d.transfer_matrices_p.z_drift"><code class="docutils literal notranslate"><span class="pre">z_drift()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#beam_calculation.envelope_1d.transfer_matrices_p.z_field_map_leapfrog"><code class="docutils literal notranslate"><span class="pre">z_field_map_leapfrog()</span></code></a></li>
@@ -214,12 +214,21 @@ to hold the meshing, etc.</p>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrices_p.html#beam_calculation.envelope_3d.transfer_matrices_p.e_func"><code class="docutils literal notranslate"><span class="pre">e_func()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrices_p.html#beam_calculation.envelope_3d.transfer_matrices_p.field_map_rk4"><code class="docutils literal notranslate"><span class="pre">field_map_rk4()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrices_p.html#beam_calculation.envelope_3d.transfer_matrices_p.quad"><code class="docutils literal notranslate"><span class="pre">quad()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrices_p.html#beam_calculation.envelope_3d.transfer_matrices_p.rk4"><code class="docutils literal notranslate"><span class="pre">rk4()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrices_p.html#beam_calculation.envelope_3d.transfer_matrices_p.thin_lense"><code class="docutils literal notranslate"><span class="pre">thin_lense()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrix_factory.html">beam_calculation.envelope_3d.transfer_matrix_factory module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrix_factory.html#beam_calculation.envelope_3d.transfer_matrix_factory.TransferMatrixFactoryEnvelope3D"><code class="docutils literal notranslate"><span class="pre">TransferMatrixFactoryEnvelope3D</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beam_calculation.integrators.html">beam_calculation.integrators package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beam_calculation.integrators.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.integrators.rk4.html">beam_calculation.integrators.rk4 module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.integrators.rk4.html#beam_calculation.integrators.rk4.rk4"><code class="docutils literal notranslate"><span class="pre">rk4()</span></code></a></li>
 </ul>
 </li>
 </ul>

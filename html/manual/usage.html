@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>Usage &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=812cb809"></script>
+        <script src="../_static/documentation_options.js?v=cf809ea3"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -135,6 +135,13 @@ As an example, if you use <a class="reference internal" href="../beam_calculatio
 In particular: <code class="docutils literal notranslate"><span class="pre">SET_ADV</span></code>, <code class="docutils literal notranslate"><span class="pre">SET_SYNC_PHASE</span></code>, <code class="docutils literal notranslate"><span class="pre">ADJUST</span></code> commands.
 Warnings may not always appear, so be careful that <a class="reference internal" href="../beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a> or <a class="reference internal" href="../beam_calculation.envelope_3d.envelope_3d.html#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a> match with TraceWin.
 If you choose <a class="reference internal" href="../beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a> solver for the optimization, both LightWin and TraceWin could modify the design of the linac at the same time, so unexpected side effects may appear.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">0.6.21</span></code>, <code class="docutils literal notranslate"><span class="pre">SET_SYNC_PHASE</span></code> commands can be kept in the original <code class="docutils literal notranslate"><span class="pre">.dat</span></code>.
+The output <code class="docutils literal notranslate"><span class="pre">.dat</span></code> will contain relative or absolute phase, according to the corresponding <a class="reference internal" href="../beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator.reference_phase" title="beam_calculation.beam_calculator.BeamCalculator.reference_phase"><code class="xref py py-attr docutils literal notranslate"><span class="pre">BeamCalculator.reference_phase</span></code></a>.
+In the future, it will be possible to export <code class="docutils literal notranslate"><span class="pre">.dat</span></code> with <code class="docutils literal notranslate"><span class="pre">SET_SYNC_PHASE</span></code> for all cavities, or to keep the phase definitions of the original <code class="docutils literal notranslate"><span class="pre">.dat</span></code>.</p>
+<p>See also: <a class="reference internal" href="../core.list_of_elements.list_of_elements.html#core.list_of_elements.list_of_elements.ListOfElements.store_settings_in_dat" title="core.list_of_elements.list_of_elements.ListOfElements.store_settings_in_dat"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ListOfElements.store_settings_in_dat()</span></code></a> (the method which is actually called to create the <code class="docutils literal notranslate"><span class="pre">.dat</span></code>).</p>
+</div>
 </section>
 <section id="how-to-implement-commands-or-elements">
 <h3>How to implement commands or elements<a class="headerlink" href="#how-to-implement-commands-or-elements" title="Link to this heading"></a></h3>

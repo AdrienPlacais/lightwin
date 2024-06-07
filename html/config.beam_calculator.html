@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>config.beam_calculator module &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>config.beam_calculator module &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -123,12 +123,12 @@
 
 <dl class="py data">
 <dt class="sig sig-object py" id="config.beam_calculator.IMPLEMENTED_ENVELOPE1D_METHODS">
-<span class="sig-name descname"><span class="pre">IMPLEMENTED_ENVELOPE1D_METHODS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('leapfrog',</span> <span class="pre">'RK')</span></em><a class="headerlink" href="#config.beam_calculator.IMPLEMENTED_ENVELOPE1D_METHODS" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">IMPLEMENTED_ENVELOPE1D_METHODS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('leapfrog',</span> <span class="pre">'RK4')</span></em><a class="headerlink" href="#config.beam_calculator.IMPLEMENTED_ENVELOPE1D_METHODS" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="config.beam_calculator.IMPLEMENTED_ENVELOPE3D_METHODS">
-<span class="sig-name descname"><span class="pre">IMPLEMENTED_ENVELOPE3D_METHODS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('RK',)</span></em><a class="headerlink" href="#config.beam_calculator.IMPLEMENTED_ENVELOPE3D_METHODS" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">IMPLEMENTED_ENVELOPE3D_METHODS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('RK4',)</span></em><a class="headerlink" href="#config.beam_calculator.IMPLEMENTED_ENVELOPE3D_METHODS" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -166,7 +166,7 @@ an entry of <code class="docutils literal notranslate"><span class="pre">beam_ca
 
 <dl class="py function">
 <dt class="sig sig-object py" id="config.beam_calculator._test_envelope3d">
-<span class="sig-name descname"><span class="pre">_test_envelope3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flag_phi_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_steps_per_cell</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RK'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag_cython</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">beam_calculator_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#config.beam_calculator._test_envelope3d" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_test_envelope3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flag_phi_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_steps_per_cell</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RK4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag_cython</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">beam_calculator_kw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#config.beam_calculator._test_envelope3d" title="Link to this definition"></a></dt>
 <dd><p>Check validity of arguments for <a class="reference internal" href="beam_calculation.envelope_3d.envelope_3d.html#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a>.</p>
 </dd></dl>
 

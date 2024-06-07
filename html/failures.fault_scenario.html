@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>failures.fault_scenario module &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>failures.fault_scenario module &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -182,21 +182,13 @@ None. In this case, the solver is the same as for reference.</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="failures.fault_scenario.FaultScenario._reference_phase">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_reference_phase</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#failures.fault_scenario.FaultScenario._reference_phase" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_reference_phase</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'phi_0_abs'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'phi_0_rel'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'phi_s'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#failures.fault_scenario.FaultScenario._reference_phase" title="Link to this definition"></a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">phi_0_rel</span></code> or ‘phi_0_abs’.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Give the reference phase</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="failures.fault_scenario.FaultScenario._reupdate_status_of_rephased_cavities">
-<span class="sig-name descname"><span class="pre">_reupdate_status_of_rephased_cavities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><span class="pre">Fault</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#failures.fault_scenario.FaultScenario._reupdate_status_of_rephased_cavities" title="Link to this definition"></a></dt>
-<dd><p>Modify the status of the cavities that were already rephased.</p>
-<p>Change the cavities with status “rephased (in progress)” to
-“rephased (ok)” between the fault in argument and the next one.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -213,7 +205,7 @@ None. In this case, the solver is the same as for reference.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="failures.fault_scenario.FaultScenario._set_faults">
-<span class="sig-name descname"><span class="pre">_set_faults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_elements_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory" title="core.list_of_elements.factory.ListOfElementsFactory"><span class="pre">ListOfElementsFactory</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory" title="optimisation.design_space.factory.DesignSpaceFactory"><span class="pre">DesignSpaceFactory</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">cavities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">FieldMap</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><span class="pre">Fault</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.fault_scenario.FaultScenario._set_faults" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_set_faults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_elements_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory" title="core.list_of_elements.factory.ListOfElementsFactory"><span class="pre">ListOfElementsFactory</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_space_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory" title="optimisation.design_space.factory.DesignSpaceFactory"><span class="pre">DesignSpaceFactory</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">cavities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core.elements.field_maps.field_map.html#core.elements.field_maps.field_map.FieldMap" title="core.elements.field_maps.field_map.FieldMap"><span class="pre">FieldMap</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><span class="pre">Fault</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.fault_scenario.FaultScenario._set_faults" title="Link to this definition"></a></dt>
 <dd><p>Create the <a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fault</span></code></a> objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -258,6 +250,20 @@ of corresponding compensating cavities.</p></li>
 <p>If the absolute initial phases are not kept between reference and
 broken linac, it comes down to rephasing the linac. This is what we
 want to avoid when <code class="docutils literal notranslate"><span class="pre">beam_calculator.flag_phi_abs</span> <span class="pre">==</span> <span class="pre">True</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="failures.fault_scenario.FaultScenario._update_rephased_cavities_status">
+<span class="sig-name descname"><span class="pre">_update_rephased_cavities_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><span class="pre">Fault</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#failures.fault_scenario.FaultScenario._update_rephased_cavities_status" title="Link to this definition"></a></dt>
+<dd><p>Modify the status of the cavities that were already rephased.</p>
+<p>Change the cavities with status “rephased (in progress)” to
+“rephased (ok)” between <code class="docutils literal notranslate"><span class="pre">fault</span></code> and the next one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="failures.fault_scenario.FaultScenario._wrap_single_fix">
+<span class="sig-name descname"><span class="pre">_wrap_single_fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="failures.fault.html#failures.fault.Fault" title="failures.fault.Fault"><span class="pre">Fault</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimisation_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="optimisation.algorithms.algorithm.html#optimisation.algorithms.algorithm.OptimisationAlgorithm" title="optimisation.algorithms.algorithm.OptimisationAlgorithm"><span class="pre">OptimisationAlgorithm</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_simulation_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="beam_calculation.simulation_output.simulation_output.html#beam_calculation.simulation_output.simulation_output.SimulationOutput" title="beam_calculation.simulation_output.simulation_output.SimulationOutput"><span class="pre">SimulationOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#failures.fault_scenario.FaultScenario._wrap_single_fix" title="Link to this definition"></a></dt>
+<dd><p>Fix a fault and recompute propagation with new settings.</p>
 </dd></dl>
 
 <dl class="py method">

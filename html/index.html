@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to LightWin’s documentation! &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>Welcome to LightWin’s documentation! &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -39,7 +39,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -119,6 +119,10 @@
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.simulation_output_factory.html">beam_calculation.envelope_3d.simulation_output_factory module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrices_p.html">beam_calculation.envelope_3d.transfer_matrices_p module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrix_factory.html">beam_calculation.envelope_3d.transfer_matrix_factory module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.integrators.html">beam_calculation.integrators package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beam_calculation.integrators.rk4.html">beam_calculation.integrators.rk4 module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.parameters.html">beam_calculation.parameters package</a><ul>
@@ -381,29 +385,23 @@ specialist and suggestions are welcome.</p>
 <p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_c.html#id3"><em>original entry</em></a> is located in docstring of beam_calculation.envelope_1d.transfer_matrices_c, line 12.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>Check du_dz outside of field_map function</p>
+<p>Possible to use only lists here. May speed up the code, especially in _c.
+But numpy is fast, no?</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/beam_calculation/envelope_1d/transfer_matrices_p.py:docstring of beam_calculation.envelope_1d.transfer_matrices_p, line 6.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>Possible to use only lists here. Not primary.
-May speed up the code, especially in _c.
-But numpy is fast, no?</p>
-</div>
-<p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#id2"><em>original entry</em></a> is located in /home/placais/LightWin/source/beam_calculation/envelope_1d/transfer_matrices_p.py:docstring of beam_calculation.envelope_1d.transfer_matrices_p, line 9.)</p>
-<div class="admonition-todo admonition">
-<p class="admonition-title">Todo</p>
 <p>send beta as argument to avoid recomputing it each time</p>
 </div>
-<p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#id3"><em>original entry</em></a> is located in /home/placais/LightWin/source/beam_calculation/envelope_1d/transfer_matrices_p.py:docstring of beam_calculation.envelope_1d.transfer_matrices_p, line 14.)</p>
+<p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#id2"><em>original entry</em></a> is located in /home/placais/LightWin/source/beam_calculation/envelope_1d/transfer_matrices_p.py:docstring of beam_calculation.envelope_1d.transfer_matrices_p, line 10.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>clean</p>
+<p>clean, fix, separate leapfrog integration in dedicated module</p>
 </div>
-<p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#id4"><em>original entry</em></a> is located in /home/placais/LightWin/source/beam_calculation/envelope_1d/transfer_matrices_p.py:docstring of beam_calculation.envelope_1d.transfer_matrices_p.z_field_map_leapfrog, line 3.)</p>
+<p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_1d.transfer_matrices_p.html#id3"><em>original entry</em></a> is located in /home/placais/LightWin/source/beam_calculation/envelope_1d/transfer_matrices_p.py:docstring of beam_calculation.envelope_1d.transfer_matrices_p.z_field_map_leapfrog, line 3.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>Maybe <a class="reference internal" href="beam_calculation.envelope_3d.envelope_3d.html#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a> could inherit from <a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a>
+<p>Maybe <a class="reference internal" href="#beam_calculation.envelope_3d.envelope_3d.Envelope3D" title="beam_calculation.envelope_3d.envelope_3d.Envelope3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope3D</span></code></a> could inherit from <a class="reference internal" href="beam_calculation.envelope_1d.envelope_1d.html#beam_calculation.envelope_1d.envelope_1d.Envelope1D" title="beam_calculation.envelope_1d.envelope_1d.Envelope1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Envelope1D</span></code></a>
 and this method would be written outnonly once.</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="beam_calculation.envelope_3d.envelope_3d.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/beam_calculation/envelope_3d/envelope_3d.py:docstring of beam_calculation.envelope_3d.envelope_3d.Envelope3D._adapt_cavity_settings, line 6.)</p>
@@ -622,6 +620,11 @@ _force_a_lattice_for_every_element. See how I should handle this…</p>
 <p class="todo-source">(The <a class="reference internal" href="core.commands.lattice.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/commands/lattice.py:docstring of core.commands.lattice.LatticeEnd.apply, line 3.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
+<p>Should also modify RFQ_CEL, CAVSIN, NCELLS according to doc.</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="core.commands.set_sync_phase.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/commands/set_sync_phase.py:docstring of core.commands.set_sync_phase, line 3.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
 <p>Check if this still works, as lattice and idx_in_lattice are now
 initialized with -1 instead of None.</p>
 </div>
@@ -741,7 +744,7 @@ Or from another class, but they do have a lot in common</p>
 <p class="todo-source">(The <a class="reference internal" href="core.instructions_factory.html#id4"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/instructions_factory.py:docstring of core.instructions_factory.InstructionsFactory.run, line 3.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>Also handle <code class="docutils literal notranslate"><span class="pre">.dst</span></code> file in <a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory.subset_list_run" title="core.list_of_elements.factory.ListOfElementsFactory.subset_list_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subset_list_run()</span></code></a>.</p>
+<p>Also handle <code class="docutils literal notranslate"><span class="pre">.dst</span></code> file in <a class="reference internal" href="#core.list_of_elements.factory.ListOfElementsFactory.subset_list_run" title="core.list_of_elements.factory.ListOfElementsFactory.subset_list_run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subset_list_run()</span></code></a>.</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="core.list_of_elements.factory.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/list_of_elements/factory.py:docstring of core.list_of_elements.factory, line 11.)</p>
 <div class="admonition-todo admonition">
@@ -752,7 +755,7 @@ perfectly on the axis?</p>
 <p class="todo-source">(The <a class="reference internal" href="core.list_of_elements.factory.html#id2"><em>original entry</em></a> is located in /home/placais/LightWin/source/core/list_of_elements/factory.py:docstring of core.list_of_elements.factory, line 14.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>Find a smart way to sublass <a class="reference internal" href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory" title="core.list_of_elements.factory.ListOfElementsFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElementsFactory</span></code></a> according to
+<p>Find a smart way to sublass <a class="reference internal" href="#core.list_of_elements.factory.ListOfElementsFactory" title="core.list_of_elements.factory.ListOfElementsFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListOfElementsFactory</span></code></a> according to
 the <a class="reference internal" href="beam_calculation.beam_calculator.html#beam_calculation.beam_calculator.BeamCalculator" title="beam_calculation.beam_calculator.BeamCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeamCalculator</span></code></a>… Loading field maps not necessary with
 <a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a> for example.</p>
 </div>
@@ -847,7 +850,7 @@ compute_constraints</p>
 <p class="todo-source">(The <a class="reference internal" href="failures.fault_scenario.html#id2"><em>original entry</em></a> is located in /home/placais/LightWin/source/failures/fault_scenario.py:docstring of failures.fault_scenario.FaultScenario.fix_all, line 3.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
-<p>I should create a <a class="reference internal" href="failures.set_of_cavity_settings.html#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code></a> with
+<p>I should create a <a class="reference internal" href="#failures.set_of_cavity_settings.SetOfCavitySettings" title="failures.set_of_cavity_settings.SetOfCavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetOfCavitySettings</span></code></a> with
 <a class="reference internal" href="core.elements.field_maps.cavity_settings.html#core.elements.field_maps.cavity_settings.CavitySettings" title="core.elements.field_maps.cavity_settings.CavitySettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">CavitySettings</span></code></a> for every cavity of the compensation zone.
 Mandatory to recompute the synchronous phases.</p>
 </div>
@@ -1066,6 +1069,11 @@ setting. Would need to edit the <a class="reference internal" href="optimisation
 <p>Modernize this, with type hint etc.</p>
 </div>
 <p class="todo-source">(The <a class="reference internal" href="util.log_manager.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/util/log_manager.py:docstring of util.log_manager, line 13.)</p>
+<div class="admonition-todo admonition">
+<p class="admonition-title">Todo</p>
+<p>fix colors in plots after pass beauty</p>
+</div>
+<p class="todo-source">(The <a class="reference internal" href="util.pass_beauty.html#id1"><em>original entry</em></a> is located in /home/placais/LightWin/source/util/pass_beauty.py:docstring of util.pass_beauty, line 13.)</p>
 <div class="admonition-todo admonition">
 <p class="admonition-title">Todo</p>
 <p>discriminate feasible from unfeasible solutions</p>

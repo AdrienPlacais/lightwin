@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>core.list_of_elements.list_of_elements module &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>core.list_of_elements.list_of_elements module &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -262,24 +262,31 @@ time saving.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.list_of_elements.list_of_elements.ListOfElements.store_settings_in_dat">
-<span class="sig-name descname"><span class="pre">store_settings_in_dat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_phase</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'phi_0_abs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.list_of_elements.list_of_elements.ListOfElements.store_settings_in_dat" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">store_settings_in_dat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_phase</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'phi_0_abs'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'phi_0_rel'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'phi_s'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'as_in_settings'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'as_in_original_dat'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'phi_0_abs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#core.list_of_elements.list_of_elements.ListOfElements.store_settings_in_dat" title="Link to this definition"></a></dt>
 <dd><p>Update the <code class="docutils literal notranslate"><span class="pre">dat</span></code> file, save it if asked.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dat_file</strong> (<em>Path</em>) – Where the output <code class="docutils literal notranslate"><span class="pre">.dat</span></code> should be saved.</p></li>
 <li><p><strong>which_phase</strong> (<em>{'phi_0_abs'</em><em>, </em><em>'phi_0_rel'</em><em>, </em><em>'phi_s'</em><em>, </em><em>'as_in_settings'</em><em>,</em>) – ‘as_in_original_dat’}
-Which phase should be putted in the output <code class="docutils literal notranslate"><span class="pre">.dat</span></code>.</p></li>
+Which phase should be put in the output <code class="docutils literal notranslate"><span class="pre">.dat</span></code>.</p></li>
 <li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If the output file should be created. The default is True.</p></li>
-<li><p><strong>notice</strong> (<em>Important</em>)</p></li>
-<li><p><strong>----------------</strong></p></li>
 </ul>
 </dd>
 </dl>
-<p>:param The phases of the cavities are rephased if the first <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>:
-:param in self is not the first of the linac. This way:
-:param the beam enters each:
-:param cavity with the intended phase in <a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a>.:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>LightWin rephases cavities if the first <a class="reference internal" href="core.elements.element.html#core.elements.element.Element" title="core.elements.element.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>
+in <code class="docutils literal notranslate"><span class="pre">self</span></code> is not the first of the linac. This way, the beam enters
+each cavity with the intended phase in <a class="reference internal" href="beam_calculation.tracewin.tracewin.html#beam_calculation.tracewin.tracewin.TraceWin" title="beam_calculation.tracewin.tracewin.TraceWin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceWin</span></code></a> (no effect
+if the phases are exported as relative phase).</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotImplementedError:</strong> – If <code class="docutils literal notranslate"><span class="pre">which_phase</span></code> is different from <code class="docutils literal notranslate"><span class="pre">&quot;phi_0_abs&quot;</span></code> or
+    <code class="docutils literal notranslate"><span class="pre">&quot;phi_0_rel&quot;</span></code>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

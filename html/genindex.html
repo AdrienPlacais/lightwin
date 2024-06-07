@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>Index &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -35,7 +35,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -1425,8 +1425,6 @@
 </li>
       <li><a href="evaluator.simulation_output.simulation_output_evaluator.html#evaluator.simulation_output.simulation_output_evaluator._return_value_should_be_plotted">_return_value_should_be_plotted() (in module evaluator.simulation_output.simulation_output_evaluator)</a>
 </li>
-      <li><a href="failures.fault_scenario.html#failures.fault_scenario.FaultScenario._reupdate_status_of_rephased_cavities">_reupdate_status_of_rephased_cavities() (FaultScenario method)</a>
-</li>
       <li><a href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._run_constraints">_run_constraints() (DesignSpaceFactory method)</a>
 </li>
       <li><a href="optimisation.design_space.factory.html#optimisation.design_space.factory.DesignSpaceFactory._run_from_file">_run_from_file() (DesignSpaceFactory method)</a>
@@ -1643,6 +1641,8 @@
 </li>
       <li><a href="core.commands.superpose_map.html#core.commands.superpose_map.SuperposeMap._update_class">_update_class() (SuperposeMap method)</a>
 </li>
+      <li><a href="failures.fault_scenario.html#failures.fault_scenario.FaultScenario._update_rephased_cavities_status">_update_rephased_cavities_status() (FaultScenario method)</a>
+</li>
       <li><a href="optimisation.objective.minimize_difference_with_ref.html#optimisation.objective.minimize_difference_with_ref.MinimizeDifferenceWithRef._value_getter">_value_getter() (MinimizeDifferenceWithRef method)</a>
 
       <ul>
@@ -1650,6 +1650,8 @@
 </li>
       </ul></li>
       <li><a href="core.list_of_elements.factory.html#core.list_of_elements.factory.ListOfElementsFactory._whole_list_input_particle">_whole_list_input_particle() (ListOfElementsFactory method)</a>
+</li>
+      <li><a href="failures.fault_scenario.html#failures.fault_scenario.FaultScenario._wrap_single_fix">_wrap_single_fix() (FaultScenario method)</a>
 </li>
       <li><a href="optimisation.algorithms.explorator.html#optimisation.algorithms.explorator.Explorator._wrapper_residuals">_wrapper_residuals() (Explorator method)</a>
 
@@ -1741,6 +1743,8 @@
         <li><a href="core.commands.marker.html#core.commands.marker.Marker.apply">(Marker method)</a>
 </li>
         <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.apply">(RepeatEle method)</a>
+</li>
+        <li><a href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase.apply">(SetSyncPhase method)</a>
 </li>
         <li><a href="core.commands.shift.html#core.commands.shift.Shift.apply">(Shift method)</a>
 </li>
@@ -1922,13 +1926,27 @@
         <li><a href="beam_calculation.envelope_3d.transfer_matrix_factory.html#module-beam_calculation.envelope_3d.transfer_matrix_factory">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     beam_calculation.factory
 
       <ul>
         <li><a href="beam_calculation.factory.html#module-beam_calculation.factory">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    beam_calculation.integrators
+
+      <ul>
+        <li><a href="beam_calculation.integrators.html#module-beam_calculation.integrators">module</a>
+</li>
+      </ul></li>
+      <li>
+    beam_calculation.integrators.rk4
+
+      <ul>
+        <li><a href="beam_calculation.integrators.rk4.html#module-beam_calculation.integrators.rk4">module</a>
 </li>
       </ul></li>
       <li>
@@ -3681,10 +3699,10 @@
 </li>
       <li><a href="util.pass_beauty.html#util.pass_beauty.insert_pass_beauty_instructions">insert_pass_beauty_instructions() (in module util.pass_beauty)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.instruction.html#core.instruction.Instruction">Instruction (class in core.instruction)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.instructions_factory.html#core.instructions_factory.InstructionsFactory">InstructionsFactory (class in core.instructions_factory)</a>
 </li>
       <li><a href="core.beam_parameters.phase_space.i_phase_space_beam_parameters.html#core.beam_parameters.phase_space.i_phase_space_beam_parameters.IPhaseSpaceBeamParameters">IPhaseSpaceBeamParameters (class in core.beam_parameters.phase_space.i_phase_space_beam_parameters)</a>
@@ -3757,6 +3775,8 @@
         <li><a href="core.commands.marker.html#core.commands.marker.Marker.is_implemented">(Marker attribute)</a>
 </li>
         <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.is_implemented">(RepeatEle attribute)</a>
+</li>
+        <li><a href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase.is_implemented">(SetSyncPhase attribute)</a>
 </li>
         <li><a href="core.commands.shift.html#core.commands.shift.Shift.is_implemented">(Shift attribute)</a>
 </li>
@@ -3952,6 +3972,10 @@
         <li><a href="beam_calculation.envelope_3d.transfer_matrix_factory.html#module-beam_calculation.envelope_3d.transfer_matrix_factory">beam_calculation.envelope_3d.transfer_matrix_factory</a>
 </li>
         <li><a href="beam_calculation.factory.html#module-beam_calculation.factory">beam_calculation.factory</a>
+</li>
+        <li><a href="beam_calculation.integrators.html#module-beam_calculation.integrators">beam_calculation.integrators</a>
+</li>
+        <li><a href="beam_calculation.integrators.rk4.html#module-beam_calculation.integrators.rk4">beam_calculation.integrators.rk4</a>
 </li>
         <li><a href="beam_calculation.parameters.html#module-beam_calculation.parameters">beam_calculation.parameters</a>
 </li>
@@ -4356,6 +4380,8 @@
         <li><a href="core.elements.quad.html#core.elements.quad.Quad.n_attributes">(Quad attribute)</a>
 </li>
         <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.n_attributes">(RepeatEle attribute)</a>
+</li>
+        <li><a href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase.n_attributes">(SetSyncPhase attribute)</a>
 </li>
         <li><a href="core.elements.solenoid.html#core.elements.solenoid.Solenoid.n_attributes">(Solenoid attribute)</a>
 </li>
@@ -4923,12 +4949,8 @@
 </li>
       <li><a href="core.electric_field.html#core.electric_field.RfField">RfField (class in core.electric_field)</a>
 </li>
-      <li><a href="beam_calculation.envelope_1d.transfer_matrices_p.html#beam_calculation.envelope_1d.transfer_matrices_p.rk4">rk4() (in module beam_calculation.envelope_1d.transfer_matrices_p)</a>
-
-      <ul>
-        <li><a href="beam_calculation.envelope_3d.transfer_matrices_p.html#beam_calculation.envelope_3d.transfer_matrices_p.rk4">(in module beam_calculation.envelope_3d.transfer_matrices_p)</a>
+      <li><a href="beam_calculation.integrators.rk4.html#beam_calculation.integrators.rk4.rk4">rk4() (in module beam_calculation.integrators.rk4)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="evaluator.post_treaters.html#evaluator.post_treaters.rms_error">rms_error() (in module evaluator.post_treaters)</a>
@@ -5078,6 +5100,8 @@
 </li>
         <li><a href="core.commands.repeat_ele.html#core.commands.repeat_ele.RepeatEle.set_influenced_elements">(RepeatEle method)</a>
 </li>
+        <li><a href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase.set_influenced_elements">(SetSyncPhase method)</a>
+</li>
         <li><a href="core.commands.shift.html#core.commands.shift.Shift.set_influenced_elements">(Shift method)</a>
 </li>
         <li><a href="core.commands.steerer.html#core.commands.steerer.Steerer.set_influenced_elements">(Steerer method)</a>
@@ -5111,6 +5135,8 @@
 </li>
       <li><a href="core.elements.field_maps.cavity_settings.html#core.elements.field_maps.cavity_settings.CavitySettings.shift_phi_bunch">shift_phi_bunch() (CavitySettings method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.sigma">sigma (BeamParameters property)</a>
 
       <ul>
@@ -5119,8 +5145,6 @@
         <li><a href="core.beam_parameters.phase_space.i_phase_space_beam_parameters.html#core.beam_parameters.phase_space.i_phase_space_beam_parameters.IPhaseSpaceBeamParameters.sigma">(IPhaseSpaceBeamParameters attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.beam_parameters.helper.html#core.beam_parameters.helper.sigma_from_transfer_matrices">sigma_from_transfer_matrices() (in module core.beam_parameters.helper)</a>
 </li>
       <li><a href="core.beam_parameters.beam_parameters.html#core.beam_parameters.beam_parameters.BeamParameters.sigma_in">sigma_in (BeamParameters attribute)</a>, <a href="core.beam_parameters.beam_parameters.html#id3">[1]</a>
@@ -5258,6 +5282,8 @@
 </li>
         <li><a href="core.instruction.html#core.instruction.Instruction.to_line">(Instruction method)</a>
 </li>
+        <li><a href="core.commands.set_sync_phase.html#core.commands.set_sync_phase.SetSyncPhase.to_line">(SetSyncPhase method)</a>
+</li>
       </ul></li>
       <li><a href="experimental.new_evaluator.i_evaluator.html#experimental.new_evaluator.i_evaluator.IEvaluator.to_pandas">to_pandas() (IEvaluator method)</a>
 </li>
@@ -5286,6 +5312,8 @@
         <li><a href="tracewin_utils.html#module-tracewin_utils">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     tracewin_utils.dat_files
 
@@ -5293,8 +5321,6 @@
         <li><a href="tracewin_utils.dat_files.html#module-tracewin_utils.dat_files">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     tracewin_utils.electromagnetic_fields
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>beam_calculation.envelope_3d.transfer_matrices_p module &mdash; LightWin 0.6.20-31-ga5e97323 documentation</title>
+  <title>beam_calculation.envelope_3d.transfer_matrices_p module &mdash; LightWin 0.6.21 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=812cb809"></script>
+        <script src="_static/documentation_options.js?v=cf809ea3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -38,7 +38,7 @@
             LightWin
           </a>
               <div class="version">
-                0.6.20-31-ga5e97323
+                0.6.21
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -68,6 +68,7 @@
 <li class="toctree-l4"><a class="reference internal" href="beam_calculation.envelope_3d.transfer_matrix_factory.html">beam_calculation.envelope_3d.transfer_matrix_factory module</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="beam_calculation.integrators.html">beam_calculation.integrators package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.parameters.html">beam_calculation.parameters package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.simulation_output.html">beam_calculation.simulation_output package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beam_calculation.tracewin.html">beam_calculation.tracewin package</a></li>
@@ -120,9 +121,9 @@
              
   <section id="module-beam_calculation.envelope_3d.transfer_matrices_p">
 <span id="beam-calculation-envelope-3d-transfer-matrices-p-module"></span><h1>beam_calculation.envelope_3d.transfer_matrices_p module<a class="headerlink" href="#module-beam_calculation.envelope_3d.transfer_matrices_p" title="Link to this heading"></a></h1>
-<p>Here we define every element transfer matrix.</p>
+<p>Define every element transfer matrix.</p>
 <p>Units are taken exactly as in TraceWin, i.e. fifth line is <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">(m)</span></code> and
-sizth line is <code class="docutils literal notranslate"><span class="pre">dp/p</span></code>.</p>
+sixth line is <code class="docutils literal notranslate"><span class="pre">dp/p</span></code>.</p>
 <div class="admonition-todo admonition" id="id1">
 <p class="admonition-title">Todo</p>
 <p>3D field maps?</p>
@@ -205,7 +206,7 @@ second column.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="beam_calculation.envelope_3d.transfer_matrices_p.e_func">
-<span class="sig-name descname"><span class="pre">e_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_spat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beam_calculation.envelope_3d.transfer_matrices_p.e_func" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">e_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_spat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#beam_calculation.envelope_3d.transfer_matrices_p.e_func" title="Link to this definition"></a></dt>
 <dd><p>Give the electric field at position z and phase phi.</p>
 <p>The field is normalized and should be multiplied by k_e.</p>
 </dd></dl>
@@ -241,31 +242,6 @@ second column.</p></li>
 <li><p><strong>itg_field</strong> (<em>None</em>) – Dummy variable for consistency with the field map function.</p></li>
 </ul>
 </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beam_calculation.envelope_3d.transfer_matrices_p.rk4">
-<span class="sig-name descname"><span class="pre">rk4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">du</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beam_calculation.envelope_3d.transfer_matrices_p.rk4" title="Link to this definition"></a></dt>
-<dd><p>4-th order Runge-Kutta integration.</p>
-<p>This function calculates the variation of u between x and x+dx.
-Warning: this is a slightly modified version of the RK. The k_i are
-proportional to delta_u instead of du_dz.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>u</strong> (<em>np.array</em>) – Holds the value of the function to integrate in x.</p></li>
-<li><p><strong>du_dx</strong> (<em>function</em>) – Gives the variation of u components with x.</p></li>
-<li><p><strong>x</strong> (<em>real</em>) – Where u is known.</p></li>
-<li><p><strong>dx</strong> (<em>real</em>) – Integration step.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>delta_u</strong> – Variation of u between x and x+dx.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>real</p>
 </dd>
 </dl>
 </dd></dl>
