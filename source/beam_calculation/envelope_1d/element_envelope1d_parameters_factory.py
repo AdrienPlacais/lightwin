@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create the solver parameters for :class:`.Envelope1D`."""
+
 import logging
+from typing import Literal
 
 from beam_calculation.envelope_1d.element_envelope1d_parameters import (
     BendEnvelope1DParameters,
@@ -41,14 +41,14 @@ class ElementEnvelope1DParametersFactory(
 
     def __init__(
         self,
-        method: str,
+        method: Literal["leapfrog", "RK4"],
         n_steps_per_cell: int,
         solver_id: str,
         flag_cython: bool = False,
-        phi_s_definition: str = "historical",
+        phi_s_definition: Literal["historical"] = "historical",
     ) -> None:
         """Prepare import of proper functions."""
-        assert method in ("leapfrog", "RK", "RK4")
+        assert method in ("leapfrog", "RK4")
         self.method = method
         self.n_steps_per_cell = n_steps_per_cell
         self.solver_id = solver_id
@@ -59,8 +59,8 @@ class ElementEnvelope1DParametersFactory(
                 import beam_calculation.envelope_1d.transfer_matrices_c as transf_mat_module
             except ModuleNotFoundError:
                 logging.error(
-                    "Cython not found. Maybe it was not compilated. "
-                    "Check util/setup.py for information."
+                    "Cython not found. Maybe it was not compilated. Check "
+                    "util/setup.py for information."
                 )
                 raise ModuleNotFoundError
         else:
@@ -145,11 +145,11 @@ class ElementEnvelope1DParametersFactory(
             return constructor
 
         logging.error(
-            f"Element {elt} of {element_class = } not added to the Envelope3D "
+            f"Element {elt} of {element_class = } not added to the Envelope1D "
             "dict linking every Element class to its specific parameters"
             "(transfer matrix in particular). Neither was found its "
             f"{super_class = }. "
             "Note that you can use the elements_to_dump key in the "
-            "Envelope3D.ListOfElementFactory class."
+            "Envelope1D.ListOfElementFactory class."
         )
         return default

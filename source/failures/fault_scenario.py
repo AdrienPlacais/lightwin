@@ -19,13 +19,16 @@ from beam_calculation.simulation_output.simulation_output import (
 from beam_calculation.tracewin.tracewin import TraceWin
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
+from core.elements.field_maps.cavity_settings import REFERENCE_T
+
+# from failures.set_of_cavity_settings import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
 from evaluator.list_of_simulation_output_evaluators import (
     FaultScenarioSimulationOutputEvaluators,
 )
 from failures import strategy
 from failures.fault import Fault
-from failures.set_of_cavity_settings import FieldMap
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from optimisation.algorithms.factory import optimisation_algorithm_factory
 from optimisation.design_space.factory import (
@@ -237,40 +240,11 @@ class FaultScenario(list):
         for fault, optimisation_algorithm in zip(
             self, optimisation_algorithms
         ):
-            _succ, _info = fault.fix(optimisation_algorithm)
-
-            success.append(_succ)
-            info.append(_info)
-
-            simulation_output = (
-                self.beam_calculator.post_optimisation_run_with_this(
-                    fault.optimized_cavity_settings,
-                    self.fix_acc.elts,
-                )
+            args = self._wrap_single_fix(
+                fault, optimisation_algorithm, ref_simulation_output
             )
-            simulation_output.compute_complementary_data(
-                self.fix_acc.elts, ref_simulation_output=ref_simulation_output
-            )
-
-            self.fix_acc.keep_settings(
-                simulation_output, output_phase=self._reference_phase
-            )
-            self.fix_acc.keep_simulation_output(
-                simulation_output, self.beam_calculator.id
-            )
-
-            fault.update_elements_status(optimisation="finished", success=True)
-            logging.warning("Manually set which_phase")
-            fault.elts.store_settings_in_dat(
-                fault.elts.files["dat_file"],
-                which_phase=self._reference_phase,
-                save=True,
-            )
-
-            if not self.beam_calculator.flag_phi_abs:
-                # Tell LW to keep the new phase of the rephased cavities
-                # between the two compensation zones
-                self._reupdate_status_of_rephased_cavities(fault)
+            success.append(args[0])
+            success.append(args[1])
 
         self.fix_acc.name = (
             f"Fixed ({str(success.count(True))}" + f" of {str(len(success))})"
@@ -291,42 +265,77 @@ class FaultScenario(list):
         # Legacy, does not work anymore with the new implementation
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
 
-    def _reupdate_status_of_rephased_cavities(self, fault: Fault) -> None:
+    def _wrap_single_fix(
+        self,
+        fault: Fault,
+        optimisation_algorithm: OptimisationAlgorithm,
+        ref_simulation_output: SimulationOutput,
+    ) -> tuple[bool, dict]:
+        """Fix a fault and recompute propagation with new settings."""
+        success, info = fault.fix(optimisation_algorithm)
+
+        simulation_output = (
+            self.beam_calculator.post_optimisation_run_with_this(
+                fault.optimized_cavity_settings, self.fix_acc.elts
+            )
+        )
+        simulation_output.compute_complementary_data(
+            self.fix_acc.elts, ref_simulation_output=ref_simulation_output
+        )
+
+        self.fix_acc.keep_settings(
+            simulation_output, output_phase=self._reference_phase
+        )
+        self.fix_acc.keep_simulation_output(
+            simulation_output, self.beam_calculator.id
+        )
+
+        fault.update_elements_status(optimisation="finished", success=True)
+        fault.elts.store_settings_in_dat(
+            fault.elts.files["dat_file"],
+            which_phase=self._reference_phase,
+            save=True,
+        )
+
+        if self._reference_phase == "phi_0_rel":
+            self._update_rephased_cavities_status(fault)
+
+        return success, info
+
+    def _update_rephased_cavities_status(self, fault: Fault) -> None:
         """Modify the status of the cavities that were already rephased.
 
         Change the cavities with status "rephased (in progress)" to
-        "rephased (ok)" between the fault in argument and the next one.
+        "rephased (ok)" between ``fault`` and the next one.
 
         """
-        logging.warning("Changed the way of defining idx1 and idx2.")
         elts = self.fix_acc.elts
-
-        idx1 = fault.elts[-1].idx["elt_idx"]
-        idx2 = len(elts)
-        if fault is not self[-1]:
-            next_fault = self[self.index(fault) + 1]
-            idx2 = next_fault.elts[0].idx["elt_idx"] + 1
-
-        rephased_cavities_between_two_faults = [
-            elt
-            for elt in elts[idx1:idx2]
-            if elt.get("nature") == "FIELD_MAP"
-            and elt.get("status") == "rephased (in progress)"
-        ]
-
-        for cav in rephased_cavities_between_two_faults:
-            cav.update_status("rephased (ok)")
-        return
-        # New implementation to test
         idx_start = elts.index(fault.elts[-1])
         for elt in elts[idx_start:]:
-            if elt.nature != "FIELD_MAP":
+            if not isinstance(elt, FieldMap):
                 continue
             if elt.status == "rephased (in progress)":
                 elt.update_status("rephased (ok)")
                 continue
             if "compensate" in elt.status or "failed" in elt.status:
                 return
+        # Old implementation, kept au cas où
+        # idx1 = fault.elts[-1].idx["elt_idx"]
+        # idx2 = len(elts)
+        # if fault is not self[-1]:
+        #     next_fault = self[self.index(fault) + 1]
+        #     idx2 = next_fault.elts[0].idx["elt_idx"] + 1
+        #
+        # rephased_cavities_between_two_faults = [
+        #     elt
+        #     for elt in elts[idx1:idx2]
+        #     if elt.get("nature") == "FIELD_MAP"
+        #     and elt.get("status") == "rephased (in progress)"
+        # ]
+        #
+        # for cav in rephased_cavities_between_two_faults:
+        #     cav.update_status("rephased (ok)")
+        # return
 
     def _transfer_phi0_from_ref_to_broken(self) -> None:
         """Transfer the entry phases from reference linac to broken.
@@ -345,7 +354,7 @@ class FaultScenario(list):
             fix.phi_ref = phi_0_ref
 
     @property
-    def _reference_phase(self) -> str:
+    def _reference_phase(self) -> REFERENCE_T:
         """Give the reference phase: `phi_0_rel` or 'phi_0_abs'."""
         return self.beam_calculator.reference_phase
 

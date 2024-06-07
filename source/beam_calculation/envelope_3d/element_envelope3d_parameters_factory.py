@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create the solver parameters for :class:`.Envelope3D`."""
+
 import logging
+from typing import Literal
 
 from beam_calculation.envelope_3d.element_envelope3d_parameters import (
     BendEnvelope3DParameters,
@@ -39,14 +39,13 @@ class ElementEnvelope3DParametersFactory(
 
     def __init__(
         self,
-        method: str,
+        method: Literal["RK4"],
         n_steps_per_cell: int,
         solver_id: str,
         flag_cython: bool = False,
-        phi_s_definition: str = "historical",
+        phi_s_definition: Literal["historical"] = "historical",
     ) -> None:
         """Prepare import of proper functions."""
-        assert method in ("RK", "RK4")
         self.method = method
         self.n_steps_per_cell = n_steps_per_cell
         self.solver_id = solver_id

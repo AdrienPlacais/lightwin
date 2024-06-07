@@ -12,19 +12,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `evaluator` objects are more robust and can be configured from the `.toml`.
 - Plotting is now performed thanks to the `plotter` library.
 
-## [0.6.21] 2024-05-31
+## [0.6.21] 2024-06-07
 
 ### Added
 - Support for `REPEAT_ELE` command.
+- Basic support for `SET_SYNC_PHASE`. This command can be kept in the input `.dat`, but output `.dat` will hold relative or absolute phase (determined by the `BeamCalculator.reference_phase`).
+
+### Changed
+- When creating the `BeamCalculator`, prefer `method="RK4"` over `method="RK"` for 4th order Runge-Kutta method.
 
 ## [0.6.20] 2024-05-31
 
 ### Added
 - Basic support for `ADJUST` commands
-- New functionality: beauty pass.
+- New functionality: pass beauty.
  - After a `FaultScenario` is fixed, use `insert_beauty_pass_instructions` from `util.beauty_pass` to add diagnostics and adjust and let TraceWin refine the settings.
  - Prefer providing `TraceWin` with `cancel_matchingP = true` (would be too long).
  - Do NOT provide `cancel_matching = true` nor `cancel_matching = false`. Just drop this argument out (FIXME).
+ - Compensating, rephased and failed cavities will be incorrectly displayed as nominal (green) cavities in the output figures (FIXME).
 
 ### Fixed
 - Personalized name of field maps 1100, 100 and of quadrupoles are now exported in output dat file.

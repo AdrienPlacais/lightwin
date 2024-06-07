@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Store the solver parameters for :class:`.TraceWin`.
 
 .. note::
@@ -9,6 +7,7 @@
     and others.
 
 """
+
 import logging
 from typing import Any, Sequence
 
@@ -58,11 +57,10 @@ class ElementTraceWinParameters(ElementBeamCalculatorParameters):
 
         if np.abs(length_m - self.rel_mesh[-1]) > 1e-2:
             logging.debug(
-                "Mismatch between length of the linac in the `.out` "
-                "file and what is expected. Maybe an error was "
-                "raised during execution of `TraceWin` and the "
-                "`.out` file is incomplete? In this case, check "
-                "`_add_dummy_data` in `tracewin` module."
+                "Mismatch between length of the linac in the .out file and "
+                "what is expected. Maybe an error was raised during execution "
+                "of TraceWin and the .out file is incomplete? In this case, "
+                "check _add_dummy_data in tracewin module."
             )
 
         self.s_in = s_in

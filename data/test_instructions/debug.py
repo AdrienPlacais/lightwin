@@ -40,8 +40,6 @@ def set_up(
     """Set up everything."""
     beam_calculator, beam_calculator_ids = _set_up_solvers(config)
     accelerator = _set_up_accelerators(config, beam_calculator)
-
-
     return beam_calculator, accelerator
 
 
@@ -64,8 +62,9 @@ if __name__ == "__main__":
     }
     override = {
         "files": {
-            "dat_file": "bigger_repeat_ele.dat",
+            "dat_file": "set_sync_phase.dat",
         },
+        "beam_calculator": {"n_steps_per_cell": 40},
     }
     config = config_manager.process_config(
         toml_filepath, toml_keys, override=override

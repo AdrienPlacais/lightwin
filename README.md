@@ -29,7 +29,7 @@ See the `data/example` folder.
 
 - [ ] `Plotter` object.
 - [ ] Friendlier `Evaluator`.
-- [ ] Full support for `SET_SYNC_PHASE`.
+- [x] Support for `SET_SYNC_PHASE` (see [note](https://adrienplacais.github.io/LightWin/html/manual/usage.html#compatibility-with-tracewin-dat-files)).
 - [ ] Better handling of TraceWin errors (currently: a single error and whole run is lost).
 
 ### Optimization

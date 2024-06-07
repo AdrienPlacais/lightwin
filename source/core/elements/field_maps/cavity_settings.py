@@ -18,7 +18,7 @@ import logging
 import math
 from collections.abc import Callable
 from functools import partial
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 import numpy as np
 from scipy.optimize import minimize_scalar
@@ -31,8 +31,18 @@ from util.phases import (
     phi_rf_to_phi_bunch,
 )
 
+REFERENCE_T = Literal["phi_0_abs", "phi_0_rel", "phi_s"]
 ALLOWED_REFERENCES = ("phi_0_abs", "phi_0_rel", "phi_s")  #:
 # warning: doublon with field_map.IMPLEMENTED_STATUS
+STATUS_T = Literal[
+    "nominal",
+    "rephased (in progress)",
+    "rephased (ok)",
+    "failed",
+    "compensate (in progress)",
+    "compensate (ok)",
+    "compensate (not ok)",
+]
 ALLOWED_STATUS = (
     "nominal",
     "rephased (in progress)",
@@ -67,8 +77,8 @@ class CavitySettings:
         self,
         k_e: float,
         phi: float,
-        reference: str,
-        status: str,
+        reference: REFERENCE_T,
+        status: STATUS_T,
         freq_bunch_mhz: float,
         freq_cavity_mhz: float | None = None,
         transf_mat_func_wrappers: dict[str, Callable] | None = None,
@@ -83,10 +93,10 @@ class CavitySettings:
         phi : float
             Input phase. Must be absolute or relative entry phase, or
             synchronous phase.
-        reference : {'phi_0_abs', 'phi_0_rel', 'phi_s'}
+        reference : REFERENCE_T
             Name of the phase used for reference. When a particle enters the
             cavity, this is the phase that is not recomputed.
-        status : str
+        status : STATUS_T
             A value in :var:`ALLOWED_STATUS`.
         freq_bunch_mhz : float
             Bunch frequency in MHz.
@@ -108,17 +118,18 @@ class CavitySettings:
 
         """
         self.k_e = k_e
-        self._reference: str
+        self._reference: REFERENCE_T
         self.reference = reference
         self.phi_ref = phi
 
-        self._phi_0_abs: float | None
-        self._phi_0_rel: float | None
+        self._phi_0_abs: float
+        self._phi_0_rel: float
         self._phi_s: float
         self._v_cav_mv: float
         self._phi_rf: float
         self._phi_bunch: float
 
+        self._status: STATUS_T
         self.status = status
 
         self.transf_mat_func_wrappers: dict[str, Callable] = {}
@@ -169,11 +180,14 @@ class CavitySettings:
 
     @classmethod
     def from_other_cavity_settings(
-        cls, other: Self, reference: str = ""
+        cls,
+        other: Self,
+        reference: REFERENCE_T | None = None,
     ) -> Self:
         """Create settings with same settings as provided."""
-        if not reference:
+        if reference is None:
             reference = other.reference
+        assert reference is not None
         settings = cls(
             other.k_e,
             getattr(other, reference),
@@ -192,8 +206,8 @@ class CavitySettings:
         base: Self,
         k_e: float,
         phi: float,
-        status: str,
-        reference: str = "",
+        status: STATUS_T,
+        reference: REFERENCE_T | None = None,
     ) -> Self:
         """Create settings based on ``base`` with different ``k_e``, ``phi_0``.
 
@@ -218,8 +232,9 @@ class CavitySettings:
             A new :class:`CavitySettings` with modified amplitude and phase.
 
         """
-        if not reference:
+        if reference is None:
             reference = base.reference
+        assert reference is not None
         settings = cls(
             k_e,
             phi,
@@ -319,7 +334,7 @@ class CavitySettings:
     # Reference
     # =============================================================================
     @property
-    def reference(self) -> str:
+    def reference(self) -> REFERENCE_T:
         """Say what is the reference phase.
 
         .. list-table:: Equivalents of ``reference`` in TraceWin's \
@@ -340,7 +355,7 @@ class CavitySettings:
         return self._reference
 
     @reference.setter
-    def reference(self, value: str) -> None:
+    def reference(self, value: REFERENCE_T) -> None:
         """Set the value of reference, check that it is valid."""
         assert value in ALLOWED_REFERENCES
         self._reference = value
@@ -369,30 +384,21 @@ class CavitySettings:
 
     def _delete_non_reference_phases(self) -> None:
         """Reset the phases that are not the reference to None."""
-        if self.reference == "phi_0_abs":
-            self._phi_0_rel = None
-            delattr(self, "phi_s")
-            return
-        if self.reference == "phi_0_rel":
-            self._phi_0_abs = None
-            delattr(self, "phi_s")
-            return
-        if self.reference == "phi_s":
-            self._phi_0_abs = None
-            self._phi_0_rel = None
-            return
-        raise ValueError(f"{self.reference = } not implemented.")
+        for phase in ALLOWED_REFERENCES:
+            if phase == self.reference:
+                continue
+            delattr(self, phase)
 
     # =============================================================================
     # Status
     # =============================================================================
     @property
-    def status(self) -> str:
+    def status(self) -> STATUS_T:
         """Give the status of the cavity under study."""
         return self._status
 
     @status.setter
-    def status(self, value: str) -> None:
+    def status(self, value: STATUS_T) -> None:
         """Check that new status is allowed, set it.
 
         Also checks consistency between the value of the new status and the
@@ -444,6 +450,11 @@ class CavitySettings:
         logging.error("The phase was not initialized. Returning None...")
         return None
 
+    @phi_0_abs.deleter
+    def phi_0_abs(self) -> None:
+        """Delete attribute."""
+        self._phi_0_abs = None
+
     # =============================================================================
     # Relative phi_0
     # =============================================================================
@@ -490,6 +501,11 @@ class CavitySettings:
 
         self.phi_0_rel = phi_s_to_phi_0_rel(self._phi_s)
         return self._phi_0_rel
+
+    @phi_0_rel.deleter
+    def phi_0_rel(self) -> None:
+        """Delete attribute."""
+        self._phi_0_rel = None
 
     # =============================================================================
     # Synchronous phase, accelerating voltage
@@ -547,6 +563,11 @@ class CavitySettings:
 
         self._phi_s = phi_s_calc(self.phi_0_rel)
         return self._phi_s
+
+    @phi_s.deleter
+    def phi_s(self) -> None:
+        """Delete attribute."""
+        self._phi_s = np.NaN
 
     def set_cavity_parameters_methods(
         self,
@@ -823,7 +844,7 @@ def _get_valid_func(obj: object, func_name: str, solver_id: str) -> Callable:
     )
     func = all_funcs.get(solver_id, None)
     assert isinstance(func, Callable), (
-        f"No Callable {func_name} was found in {object} for {solverbase_name = }"
+        f"No Callable {func_name} was found in {object} for {solver_id = }"
         "Check CavitySettings.set_cavity_parameters_methods and"
         "CavitySettings.set_cavity_parameters_arguments"
     )

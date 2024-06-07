@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a function to generate a :class:`.BeamParameters` for TraceWin."""
+
 from typing import Callable
 
 import numpy as np
@@ -15,77 +14,83 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
     """A class holding method to generate :class:`.BeamParameters`."""
 
     def factory_method(
-            self,
-            z_abs: np.ndarray,
-            gamma_kin: np.ndarray,
-            results: dict[str, np.ndarray],
-            element_to_index: Callable[[str | Element, str | None],
-                                       int | slice],
+        self,
+        z_abs: np.ndarray,
+        gamma_kin: np.ndarray,
+        results: dict[str, np.ndarray],
+        element_to_index: Callable[[str | Element, str | None], int | slice],
     ) -> BeamParameters:
         """Create the :class:`.BeamParameters` object."""
-        z_abs, gamma_kin, beta_kin = self._check_and_set_arrays(z_abs,
-                                                                gamma_kin)
+        z_abs, gamma_kin, beta_kin = self._check_and_set_arrays(
+            z_abs, gamma_kin
+        )
 
-        beam_parameters = BeamParameters(z_abs,
-                                         gamma_kin,
-                                         beta_kin,
-                                         sigma_in=None,
-                                         element_to_index=element_to_index,
-                                         )
+        beam_parameters = BeamParameters(
+            z_abs,
+            gamma_kin,
+            beta_kin,
+            sigma_in=None,
+            element_to_index=element_to_index,
+        )
 
-        phase_space_names = ('x', 'y', 'zdelta')
+        phase_space_names = ("x", "y", "zdelta")
         data_to_retrieve_sigmas = (
-            self._extract_phase_space_data_for_sigma(phase_space_name,
-                                                     results)
+            self._extract_phase_space_data_for_sigma(phase_space_name, results)
             for phase_space_name in phase_space_names
         )
         sigmas = (
-            reconstruct_sigma(phase_space_name,
-                              *data_to_retrieve_sigma,
-                              eps_is_normalized=True,
-                              gamma_kin=gamma_kin,
-                              beta_kin=beta_kin,
-                              )
-            for phase_space_name, data_to_retrieve_sigma
-            in zip(phase_space_names, data_to_retrieve_sigmas)
+            reconstruct_sigma(
+                phase_space_name,
+                *data_to_retrieve_sigma,
+                eps_is_normalized=True,
+                gamma_kin=gamma_kin,
+                beta_kin=beta_kin,
+            )
+            for phase_space_name, data_to_retrieve_sigma in zip(
+                phase_space_names, data_to_retrieve_sigmas
+            )
         )
-        self._set_from_sigma(beam_parameters,
-                             phase_space_names,
-                             sigmas,
-                             gamma_kin,
-                             beta_kin,
-                             )
+        self._set_from_sigma(
+            beam_parameters,
+            phase_space_names,
+            sigmas,
+            gamma_kin,
+            beta_kin,
+        )
 
-        other_phase_space_names = ('x', 'y')
-        phase_space_name = 't'
-        self._set_transverse_from_x_and_y(beam_parameters,
-                                          other_phase_space_names,
-                                          phase_space_name)
+        other_phase_space_names = ("x", "y")
+        phase_space_name = "t"
+        self._set_transverse_from_x_and_y(
+            beam_parameters, other_phase_space_names, phase_space_name
+        )
 
-        other_phase_space_name = 'zdelta'
-        phase_space_names = ('z', 'phiw')
-        self._set_from_other_phase_space(beam_parameters,
-                                         other_phase_space_name,
-                                         phase_space_names,
-                                         gamma_kin,
-                                         beta_kin)
+        other_phase_space_name = "zdelta"
+        phase_space_names = ("z", "phiw")
+        self._set_from_other_phase_space(
+            beam_parameters,
+            other_phase_space_name,
+            phase_space_names,
+            gamma_kin,
+            beta_kin,
+        )
 
         if self.is_multipart:
-            phase_space_names = ('x99', 'y99', 'phiw99')
+            phase_space_names = ("x99", "y99", "phiw99")
             emittances = (
-                self._extract_emittance_for_99percent(phase_space_name,
-                                                      results)
+                self._extract_emittance_for_99percent(
+                    phase_space_name, results
+                )
                 for phase_space_name in phase_space_names
             )
-            self._set_only_emittance(beam_parameters,
-                                     phase_space_names,
-                                     emittances)
+            self._set_only_emittance(
+                beam_parameters, phase_space_names, emittances
+            )
         return beam_parameters
 
     def _extract_phase_space_data_for_sigma(
-            self,
-            phase_space_name: str,
-            results: dict[str, np.ndarray],
+        self,
+        phase_space_name: str,
+        results: dict[str, np.ndarray],
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         r"""
         Retrieve the data necessary to reconstruct :math:`\sigma` beam matrix.
@@ -111,21 +116,22 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
 
         """
         phase_space_to_keys = {
-            'x': ('SizeX', "sxx'", 'ex'),
-            'y': ('SizeY', "syy'", 'ey'),
-            'zdelta': ('SizeZ', "szdp", 'ezdp'),
+            "x": ("SizeX", "sxx'", "ex"),
+            "y": ("SizeY", "syy'", "ey"),
+            "zdelta": ("SizeZ", "szdp", "ezdp"),
         }
         assert phase_space_name in phase_space_to_keys
         keys = phase_space_to_keys[phase_space_name]
-        sigma_00 = results[keys[0]]**2
+        sigma_00 = results[keys[0]] ** 2
         sigma_01 = results[keys[1]]
         eps_normalized = results[keys[2]]
         return sigma_00, sigma_01, eps_normalized
 
-    def _extract_emittance_for_99percent(self,
-                                         phase_space_name: str,
-                                         results: dict[str, np.ndarray],
-                                         ) -> np.ndarray:
+    def _extract_emittance_for_99percent(
+        self,
+        phase_space_name: str,
+        results: dict[str, np.ndarray],
+    ) -> np.ndarray:
         r"""
         Retrieve the 99% emittances.
 
@@ -147,9 +153,9 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
 
         """
         getters = {
-            'x99': results['ex99'],
-            'y99': results['ey99'],
-            'phiw99': results['ep99']
+            "x99": results["ex99"],
+            "y99": results["ey99"],
+            "phiw99": results["ep99"],
         }
         assert phase_space_name in getters
         return getters[phase_space_name]

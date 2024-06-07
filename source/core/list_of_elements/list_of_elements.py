@@ -21,6 +21,7 @@ import numpy as np
 
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.elements.element import Element
+from core.elements.field_maps.cavity_settings import REFERENCE_T
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.helper import (
     first,
@@ -252,7 +253,9 @@ class ListOfElements(list):
     def store_settings_in_dat(
         self,
         dat_file: Path,
-        which_phase: str = "phi_0_abs",
+        which_phase: (
+            REFERENCE_T | Literal["as_in_settings", "as_in_original_dat"]
+        ) = "phi_0_abs",
         save: bool = True,
     ) -> None:
         r"""Update the ``dat`` file, save it if asked.
@@ -263,21 +266,34 @@ class ListOfElements(list):
             Where the output ``.dat`` should be saved.
         which_phase : {'phi_0_abs', 'phi_0_rel', 'phi_s', 'as_in_settings',
                 \ 'as_in_original_dat'}
-            Which phase should be putted in the output ``.dat``.
+            Which phase should be put in the output ``.dat``.
         save : bool, optional
             If the output file should be created. The default is True.
 
-        Important notice
-        ----------------
-        The phases of the cavities are rephased if the first :class:`.Element`
-        in self is not the first of the linac. This way, the beam enters each
-        cavity with the intended phase in :class:`.TraceWin`.
+        Note
+        ----
+        LightWin rephases cavities if the first :class:`.Element`
+        in ``self`` is not the first of the linac. This way, the beam enters
+        each cavity with the intended phase in :class:`.TraceWin` (no effect
+        if the phases are exported as relative phase).
+
+        Raises
+        ------
+        NotImplementedError:
+            If ``which_phase`` is different from ``"phi_0_abs"`` or
+            ``"phi_0_rel"``.
 
         """
+        if which_phase == "phi_s":
+            raise NotImplementedError(
+                "Output with SET_SYNC_PHASE not implemented yet."
+            )
+        if which_phase in ("as_in_settings", "as_in_original_dat"):
+            raise NotImplementedError
         self.files["dat_file"] = dat_file
         dat_content = [
-            elt_or_cmd.to_line(which_phase=which_phase, inplace=False)
-            for elt_or_cmd in self.files["elts_n_cmds"]
+            instruction.to_line(which_phase=which_phase, inplace=False)
+            for instruction in self.files["elts_n_cmds"]
         ]
         if save:
             export_dat_filecontent(dat_content, dat_file)

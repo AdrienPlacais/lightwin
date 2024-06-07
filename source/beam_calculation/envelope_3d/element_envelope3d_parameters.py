@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a class to hold solver parameters for :class:`.Envelope3D`.
 
 This module holds :class:`ElementEnvelope3DParameters`, that inherits
@@ -13,6 +11,7 @@ The list of implemented transfer matrices is
 :data:`implemented_transfer_matrices`.
 
 """
+
 from abc import abstractmethod
 from types import ModuleType
 from typing import Any, Callable, Sequence
@@ -32,7 +31,6 @@ from core.elements.solenoid import Solenoid
 from util.synchronous_phases import SYNCHRONOUS_PHASE_FUNCTIONS
 
 FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
-    "RK": lambda transf_mat_module: transf_mat_module.field_map_rk4,
     "RK4": lambda transf_mat_module: transf_mat_module.field_map_rk4,
 }
 

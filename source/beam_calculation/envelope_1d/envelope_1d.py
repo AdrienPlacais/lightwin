@@ -1,13 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Calculate beam in 1D envelope.
+"""Define class to compute beam propagation in envelope, 1D, no space-charge.
 
 This solver is fast, but should not be used at low energies.
 
 """
+
 import logging
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import (
@@ -32,23 +32,21 @@ class Envelope1D(BeamCalculator):
 
     def __init__(
         self,
+        *,
         flag_phi_abs: bool,
         flag_cython: bool,
         n_steps_per_cell: int,
-        method: str,
+        method: Literal["RK4", "leaprog"],
         out_folder: Path | str,
         default_field_map_folder: Path | str,
-        phi_s_definition: str = "historical",
+        phi_s_definition: Literal["historical"] = "historical",
     ) -> None:
         """Set the proper motion integration function, according to inputs."""
         self.flag_cython = flag_cython
         self.n_steps_per_cell = n_steps_per_cell
         self.method = method
-        super().__init__(
-            flag_phi_abs,
-            out_folder,
-            default_field_map_folder,
-        )
+        super().__init__(flag_phi_abs, out_folder, default_field_map_folder)
+
         self._phi_s_definition = phi_s_definition
         self._phi_s_func = SYNCHRONOUS_PHASE_FUNCTIONS[self._phi_s_definition]
 
@@ -154,6 +152,7 @@ class Envelope1D(BeamCalculator):
             if cavity_settings is not None:
                 v_cav_mv, phi_s = self._compute_cavity_parameters(elt_results)
                 cavity_settings.v_cav_mv = v_cav_mv
+                # not useful if sync phase is already set (reference phi_s)
                 cavity_settings.phi_s = phi_s
 
             single_elts_results.append(elt_results)
@@ -162,9 +161,7 @@ class Envelope1D(BeamCalculator):
             w_kin = elt_results["w_kin"][-1]
 
         simulation_output = self._generate_simulation_output(
-            elts,
-            single_elts_results,
-            set_of_cavity_settings,
+            elts, single_elts_results, set_of_cavity_settings
         )
         return simulation_output
 
@@ -205,9 +202,8 @@ class Envelope1D(BeamCalculator):
         for elt in elts:
             if self.id in elt.beam_calc_param:
                 logging.debug(
-                    f"Solver already initialized for {elt = }."
-                    "I will skip solver param initialisation for"
-                    f" {elts[0]} to {elts[-1]}"
+                    f"Solver already initialized for {elt = }. I will skip "
+                    f"solver param initialisation {elts[0]} to {elts[-1]}"
                 )
                 return
             solver_param = self.beam_calc_parameters_factory.run(elt)
