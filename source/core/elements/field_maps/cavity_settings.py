@@ -707,7 +707,7 @@ class CavitySettings:
 
         v_cav_mv_calc = getattr(self, "_phi_0_rel_to_v_cav_mv", None)
         if v_cav_mv_calc is None:
-            logging.error(
+            logging.debug(
                 "You must set a function to compute v_cav_mv from "
                 "phi_0_rel with CavitySettings.set_cavity_parameters_arguments"
                 " method."
