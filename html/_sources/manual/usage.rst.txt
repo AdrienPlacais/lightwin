@@ -66,4 +66,7 @@ You can implement the desired elements and `git push` them, file an issue on Git
 .. note::
    See example.
 
+.. warning::
+   Field maps file formats must be ascii, binary files to handled yet
+
 .. _email: mailto:placais@lpsc.in2p3.fr
